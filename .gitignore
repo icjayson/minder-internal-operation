@@ -1,0 +1,28 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# extension build artifacts
+extension/*.zip
+extension/dist/
+
+# misc
+.turbo
+coverage/
+*.tsbuildinfo
+next-env.d.ts

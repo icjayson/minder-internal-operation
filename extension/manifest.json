@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Minder Leads",
+  "version": "0.1.0",
+  "description": "Save LinkedIn profiles, company pages, and websites as leads in Minder CRM.",
+  "action": {
+    "default_title": "Open Minder Leads"
+  },
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

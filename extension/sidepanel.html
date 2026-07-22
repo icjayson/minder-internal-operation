@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Minder Leads</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">m</div>
+        <div>
+          <div class="brand-title">Minder Leads</div>
+          <div class="brand-sub" id="page-kind">—</div>
+        </div>
+      </div>
+      <a class="icon-btn" id="open-dashboard" title="Open dashboard" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M7 17 17 7M8 7h9v9" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+    </header>
+
+    <div class="status-bar" id="status">
+      <span id="status-text">Detecting page… (v1)</span>
+    </div>
+
+    <!-- "Already saved" card: shown when this linkedin_url exists in Supabase. -->
+    <div id="saved-card" class="saved-card" hidden>
+      <div class="saved-card__row">
+        <span id="saved-badge" class="saved-badge">In pipeline</span>
+        <span id="saved-stage" class="saved-stage"></span>
+        <a
+          id="saved-open"
+          class="saved-link"
+          target="_blank"
+          title="Open in dashboard"
+        >Open →</a>
+      </div>
+      <div id="saved-meta" class="saved-meta"></div>
+    </div>
+
+    <form id="lead-form" class="form" autocomplete="off">
+      <section>
+        <h3>Person</h3>
+        <label>
+          <span>Full name</span>
+          <input name="full_name" required />
+        </label>
+        <div class="row">
+          <label class="flex-1">
+            <span>Title</span>
+            <input name="title" />
+          </label>
+          <label class="w-32">
+            <span>Seniority</span>
+            <select name="seniority">
+              <option value="">—</option>
+              <option>C-level</option>
+              <option>VP</option>
+              <option>Director</option>
+              <option>Manager</option>
+              <option>IC</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>LinkedIn URL</span>
+          <input name="linkedin_url" type="url" />
+        </label>
+        <div class="row">
+          <label class="flex-1"><span>Email</span><input name="email" type="email" /></label>
+          <label class="flex-1"><span>Phone</span><input name="phone" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h3>Company</h3>
+        <label><span>Company name</span><input name="company_name" required /></label>
+        <label><span>Website</span><input name="website_url" type="url" /></label>
+        <div class="row">
+          <label class="flex-1"><span>Industry</span><input name="industry" /></label>
+          <label class="w-32">
+            <span>Size</span>
+            <select name="company_size">
+              <option value="">—</option>
+              <option>1-10</option>
+              <option>11-50</option>
+              <option>51-200</option>
+              <option>201-1k</option>
+              <option>1k+</option>
+            </select>
+          </label>
+        </div>
+        <label><span>HQ location</span><input name="hq_location" /></label>
+      </section>
+
+      <section>
+        <h3>Pipeline</h3>
+        <div class="row">
+          <label class="flex-1">
+            <span>Stage</span>
+            <select name="stage">
+              <option>New</option>
+              <option>Researching</option>
+              <option>Contacted</option>
+              <option>Replied</option>
+              <option>Meeting Booked</option>
+              <option>Demo</option>
+              <option>Proposal</option>
+              <option>Closed Won</option>
+              <option>Closed Lost</option>
+              <option>Nurture</option>
+            </select>
+          </label>
+          <label class="w-32">
+            <span>Priority</span>
+            <div class="stars" id="stars" data-value="0">
+              <button type="button" data-star="1" aria-label="1 star">★</button>
+              <button type="button" data-star="2" aria-label="2 stars">★</button>
+              <button type="button" data-star="3" aria-label="3 stars">★</button>
+              <button type="button" data-star="4" aria-label="4 stars">★</button>
+              <button type="button" data-star="5" aria-label="5 stars">★</button>
+            </div>
+          </label>
+        </div>
+        <label>
+          <span>Category</span>
+          <select name="category">
+            <option value="">—</option>
+            <option>ICP</option>
+            <option>Advisor</option>
+            <option>VC</option>
+            <option>Angel</option>
+            <option>Accelerator</option>
+            <option>Design Partner</option>
+            <option>Strategic Partner</option>
+            <option>Press</option>
+            <option>Gov</option>
+          </select>
+        </label>
+        <label><span>Notes</span><textarea name="notes" rows="3"></textarea></label>
+      </section>
+
+      <footer class="footer">
+        <button type="button" id="refill" class="btn-ghost">Re-detect</button>
+        <button type="submit" id="save" class="btn-primary">Save lead</button>
+      </footer>
+    </form>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>

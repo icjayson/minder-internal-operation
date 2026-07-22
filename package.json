@@ -1,0 +1,19 @@
+{
+  "name": "minder-leads",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cd web && npm run dev",
+    "seed": "node scripts/seed.mjs",
+    "score": "node scripts/score-leads.mjs",
+    "enrich": "node scripts/enrich-leads.mjs"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.58.0"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

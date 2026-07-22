@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Futuristic tech palette (dark) ─────────────────────────────── */
+  --color-canvas:      #07090e;      /* deep near-black */
+  --color-surface:     #0c1017;      /* primary panel */
+  --color-surface-2:   #111624;      /* elevated panel */
+  --color-surface-3:   #182033;      /* hover / selected */
+  --color-ink:         #f3f5fa;      /* primary text */
+  --color-ink-soft:    #a7b1c2;      /* secondary text */
+  --color-muted:       #6a7489;      /* tertiary / meta */
+  --color-line:        #1c2333;      /* default borders */
+  --color-line-soft:   #141b29;      /* quieter borders */
+  --color-line-strong: #2a3346;      /* hover / focused borders */
+
+  /* Accent — electric mint (the "live" color) */
+  --color-accent:      #3bffa0;
+  --color-accent-2:    #22c55e;
+  --color-accent-dim:  #0f3023;
+
+  /* Status */
+  --color-info:   #60a5fa;
+  --color-warn:   #fbbf24;
+  --color-danger: #f87171;
+  --color-violet: #a78bfa;
+
+  /* Stage pill colors — dark-tinted, accent-progressed */
+  --color-stage-new:      #1a2438;
+  --color-stage-research: #1e2a44;
+  --color-stage-contact:  #3a2e1a;
+  --color-stage-reply:    #4a3618;
+  --color-stage-meet:     #1e3a36;
+  --color-stage-demo:     #245a50;
+  --color-stage-proposal: #2d6c5a;
+  --color-stage-won:      #0f3023;
+  --color-stage-lost:     #3a1c1c;
+  --color-stage-nurture:  #2a2438;
+
+  --font-sans:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-card: 8px;
+  --radius-lg: 12px;
+
+  /* Elevations — subtle, tech-feel */
+  --shadow-soft: 0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px -16px rgba(0,0,0,0.6);
+  --shadow-drawer: -24px 0 48px -20px rgba(0,0,0,0.6);
+}
+
+html, body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";   /* Inter's tighter forms */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Faint grid backdrop — subtle tech texture, not neon */
+body {
+  background-image:
+    linear-gradient(to right,  rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: -1px -1px;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+
+.mono, .tnum {
+  font-variant-numeric: tabular-nums;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero", "ss01";
+}
+
+/* scrollbars — thin, dark, subtle accent on hover */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #1c2333;
+  border-radius: 8px;
+  border: 2px solid var(--color-canvas);
+}
+::-webkit-scrollbar-thumb:hover { background: #2a3346; }
+
+/* Focus ring — accent, clear, doesn't shift layout */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-canvas);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
