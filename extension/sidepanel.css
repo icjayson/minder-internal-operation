@@ -55,14 +55,11 @@ body {
 .logo {
   position: relative;
   width: 28px; height: 28px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  color: var(--canvas);
-  display: grid; place-items: center;
-  font-family: "Space Grotesk", "Inter", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 0 16px -4px rgba(59, 255, 160, 0.45);
+  border-radius: 7px;
+  overflow: hidden;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 0 16px -4px rgba(45, 68, 224, 0.5);
 }
 
 .brand-title {

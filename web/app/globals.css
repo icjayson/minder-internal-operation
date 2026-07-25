@@ -1,77 +1,85 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Futuristic tech palette (dark) ─────────────────────────────── */
-  --color-canvas:      #07090e;      /* deep near-black */
-  --color-surface:     #0c1017;      /* primary panel */
-  --color-surface-2:   #111624;      /* elevated panel */
-  --color-surface-3:   #182033;      /* hover / selected */
-  --color-ink:         #f3f5fa;      /* primary text */
-  --color-ink-soft:    #a7b1c2;      /* secondary text */
-  --color-muted:       #6a7489;      /* tertiary / meta */
-  --color-line:        #1c2333;      /* default borders */
-  --color-line-soft:   #141b29;      /* quieter borders */
-  --color-line-strong: #2a3346;      /* hover / focused borders */
+  /* ── Celesnity · Cosmos (dark) ──────────────────────────────────── */
+  --color-canvas:      #05060F;      /* cosmic black */
+  --color-surface:     #0e1022;      /* indigo-tinted panel */
+  --color-surface-2:   #16182e;      /* elevated panel */
+  --color-surface-3:   #202340;      /* hover / selected */
+  --color-ink:         #f8f9fe;      /* cloud white — primary text */
+  --color-ink-soft:    #c9cee8;      /* starlight — secondary text */
+  --color-muted:       #868dae;      /* tertiary / meta */
+  --color-line:        #23263f;      /* default borders */
+  --color-line-soft:   #191b30;      /* quieter borders */
+  --color-line-strong: #313552;      /* hover / focused borders */
 
-  /* Accent — electric mint (the "live" color) */
-  --color-accent:      #3bffa0;
-  --color-accent-2:    #22c55e;
-  --color-accent-dim:  #0f3023;
+  /* Accent — Cobalt Blue, with Violet as the gradient partner */
+  --color-accent:      #2d44e0;      /* cobalt blue */
+  --color-accent-2:    #6e1fc6;      /* violet */
+  --color-accent-dim:  #141a3d;      /* dark cobalt tint (chips / active) */
 
   /* Status */
-  --color-info:   #60a5fa;
-  --color-warn:   #fbbf24;
-  --color-danger: #f87171;
-  --color-violet: #a78bfa;
+  --color-info:   #6f83ff;           /* cobalt light */
+  --color-warn:   #f5b544;           /* amber */
+  --color-danger: #e0607f;           /* rose */
+  --color-violet: #a97fef;
 
-  /* Stage pill colors — dark-tinted, accent-progressed */
-  --color-stage-new:      #1a2438;
-  --color-stage-research: #1e2a44;
-  --color-stage-contact:  #3a2e1a;
-  --color-stage-reply:    #4a3618;
-  --color-stage-meet:     #1e3a36;
-  --color-stage-demo:     #245a50;
-  --color-stage-proposal: #2d6c5a;
-  --color-stage-won:      #0f3023;
-  --color-stage-lost:     #3a1c1c;
-  --color-stage-nurture:  #2a2438;
+  /* Stage pill fills — indigo → violet → magenta progression */
+  --color-stage-new:      #141a3d;
+  --color-stage-research: #1a1442;
+  --color-stage-contact:  #201640;
+  --color-stage-reply:    #281642;
+  --color-stage-meet:     #2a1540;
+  --color-stage-demo:     #2e1640;
+  --color-stage-proposal: #311842;
+  --color-stage-won:      #10241c;
+  --color-stage-lost:     #2a1520;
+  --color-stage-nurture:  #1c1a38;
 
-  --font-sans:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Inter everywhere — one family, calm body to confident display */
+  --font-sans:    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-card: 8px;
-  --radius-lg: 12px;
+  /* Rounded — the Celesnity radius scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-card: 16px;
+  --radius-lg: 22px;
 
-  /* Elevations — subtle, tech-feel */
-  --shadow-soft: 0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px -16px rgba(0,0,0,0.6);
-  --shadow-drawer: -24px 0 48px -20px rgba(0,0,0,0.6);
+  /* Elevations + cobalt glow */
+  --shadow-soft: 0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -24px rgba(0,0,0,0.7);
+  --shadow-drawer: -24px 0 60px -24px rgba(0,0,0,0.7);
+  --shadow-glow: 0 10px 40px rgba(45,68,224,0.35);
+}
+
+:root {
+  /* Signature gradients (non-color tokens) */
+  --gradient-brand: linear-gradient(120deg, #2d44e0 0%, #6e1fc6 52%, #b14fd0 100%);
+  --gradient-cosmos: radial-gradient(120% 140% at 18% 0%, #1a1250 0%, #0b0930 42%, #05060f 100%);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html, body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: "cv11", "ss01";   /* Inter's tighter forms */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Faint grid backdrop — subtle tech texture, not neon */
+/* Cosmos wash — the immersive backdrop, fixed behind all content */
 body {
-  background-image:
-    linear-gradient(to right,  rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
-  background-size: 56px 56px;
-  background-position: -1px -1px;
+  background-image: var(--gradient-cosmos);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .mono, .tnum {
@@ -79,30 +87,82 @@ h1, h2, h3, h4, .font-display {
 }
 .mono {
   font-family: var(--font-mono);
-  font-feature-settings: "zero", "ss01";
 }
 
-/* scrollbars — thin, dark, subtle accent on hover */
+/* scrollbars — thin, cosmic */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #1c2333;
+  background: #23263f;
   border-radius: 8px;
   border: 2px solid var(--color-canvas);
 }
-::-webkit-scrollbar-thumb:hover { background: #2a3346; }
+::-webkit-scrollbar-thumb:hover { background: #313552; }
 
-/* Focus ring — accent, clear, doesn't shift layout */
+/* Focus ring — cobalt */
 *:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::selection {
   background: var(--color-accent);
-  color: var(--color-canvas);
+  color: #ffffff;
 }
+
+/* ── Daybreak · Light theme ─────────────────────────────────────── */
+[data-theme="light"] {
+  --color-canvas:      #f8f9fe;      /* cloud white */
+  --color-surface:     #ffffff;
+  --color-surface-2:   #f4f3fb;
+  --color-surface-3:   #eeecf8;      /* lavender mist */
+  --color-ink:         #1c2240;      /* ink */
+  --color-ink-soft:    rgba(28, 34, 64, 0.80);
+  --color-muted:       rgba(28, 34, 64, 0.55);
+  --color-line:        rgba(28, 34, 64, 0.12);
+  --color-line-soft:   rgba(28, 34, 64, 0.07);
+  --color-line-strong: rgba(28, 34, 64, 0.20);
+  --color-accent:      #2d44e0;      /* cobalt holds up on light */
+  --color-accent-2:    #8739e0;      /* violet-day */
+  --color-accent-dim:  #e7e9fb;      /* light cobalt tint */
+  --color-info:        #2d44e0;
+  --color-warn:        #b47614;      /* darker amber for contrast */
+  --color-danger:      #d6455f;
+  --color-violet:      #7c4dd0;
+  --shadow-soft:   0 1px 2px rgba(28,34,64,0.06), 0 12px 32px -16px rgba(28,34,64,0.18);
+  --shadow-drawer: -24px 0 60px -24px rgba(28,34,64,0.22);
+  --shadow-glow:   0 10px 40px rgba(45,68,224,0.25);
+}
+[data-theme="light"] body {
+  background-image: radial-gradient(120% 140% at 18% 0%, #e7e1fb 0%, #f1edfa 42%, #f8f9fe 100%);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #d7d9ea; border-color: var(--color-canvas); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #c3c6dd; }
+
+/* ── Tone pills (stage / category) — adapt to either sky ────────── */
+.tone {
+  border: 1px solid color-mix(in srgb, var(--h) 32%, transparent);
+  background: color-mix(in srgb, var(--h) 15%, transparent);
+  color: color-mix(in srgb, var(--h) 55%, #ffffff);   /* pastel on dark */
+}
+[data-theme="light"] .tone {
+  background: color-mix(in srgb, var(--h) 12%, transparent);
+  color: color-mix(in srgb, var(--h) 82%, #000000);   /* deep hue on light */
+}
+[data-tone="cobalt"]  { --h: #2d44e0; }
+[data-tone="indigo"]  { --h: #5b3fd6; }
+[data-tone="violet"]  { --h: #6e1fc6; }
+[data-tone="magenta"] { --h: #b14fd0; }
+[data-tone="amber"]   { --h: #e0951f; }
+[data-tone="green"]   { --h: #12a97a; }
+[data-tone="teal"]    { --h: #0fa3b0; }
+[data-tone="rose"]    { --h: #d6455f; }
+[data-tone="neutral"] { --h: #8891b4; }
+
+/* ── Semantic tinted surfaces — adapt to either sky ─────────────── */
+.tint-warn   { background: color-mix(in srgb, var(--color-warn) 15%, transparent); }
+.tint-danger { background: color-mix(in srgb, var(--color-danger) 14%, transparent); }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

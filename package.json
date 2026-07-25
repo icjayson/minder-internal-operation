@@ -10,7 +10,6 @@
     "enrich": "node scripts/enrich-leads.mjs"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.58.0"
   },
   "devDependencies": {

@@ -1,28 +1,17 @@
 #!/usr/bin/env node
-// Scores un-scored leads against Minder's ICP using Gemini 2.5 Flash.
-// Rate-limited to 15 RPM (free tier) — 4.2s between requests.
+// Scores un-scored leads against Minder's ICP using OpenAI (gpt-4o-mini).
+// Gently throttled — 1.2s between requests.
 // Usage:
 //   node scripts/score-leads.mjs          # score leads with icp_fit IS NULL
 //   node scripts/score-leads.mjs --all    # re-score everything
 //   node scripts/score-leads.mjs <id>     # score one lead by id
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { openaiChat } from "./_openai.mjs";
 import { loadEnv, sb, sleep } from "./_lib.mjs";
 import { MINDER_DESCRIPTION, MINDER_ICP } from "./_minder.mjs";
 
 loadEnv();
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) throw new Error("GEMINI_API_KEY not set");
-
-const genai = new GoogleGenerativeAI(apiKey);
-const model = genai.getGenerativeModel({
-  model: "gemini-2.5-flash-lite",
-  generationConfig: {
-    temperature: 0.35,
-    maxOutputTokens: 2048,
-    responseMimeType: "application/json",
-  },
-});
+if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
 
 const supabase = sb();
 
@@ -64,7 +53,7 @@ for (const lead of leads) {
   } catch (e) {
     console.warn(`  ✗ ${lead.full_name}: ${e.message}`);
   }
-  if (done < leads.length) await sleep(4200); // 15 RPM
+  if (done < leads.length) await sleep(1200); // gentle throttle
 }
 
 console.log(`Done. ${done}/${leads.length} scored.`);
@@ -104,8 +93,10 @@ Priority rubric:
 
 Score conservatively. Cite specific signals.`;
 
-  const res = await model.generateContent(prompt);
-  const raw = res.response.text().trim();
+  const raw = await openaiChat(prompt, {
+    maxTokens: 4096,
+    json: true,
+  });
   // Strip fencing if any.
   const json = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
   let parsed;

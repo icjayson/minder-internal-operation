@@ -14,12 +14,12 @@ const TONE: Record<Tone, { bg: string; value: string; rail: string }> = {
     rail: "bg-accent",
   },
   warn: {
-    bg: "bg-[#2a2110] border-[color:var(--color-warn)]/30",
+    bg: "tint-warn border-[color:var(--color-warn)]/30",
     value: "text-[color:var(--color-warn)]",
     rail: "bg-[color:var(--color-warn)]",
   },
   danger: {
-    bg: "bg-[#2a1515] border-[color:var(--color-danger)]/30",
+    bg: "tint-danger border-[color:var(--color-danger)]/30",
     value: "text-[color:var(--color-danger)]",
     rail: "bg-[color:var(--color-danger)]",
   },

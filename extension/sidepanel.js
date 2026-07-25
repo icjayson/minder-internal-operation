@@ -633,7 +633,7 @@ function fillForm(data) {
   pageKind.textContent = KIND_LABEL[data.kind] || "Page";
 }
 
-// Ask our dashboard to score a lead by id using Gemini.
+// Ask our dashboard to score a lead by id using OpenAI.
 // Fire-and-forget: the dashboard's realtime subscription will reflect the
 // updated icp_fit / priority / pain_signals in-place.
 async function scoreLead(leadId) {
@@ -663,7 +663,7 @@ async function scoreLead(leadId) {
   }
 }
 
-// Ask our dashboard to resolve a company name → domain via Gemini.
+// Ask our dashboard to resolve a company name → domain via OpenAI.
 // Updates the form's website field on success; silently no-ops on failure.
 async function lookupWebsite(companyName) {
   if (!companyName) return;

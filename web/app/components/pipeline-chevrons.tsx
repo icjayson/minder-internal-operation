@@ -2,102 +2,50 @@
 
 import type { Stage } from "@/lib/types";
 
-type Props = {
+// Chevron status bar — the stage pipeline shown at the top of Factories &
+// Contacts. Clicking a chevron filters by that stage (click again to clear).
+export function PipelineChevrons({
+  stages,
+  counts,
+  activeStage,
+  onSelect,
+}: {
   stages: Stage[];
   counts: Map<Stage, number>;
   activeStage: Stage | null;
   onSelect: (s: Stage) => void;
-};
-
-// Sharper / flatter chevrons. Colors come from CSS variables so the whole
-// pipeline tracks the current palette.
-export function PipelineChevrons({ stages, counts, activeStage, onSelect }: Props) {
-  const W = 156;      // body width
-  const H = 42;       // height (denser than before)
-  const tip = 12;     // chevron tip depth
-  const gap = 2;
-
+}) {
   return (
-    <div className="overflow-x-auto -mx-1 pb-1">
-      <div className="flex items-stretch" style={{ gap: `${gap}px` }}>
-        {stages.map((stage, i) => {
-          const isFirst = i === 0;
-          const isLast = i === stages.length - 1;
-          const isActive = activeStage === stage;
-          const count = counts.get(stage) ?? 0;
-
-          const leftNotch = isFirst ? 0 : tip;
-          const rightTip = isLast ? 0 : tip;
-          const width = W + rightTip;
-
-          const path = [
-            `M 0 0`,
-            `L ${W} 0`,
-            `L ${W + rightTip} ${H / 2}`,
-            `L ${W} ${H}`,
-            `L 0 ${H}`,
-            isFirst ? "" : `L ${leftNotch} ${H / 2}`,
-            "Z",
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-          const fill = isActive ? "var(--color-accent-dim)" : "var(--color-surface)";
-          const stroke = isActive ? "var(--color-accent)" : "var(--color-line)";
-          const textColor = isActive ? "var(--color-accent)" : "var(--color-ink-soft)";
-          const countColor = isActive
-            ? "var(--color-accent)"
-            : count > 0
-              ? "var(--color-ink)"
-              : "var(--color-muted)";
-
-          return (
-            <button
-              key={stage}
-              onClick={() => onSelect(stage)}
-              className="relative shrink-0 cursor-pointer transition-transform duration-150 hover:-translate-y-px"
-              style={{ width, height: H }}
-              aria-pressed={isActive}
-              title={`Filter: ${stage}`}
+    <div className="flex items-stretch w-full overflow-x-auto pb-1">
+      {stages.map((s, i) => {
+        const active = activeStage === s;
+        const n = counts.get(s) ?? 0;
+        const isFirst = i === 0;
+        const clip = isFirst
+          ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)"
+          : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)";
+        return (
+          <button
+            key={s}
+            onClick={() => onSelect(s)}
+            style={{ clipPath: clip, marginLeft: isFirst ? 0 : -10 }}
+            className={`relative flex-1 min-w-[130px] h-11 pl-5 pr-3 flex items-center justify-between text-[11px] mono uppercase tracking-[0.1em] cursor-pointer transition-colors duration-150 ${
+              active
+                ? "bg-accent-dim text-accent"
+                : "bg-surface-2 text-ink-soft hover:bg-surface-3"
+            }`}
+          >
+            <span className="truncate">{s}</span>
+            <span
+              className={`ml-2 min-w-5 h-5 px-1.5 rounded-full grid place-items-center text-[10px] font-medium ${
+                active ? "bg-accent text-white" : "bg-surface-3 text-ink-soft"
+              }`}
             >
-              <svg
-                width={width}
-                height={H}
-                viewBox={`0 0 ${width} ${H}`}
-                className="absolute inset-0"
-                preserveAspectRatio="none"
-              >
-                <path d={path} fill={fill} stroke={stroke} strokeWidth={1} />
-              </svg>
-              <div
-                className="relative z-10 h-full flex items-center justify-center gap-2 pl-2 pr-1"
-                style={{ color: textColor }}
-              >
-                <span
-                  className="truncate text-[11px] mono uppercase tracking-[0.12em]"
-                  style={{ color: textColor }}
-                >
-                  {stage}
-                </span>
-                <span
-                  className="mono text-[12px] min-w-[22px] text-center px-1.5 rounded-sm border"
-                  style={{
-                    color: countColor,
-                    borderColor: isActive
-                      ? "var(--color-accent)"
-                      : "var(--color-line-strong)",
-                    background: isActive
-                      ? "rgba(59,255,160,0.08)"
-                      : "var(--color-surface-2)",
-                  }}
-                >
-                  {count}
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              {n}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
