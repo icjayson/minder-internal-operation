@@ -37,7 +37,7 @@ Factory → contact → outreach-sequence tracker for **Minder AI** design-partn
 8. **Extension install** (legacy lead capture; migrate before production use):
    - `chrome://extensions` → Developer mode ON → Load unpacked → select `~/minder-leads/extension/`
    - Click the toolbar icon on any page → side panel opens
-   - First time: opens Settings → paste Supabase URL + key + `https://minder-leads.vercel.app`
+   - First time: opens Settings → paste Supabase URL + key + `https://minder-internal-operation.vercel.app/`
    - Go to a LinkedIn profile → side panel auto-fills name, title, company, URL → click **Save lead**
    - Row appears in dashboard instantly (Supabase realtime)
 
@@ -89,6 +89,19 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+## Vercel deployment
+
+The repository includes deployment configuration for both supported project
+layouts:
+
+- Recommended: set the Vercel Project **Root Directory** to `web`.
+- Compatibility mode: leave Root Directory empty; the root `vercel.json`
+  installs and builds the application from `web`.
+
+Do not set Root Directory to any other path. After changing this setting or
+environment variables, redeploy the latest `main` commit and confirm the
+production domain is assigned to that deployment.
 
 ## Known gaps
 
