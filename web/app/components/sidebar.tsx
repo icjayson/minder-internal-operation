@@ -89,6 +89,16 @@ const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
     label: "Analytics",
     icon: <path d="M4 19V5M10 19v-8M16 19v-5M22 19H2" strokeWidth="1.5" strokeLinecap="round" />,
   },
+  {
+    href: "/ai-context",
+    label: "AI Context",
+    icon: (
+      <>
+        <path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="m18 3 .6 1.7L20 5.4l-1.4.6-.6 1.7-.6-1.7-1.4-.6 1.4-.7L18 3Z" strokeWidth="1.2" strokeLinejoin="round" />
+      </>
+    ),
+  },
 ];
 
 const SETTINGS = {

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { recommendNext } from "@/lib/recommendation";
-import { MINDER_DESCRIPTION, PRODUCT_DIRECTION, VERTICAL_TENSIONS } from "@/lib/minder";
 import { supabase } from "@/lib/supabase";
 import { loadContextText } from "@/lib/context-server";
+import { loadSharedAIContext } from "@/lib/shared-context-server";
 
 export const runtime = "nodejs";
 
@@ -74,27 +74,23 @@ export async function POST(req: Request) {
     if (enough && process.env.OPENAI_API_KEY) {
       try {
         const { data: vertical } = await sb.from("verticals").select("key,name").eq("id", factory.vertical_id).maybeSingle();
-        const { data: prodDocs } = await sb
-          .from("context_docs")
-          .select("title,body")
-          .eq("active", true)
-          .eq("scope", "minder");
-        const productText = (prodDocs ?? []).map((d) => `# ${d.title}\n${d.body}`).join("\n\n") || PRODUCT_DIRECTION;
+        const shared = await loadSharedAIContext(sb);
         const vKey = vertical?.key as string | undefined;
         const contactsText = (contactRows ?? [])
           .map((c) => `- ${c.full_name}${c.role_title ? ` (${c.role_title})` : ""}`)
           .join("\n");
 
-        const prompt = `${MINDER_DESCRIPTION}
+        const prompt = `${shared.value("minder_description")}
 
 MINDER PRODUCT & DIRECTION
-${productText}
+${shared.value("product_direction")}
+${shared.files.product ? `\nSHARED PRODUCT FILE CONTEXT\n${shared.files.product}\n` : ""}
 
 STRATEGIC ANCHOR (relationship-ladder step to honour, do not skip ahead)
 Ask: ${move.ask}
 Give-back: ${move.giveBack}
 
-FACTORY: ${factory.name}${vertical?.name ? ` · ${vertical.name}` : ""}${vKey && VERTICAL_TENSIONS[vKey] ? ` — ${VERTICAL_TENSIONS[vKey]}` : ""}
+FACTORY: ${factory.name}${vertical?.name ? ` · ${vertical.name}` : ""}${vKey && shared.verticalTensions[vKey] ? ` — ${shared.verticalTensions[vKey]}` : ""}
 Stage: ${factory.stage} · Grade: ${factory.grade ?? "unscored"}${factory.blocker ? ` · Blocker: ${factory.blocker}` : ""}
 CONTACTS
 ${contactsText || "(none yet)"}

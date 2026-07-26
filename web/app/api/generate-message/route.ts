@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { supabase } from "@/lib/supabase";
-import {
-  MINDER_DESCRIPTION,
-  MINDER_DIFFERENTIATORS,
-  VERTICAL_TENSIONS,
-  WRITING_GUARDRAILS,
-} from "@/lib/minder";
+import { loadSharedAIContext, type SharedAIContext } from "@/lib/shared-context-server";
 
 export const runtime = "nodejs";
 
@@ -82,15 +77,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Sequence step does not match the contact's vertical" }, { status: 409 });
     }
 
-    const { data: docs } = await sb
-      .from("context_docs")
-      .select("*")
-      .eq("active", true)
-      .in("scope", ["global", vKey ?? "global"])
-      .in("kind", ["writing", "both"]);
-    const contextText = (docs ?? []).map((d) => `# ${d.title}\n${d.body}`).join("\n\n");
+    const shared = await loadSharedAIContext(sb);
+    let contextText = "";
+    if (vKey) {
+      const { data: docs } = await sb
+        .from("context_docs")
+        .select("title,body")
+        .eq("active", true)
+        .eq("scope", vKey)
+        .in("kind", ["writing", "both"]);
+      contextText = (docs ?? []).map((d) => `# ${d.title}\n${d.body}`).join("\n\n");
+    }
 
-    const prompt = buildPrompt(contact, factory, vertical?.name ?? "their sector", vKey, step, contextText);
+    const prompt = buildPrompt(contact, factory, vertical?.name ?? "their sector", vKey, step, shared, contextText);
     const out = await openaiChat(prompt, { temperature: 1, maxTokens: 900, json: true });
     const json = out.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
@@ -131,21 +130,24 @@ function buildPrompt(
   verticalName: string,
   vKey: string | undefined,
   step: StepContext | null,
+  shared: SharedAIContext,
   contextText: string,
 ): string {
-  const tension = (vKey && VERTICAL_TENSIONS[vKey]) || "";
+  const tension = (vKey && shared.verticalTensions[vKey]) || "";
   const stepLine = step
     ? `This is step Day ${step.day_offset} of the sequence. Intent: ${step.intent}. Subject guidance: ${step.subject ?? ""}. Template guidance: ${step.body ?? ""}`
     : "This is the first cold message (Day 1).";
 
-  return `${MINDER_DESCRIPTION}
+  return `${shared.value("minder_description")}
 
-${WRITING_GUARDRAILS}
+${shared.value("writing_guardrails")}
 
 Differentiators you may reference (pick at most ONE, most relevant):
-${MINDER_DIFFERENTIATORS.map((d, i) => `${i + 1}. ${d}`).join("\n")}
+${shared.differentiators.map((d, i) => `${i + 1}. ${d}`).join("\n")}
 
-${contextText ? `FOUNDER CONTEXT:\n${contextText}\n` : ""}
+${shared.files.product ? `SHARED PRODUCT FILE CONTEXT:\n${shared.files.product}\n` : ""}
+${shared.files.design_partner ? `SHARED DESIGN-PARTNER FILE CONTEXT:\n${shared.files.design_partner}\n` : ""}
+${contextText ? `VERTICAL-SPECIFIC CONTEXT:\n${contextText}\n` : ""}
 RECIPIENT
 Name: ${c.full_name}
 Role: ${c.role_title ?? "unknown"}

@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { supabase } from "@/lib/supabase";
-import {
-  IDP_PROFILE,
-  MINDER_DESCRIPTION,
-  SCORE_RUBRIC,
-  VERTICAL_TENSIONS,
-} from "@/lib/minder";
 import { SCORE_DIMENSIONS } from "@/lib/types";
 import { recommendNext } from "@/lib/recommendation";
 import { loadContextText } from "@/lib/context-server";
 import { persistFactoryScore } from "@/lib/score-persistence";
+import { loadSharedAIContext, type SharedAIContext } from "@/lib/shared-context-server";
 
 export const runtime = "nodejs";
 
@@ -37,19 +32,20 @@ export async function POST(req: Request) {
     if (error || !factory)
       return NextResponse.json({ error: error?.message ?? "Factory not found" }, { status: 404, headers: CORS });
 
-    // Vertical + founder-supplied scoring context.
+    // Site-wide editable context + optional legacy vertical-specific context.
     const { data: vertical } = await sb.from("verticals").select("*").eq("id", factory.vertical_id).maybeSingle();
     const vKey = vertical?.key as string | undefined;
-    const { data: docs } = await sb
-      .from("context_docs")
-      .select("*")
-      .eq("active", true)
-      .in("scope", ["global", vKey ?? "global"])
-      .in("kind", ["scoring", "both"]);
-    const contextText = (docs ?? [])
-      .filter((d) => d.scope !== "minder") // product/direction doc is for the recommender, not scoring
-      .map((d) => `# ${d.title}\n${d.body}`)
-      .join("\n\n");
+    const shared = await loadSharedAIContext(sb);
+    let contextText = "";
+    if (vKey) {
+      const { data: docs } = await sb
+        .from("context_docs")
+        .select("title,body")
+        .eq("active", true)
+        .eq("scope", vKey)
+        .in("kind", ["scoring", "both"]);
+      contextText = (docs ?? []).map((d) => `# ${d.title}\n${d.body}`).join("\n\n");
+    }
 
     // Accumulated per-entity context (calls, notes, observed workflow).
     const { data: contactRows } = await sb
@@ -77,7 +73,16 @@ export async function POST(req: Request) {
     // Per-entity "inputted context": uploaded-file text + manual text cards.
     const { text: inputtedContext } = await loadContextText(sb, "factory", factoryId);
 
-    const prompt = buildPrompt(factory, vertical?.name ?? "unknown", vKey, contextText, contactsText, fieldContext, inputtedContext);
+    const prompt = buildPrompt(
+      factory,
+      vertical?.name ?? "unknown",
+      vKey,
+      shared,
+      contextText,
+      contactsText,
+      fieldContext,
+      inputtedContext,
+    );
     const raw = await openaiChat(prompt, { temperature: 1, maxTokens: 1600, json: true });
     const json = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
@@ -147,19 +152,21 @@ function buildPrompt(
   f: Record<string, unknown>,
   verticalName: string,
   vKey: string | undefined,
+  shared: SharedAIContext,
   contextText: string,
   contactsText: string,
   fieldContext: string,
   inputtedContext: string,
 ): string {
-  const tension = (vKey && VERTICAL_TENSIONS[vKey]) || "";
-  return `${MINDER_DESCRIPTION}
+  const tension = (vKey && shared.verticalTensions[vKey]) || "";
+  return `${shared.value("minder_description")}
 
-${IDP_PROFILE}
+${shared.value("idp_profile")}
 
-${SCORE_RUBRIC}
+${shared.value("score_rubric")}
 
-${contextText ? `FOUNDER CONTEXT (authoritative — weight heavily):\n${contextText}\n` : ""}
+${shared.files.design_partner ? `SHARED DESIGN-PARTNER FILE CONTEXT:\n${shared.files.design_partner}\n` : ""}
+${contextText ? `VERTICAL-SPECIFIC CONTEXT (authoritative — weight heavily):\n${contextText}\n` : ""}
 FACTORY TO SCORE
 Name: ${f.name}
 Company URL: ${f.company_url ?? "unknown"}

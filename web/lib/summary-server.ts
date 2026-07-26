@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { openaiChat } from "@/lib/openai";
-import { MINDER_DESCRIPTION } from "@/lib/minder";
 import { loadContextText } from "@/lib/context-server";
 import type { ContextEntityType } from "@/lib/types";
+import { loadSharedAIContext } from "@/lib/shared-context-server";
 
 export const ENTITY_TABLE: Record<ContextEntityType, string> = {
   factory: "factories",
@@ -50,12 +50,14 @@ export async function buildEntitySummary(
   }
 
   const { text: inputtedContext } = await loadContextText(sb, entityType, entityId);
+  const shared = await loadSharedAIContext(sb);
 
   const label = entityType === "factory" ? "factory" : entityType === "network" ? "referral network" : "contact";
-  const prompt = `${MINDER_DESCRIPTION}
+  const prompt = `${shared.value("minder_description")}
 
 You are keeping a concise working memory for Minder's design-partner development. Summarise where things stand with this ${label} so the founder can pick up instantly and an alert can carry the context.
 
+${shared.files.design_partner ? `SHARED DESIGN-PARTNER FILE CONTEXT\n${shared.files.design_partner}\n` : ""}
 ${label.toUpperCase()}: ${entity.name ?? entity.full_name ?? "unknown"}
 Stage: ${entity.stage ?? "unknown"}${entity.grade ? ` · Grade ${entity.grade}` : ""}
 Notes: ${entity.notes ?? "none"}

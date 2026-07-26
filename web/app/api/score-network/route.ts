@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { supabase } from "@/lib/supabase";
-import { MINDER_DESCRIPTION, NETWORK_SCORE_RUBRIC } from "@/lib/minder";
 import { NETWORK_SCORE_DIMENSIONS } from "@/lib/types";
 import { loadContextText } from "@/lib/context-server";
+import { loadSharedAIContext, type SharedAIContext } from "@/lib/shared-context-server";
 
 export const runtime = "nodejs";
 
@@ -31,13 +31,7 @@ export async function POST(req: Request) {
     if (error || !network)
       return NextResponse.json({ error: error?.message ?? "Network not found" }, { status: 404, headers: CORS });
 
-    // Founder-supplied network rubric (editable in /settings), fallback to the constant.
-    const { data: docs } = await sb
-      .from("context_docs")
-      .select("title,body")
-      .eq("active", true)
-      .eq("scope", "network");
-    const rubric = (docs ?? []).map((d) => `# ${d.title}\n${d.body}`).join("\n\n") || NETWORK_SCORE_RUBRIC;
+    const shared = await loadSharedAIContext(sb);
 
     // Evidence: the factories this network actually sourced (reach quality).
     const { data: sourced } = await sb
@@ -67,7 +61,7 @@ export async function POST(req: Request) {
       .join("\n");
     const { text: inputtedContext } = await loadContextText(sb, "network", networkId);
 
-    const prompt = buildPrompt(network, rubric, sourcedText, contactsText, inputtedContext);
+    const prompt = buildPrompt(network, shared, sourcedText, contactsText, inputtedContext);
     const raw = await openaiChat(prompt, { temperature: 1, maxTokens: 1400, json: true });
     const json = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
@@ -109,16 +103,18 @@ export async function POST(req: Request) {
 
 function buildPrompt(
   n: Record<string, unknown>,
-  rubric: string,
+  shared: SharedAIContext,
   sourcedText: string,
   contactsText: string,
   inputtedContext: string,
 ): string {
-  return `${MINDER_DESCRIPTION}
+  return `${shared.value("minder_description")}
 
 You are qualifying a REFERRAL NETWORK — a body that could introduce Minder to industrial factories (our design partners). Judge it on how much high-quality factory access it unlocks, not on being a factory itself.
 
-${rubric}
+${shared.value("network_score_rubric")}
+
+${shared.files.design_partner ? `SHARED DESIGN-PARTNER FILE CONTEXT:\n${shared.files.design_partner}\n` : ""}
 
 NETWORK TO SCORE
 Name: ${n.name}

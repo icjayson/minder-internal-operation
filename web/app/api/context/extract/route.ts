@@ -9,27 +9,28 @@ const BUCKET = "context-files";
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 const MAX_CHARS = 200_000; // cap stored text so prompts stay bounded
 
-// POST { itemId } → downloads the file, extracts text by MIME type, and stores
-// it on context_items.body so the AI can read a single text field.
+// POST { itemId, shared? } → downloads the file, extracts text by MIME type,
+// and stores it in the corresponding context table.
 export async function POST(req: Request) {
   try {
-    const { itemId } = (await req.json()) as { itemId?: string };
+    const { itemId, shared = false } = (await req.json()) as { itemId?: string; shared?: boolean };
     if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });
 
     const sb = supabase();
-    const { data: item, error } = await sb.from("context_items").select("*").eq("id", itemId).single();
+    const table = shared ? "shared_context_files" : "context_items";
+    const { data: item, error } = await sb.from(table).select("*").eq("id", itemId).single();
     if (error || !item) return NextResponse.json({ error: error?.message ?? "Item not found" }, { status: 404 });
-    if (item.kind !== "file" || !item.storage_path)
+    if ((!shared && item.kind !== "file") || !item.storage_path)
       return NextResponse.json({ error: "Not a file item" }, { status: 400 });
 
     if (item.byte_size && item.byte_size > MAX_BYTES) {
-      await mark(sb, itemId, "unsupported", null);
+      await mark(sb, table, itemId, "unsupported", null);
       return NextResponse.json({ status: "unsupported", reason: "file too large" });
     }
 
     const { data: blob, error: dlErr } = await sb.storage.from(BUCKET).download(item.storage_path);
     if (dlErr || !blob) {
-      await mark(sb, itemId, "failed", null);
+      await mark(sb, table, itemId, "failed", null);
       return NextResponse.json({ error: dlErr?.message ?? "Download failed" }, { status: 502 });
     }
 
@@ -65,12 +66,12 @@ export async function POST(req: Request) {
         status = "unsupported";
       }
     } catch (e) {
-      await mark(sb, itemId, "failed", `Extraction error: ${e instanceof Error ? e.message : "unknown"}`);
+      await mark(sb, table, itemId, "failed", `Extraction error: ${e instanceof Error ? e.message : "unknown"}`);
       return NextResponse.json({ status: "failed", error: e instanceof Error ? e.message : "unknown" });
     }
 
     if (status === "unsupported") {
-      await mark(sb, itemId, "unsupported", null);
+      await mark(sb, table, itemId, "unsupported", null);
       return NextResponse.json({ status: "unsupported" });
     }
 
@@ -80,10 +81,10 @@ export async function POST(req: Request) {
       .trim()
       .slice(0, MAX_CHARS);
     if (!clean) {
-      await mark(sb, itemId, "unsupported", null);
+      await mark(sb, table, itemId, "unsupported", null);
       return NextResponse.json({ status: "unsupported", reason: "no text found" });
     }
-    await mark(sb, itemId, "done", clean);
+    await mark(sb, table, itemId, "done", clean);
     return NextResponse.json({ status: "done", chars: clean.length });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Unknown error" }, { status: 500 });
@@ -92,11 +93,12 @@ export async function POST(req: Request) {
 
 async function mark(
   sb: ReturnType<typeof supabase>,
+  table: "context_items" | "shared_context_files",
   id: string,
   extraction_status: string,
   body: string | null,
 ) {
   const patch: Record<string, unknown> = { extraction_status };
   if (body !== null) patch.body = body;
-  await sb.from("context_items").update(patch).eq("id", id);
+  await sb.from(table).update(patch).eq("id", id);
 }

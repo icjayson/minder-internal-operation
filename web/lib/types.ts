@@ -324,6 +324,32 @@ export interface ContextItem {
   updated_at: string;
 }
 
+export interface SharedContext {
+  id: string;
+  context_key: import("./shared-context").SharedContextKey;
+  category: import("./shared-context").SharedContextCategory;
+  title: string;
+  body: string;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SharedContextFile {
+  id: string;
+  category: import("./shared-context").SharedContextCategory;
+  title: string | null;
+  body: string | null;
+  storage_path: string;
+  file_name: string | null;
+  mime_type: string | null;
+  byte_size: number | null;
+  extraction_status: ExtractionStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Notification {
   id: string;
   kind: string;
