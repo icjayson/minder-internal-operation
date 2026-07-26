@@ -81,7 +81,21 @@ export const SCORE_DIMENSIONS = [
   { key: "relationship_quality", label: "Relationship quality", max: 5 },
 ] as const;
 export type ScoreDimensionKey = (typeof SCORE_DIMENSIONS)[number]["key"];
-export type ScoreBreakdown = Partial<Record<ScoreDimensionKey, number>>;
+
+// ── Network qualification rubric (100 pts) ──────────────────────────────────
+export const NETWORK_SCORE_DIMENSIONS = [
+  { key: "reach", label: "Member reach & IDP fit", max: 25 },
+  { key: "intro_willingness", label: "Intro willingness", max: 20 },
+  { key: "credibility", label: "Credibility / trust transfer", max: 15 },
+  { key: "alignment", label: "Vertical & geo alignment", max: 15 },
+  { key: "activation_cost", label: "Activation cost", max: 10 },
+  { key: "leverage", label: "Strategic leverage / exclusivity", max: 10 },
+  { key: "relationship", label: "Relationship quality", max: 5 },
+] as const;
+export type NetworkScoreDimensionKey = (typeof NETWORK_SCORE_DIMENSIONS)[number]["key"];
+
+export type ScoreDimension = { key: string; label: string; max: number };
+export type ScoreBreakdown = Partial<Record<string, number>>;
 
 export const CHANNELS = [
   "parent_bridge",
@@ -92,6 +106,18 @@ export const CHANNELS = [
   "crawl",
   "manual",
 ] as const;
+
+// ── Network types (referral sources — associations, accelerators, …) ────────
+export const NETWORK_TYPES = [
+  { key: "association", label: "Association" },
+  { key: "institute", label: "Institute" },
+  { key: "accelerator", label: "Accelerator" },
+  { key: "cluster", label: "Cluster" },
+  { key: "trade_body", label: "Trade body" },
+  { key: "connector", label: "Connector / individual" },
+  { key: "other", label: "Other" },
+] as const;
+export type NetworkType = (typeof NETWORK_TYPES)[number]["key"];
 
 // ── Relationship ladder (PDF 1 §1.4) — optional strategic depth ─────────────
 export const LADDER = [
@@ -114,9 +140,45 @@ export interface Vertical {
   sort: number;
 }
 
+export interface Network {
+  id: string;
+
+  name: string;
+  type: NetworkType | null;
+  website_url: string | null;
+  country: string | null;
+  hq_location: string | null;
+  focus_verticals: string[] | null;
+  reach_note: string | null;
+
+  score: number | null;
+  grade: "A" | "B" | "C" | null;
+  score_breakdown: ScoreBreakdown | null;
+  ai_reasoning: string | null;
+  ai_recommendation: string | null;
+  blocker: string | null;
+  scored_at: string | null;
+
+  stage: Stage;
+  next_action: string | null;
+  next_action_due: string | null;
+  last_activity_at: string;
+
+  priority: number | null;
+  notes: string | null;
+  source: string;
+
+  context_summary: string | null;
+  context_summary_at: string | null;
+
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Factory {
   id: string;
   vertical_id: string | null;
+  network_id: string | null;
 
   name: string;
   website_url: string | null;
@@ -152,13 +214,16 @@ export interface Factory {
   priority: number | null;
   notes: string | null;
   source: string;
+  context_summary: string | null;
+  context_summary_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface Contact {
   id: string;
-  factory_id: string;
+  factory_id: string | null;
+  network_id: string | null;
 
   full_name: string;
   role_title: string | null;
@@ -182,6 +247,8 @@ export interface Contact {
   last_activity_at: string;
 
   notes: string | null;
+  context_summary: string | null;
+  context_summary_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -238,13 +305,34 @@ export interface ContextDoc {
   updated_at: string;
 }
 
+export type ContextEntityType = "factory" | "network" | "contact";
+export type ExtractionStatus = "none" | "pending" | "done" | "failed" | "unsupported";
+
+export interface ContextItem {
+  id: string;
+  entity_type: ContextEntityType;
+  entity_id: string;
+  kind: "file" | "text";
+  title: string | null;
+  body: string | null;
+  storage_path: string | null;
+  file_name: string | null;
+  mime_type: string | null;
+  byte_size: number | null;
+  extraction_status: ExtractionStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Notification {
   id: string;
   kind: string;
   factory_id: string | null;
   contact_id: string | null;
+  network_id: string | null;
   title: string;
   detail: string | null;
+  summary: string | null;
   due_on: string | null;
   read_at: string | null;
   pushed_at: string | null;

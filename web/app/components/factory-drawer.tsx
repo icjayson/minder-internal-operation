@@ -16,6 +16,7 @@ import { StagePill } from "./stage-pill";
 import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContactTree } from "./contact-tree";
+import { ContextPanel } from "./context-panel";
 
 export function FactoryDrawer({
   factoryId,
@@ -29,6 +30,7 @@ export function FactoryDrawer({
   const {
     factory,
     verticals,
+    networks,
     verticalName,
     contactsOf,
     activitiesOf,
@@ -46,6 +48,8 @@ export function FactoryDrawer({
 
   const [scoring, setScoring] = useState(false);
   const [recommending, setRecommending] = useState(false);
+  const [rec, setRec] = useState<{ recommendation: string; workflow?: { title: string; detail: string }[]; source?: string } | null>(null);
+  const [ctxStats, setCtxStats] = useState<{ count: number; latestAt: string | null }>({ count: 0, latestAt: null });
   const [error, setError] = useState<string | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ subject: string; body: string; contact: string } | null>(null);
@@ -106,11 +110,16 @@ export function FactoryDrawer({
     updateFactory(factoryId, { ...patch, last_activity_at: new Date().toISOString() });
 
   // Context added after the last score → prompt a re-score.
+  // updated_at is a compatibility fallback for databases that have not yet run
+  // the scored_at migration. The score route updates it when the score persists.
+  const scoreBaseline = f.scored_at ?? (f.score != null ? f.updated_at : null);
+  const scoredAtMs = scoreBaseline ? new Date(scoreBaseline).getTime() : null;
   const contextStale =
     f.score != null &&
-    (f.scored_at
-      ? activities.some((a) => new Date(a.created_at).getTime() > new Date(f.scored_at as string).getTime())
-      : activities.length > 0);
+    (scoredAtMs
+      ? activities.some((a) => new Date(a.created_at).getTime() > scoredAtMs) ||
+        (ctxStats.latestAt ? new Date(ctxStats.latestAt).getTime() > scoredAtMs : false)
+      : activities.length > 0 || ctxStats.count > 0);
 
   async function score() {
     setScoring(true);
@@ -142,6 +151,7 @@ export function FactoryDrawer({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+      setRec({ recommendation: data.recommendation ?? "", workflow: data.workflow ?? [], source: data.source });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Recommendation failed");
     } finally {
@@ -262,6 +272,9 @@ export function FactoryDrawer({
             ) : (
               <p className="text-[13px] text-muted">Not scored. Click Score to rate against the 100-pt design-partner rubric.</p>
             )}
+            {rec?.workflow && rec.workflow.length > 0 && (
+              <WorkflowFlow steps={rec.workflow} template={rec.source !== "ai"} />
+            )}
           </Section>
 
           {/* Profile */}
@@ -269,6 +282,8 @@ export function FactoryDrawer({
             <div className="grid grid-cols-2 gap-3">
               <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
                 options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
+              <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
+                options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
               <SelectField label="Geo tier" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: (v || null) as Factory["geo_tier"] })}
                 options={GEO_TIERS.map((g) => ({ value: g.key, label: g.label }))} />
               <InputField label="HQ location" value={f.hq_location} onSave={(v) => set({ hq_location: v })} />
@@ -412,6 +427,9 @@ export function FactoryDrawer({
               </div>
             )}
           </Section>
+
+          {/* Inputted context (files + notes, per-factory) */}
+          <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
 
           {/* Notes */}
           <Section title="Notes">
@@ -561,6 +579,29 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 function Divider() { return <span className="h-4 w-px bg-line-strong" />; }
+
+// Vertical flow diagram of the AI-proposed demo workflow.
+function WorkflowFlow({ steps, template }: { steps: { title: string; detail: string }[]; template: boolean }) {
+  return (
+    <div className="mt-3 rounded-md border border-line bg-surface-2/50 p-2.5">
+      <div className="text-[9px] mono uppercase tracking-[0.14em] text-accent mb-2">
+        Demo workflow{template ? " · template" : ""}
+      </div>
+      <div className="relative">
+        {steps.map((s, i) => (
+          <div key={i} className="relative pl-7 pb-2.5 last:pb-0">
+            {i < steps.length - 1 && <span className="absolute left-[10px] top-6 bottom-0 w-px bg-line-strong" />}
+            <span className="absolute left-0 top-0.5 w-[21px] h-[21px] rounded-full bg-accent text-white text-[10px] font-semibold grid place-items-center mono">{i + 1}</span>
+            <div className="rounded-md border border-line bg-surface px-2.5 py-1.5">
+              <div className="text-[12px] font-medium text-ink leading-snug">{s.title}</div>
+              {s.detail && <div className="text-[11px] text-ink-soft leading-relaxed mt-0.5">{s.detail}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function formatTimestamp(value: string): string {
   const date = new Date(value);

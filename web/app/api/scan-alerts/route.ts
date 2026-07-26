@@ -2,23 +2,28 @@ import { NextResponse } from "next/server";
 import type { SequenceStep } from "@/lib/types";
 import { addDaysISO } from "@/lib/cadence";
 import { supabase } from "@/lib/supabase";
+import { buildEntitySummary } from "@/lib/summary-server";
+import { enrichDiscordAlert, pushDiscordEmbeds } from "@/lib/discord";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // Vercel Cron hits this daily. Production auth: Bearer CRON_SECRET.
-// Creates in-app notifications for stale/overdue items, then pushes a digest
-// via Resend (email) and a Discord webhook if configured.
-const STALE_DAYS = 7;
-const TERMINAL = ["Closed Won", "Closed Lost", "Nurture"];
+// Alerts v2: fires when an entity in an active-conversation stage has gone
+// >3 days without an update, auto-resolves when it moves on, attaches an AI
+// recap, and pushes one Discord embed per entity.
+const STALE_DAYS = 3;
+const ALERT_STAGES = new Set(["Replied", "Meeting Booked", "Demo"]);
+const TERMINAL = new Set(["Closed Won", "Closed Lost", "Nurture"]);
+const MAX_SUMMARIES = 25; // cap OpenAI calls per run
 
-export async function GET(req: Request) {
-  return scan(req);
-}
+type Row = Record<string, unknown>;
+const nkey = (n: { kind: string; factory_id?: unknown; contact_id?: unknown; network_id?: unknown }) =>
+  `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}:${n.network_id ?? ""}`;
 
-export async function POST(req: Request) {
-  return scan(req);
-}
+export async function GET(req: Request) { return scan(req); }
+export async function POST(req: Request) { return scan(req); }
 
 async function scan(req: Request) {
   const fromCron = req.headers.get("x-vercel-cron") === "1";
@@ -30,119 +35,146 @@ async function scan(req: Request) {
   const authorized = production
     ? auth === `Bearer ${secret}`
     : fromCron || !secret || auth === `Bearer ${secret}`;
-  if (!authorized)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!authorized) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const sb = supabase();
   const now = Date.now();
+  const nowIso = new Date(now).toISOString();
   const staleCut = new Date(now - STALE_DAYS * 86400000).toISOString();
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = nowIso.slice(0, 10);
 
-  // Existing unread notifications → de-dupe key set.
+  const [factories, contacts, networks, stepRows] = await Promise.all([
+    sb.from("factories").select("id,name,stage,network_id,last_activity_at,next_action,next_action_due"),
+    sb.from("contacts").select("id,factory_id,network_id,full_name,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
+    sb.from("networks").select("id,name,stage,last_activity_at,next_action,next_action_due"),
+    sb.from("sequence_steps").select("*").order("step_index"),
+  ]);
+  const fRows = (factories.data ?? []) as Row[];
+  const cRows = (contacts.data ?? []) as Row[];
+  const nRows = (networks.data ?? []) as Row[];
+  const allSteps = (stepRows.data ?? []) as SequenceStep[];
+  const fMap = new Map(fRows.map((f) => [f.id as string, f]));
+  const cMap = new Map(cRows.map((c) => [c.id as string, c]));
+  const nMap = new Map(nRows.map((n) => [n.id as string, n]));
+
+  // ── Auto-resolve: clear stale alerts whose entity has moved on ──────────────
   const { data: existing } = await sb
     .from("notifications")
-    .select("kind,factory_id,contact_id")
+    .select("id,kind,factory_id,contact_id,network_id,created_at")
     .is("read_at", null);
-  const seen = new Set((existing ?? []).map((n) => `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}`));
+  const resolveIds: string[] = [];
+  for (const n of existing ?? []) {
+    if (!String(n.kind).startsWith("stale_")) continue;
+    const entity =
+      n.kind === "stale_factory" ? fMap.get(n.factory_id as string)
+      : n.kind === "stale_contact" ? cMap.get(n.contact_id as string)
+      : n.kind === "stale_network" ? nMap.get(n.network_id as string)
+      : null;
+    if (!entity) { resolveIds.push(n.id as string); continue; } // entity deleted
+    const movedOn = typeof entity.last_activity_at === "string" && entity.last_activity_at > (n.created_at as string);
+    const leftStages = !ALERT_STAGES.has(entity.stage as string);
+    if (movedOn || leftStages) resolveIds.push(n.id as string);
+  }
+  if (resolveIds.length)
+    await sb.from("notifications").update({ read_at: nowIso }).in("id", resolveIds);
 
-  const toInsert: Record<string, unknown>[] = [];
-  const add = (n: Record<string, unknown>) => {
-    const key = `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}`;
-    if (seen.has(key)) return;
-    seen.add(key);
+  // De-dupe against still-unread alerts.
+  const stillUnread = (existing ?? []).filter((n) => !resolveIds.includes(n.id as string));
+  const seen = new Set(stillUnread.map((n) => nkey(n as never)));
+  const toInsert: Row[] = [];
+  const add = (n: Row) => {
+    const k = nkey(n as never);
+    if (seen.has(k)) return;
+    seen.add(k);
     toInsert.push(n);
   };
 
-  const [factories, contacts, stepRows] = await Promise.all([
-    sb.from("factories").select("id,name,stage,last_activity_at,next_action,next_action_due").not("stage", "in", `(${TERMINAL.map((s) => `"${s}"`).join(",")})`),
-    sb.from("contacts").select("id,factory_id,full_name,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
-    sb.from("sequence_steps").select("*").order("step_index"),
-  ]);
-  const allSteps = (stepRows.data ?? []) as SequenceStep[];
-
-  for (const f of factories.data ?? []) {
-    if (f.last_activity_at && f.last_activity_at < staleCut)
+  // ── Detect new alerts ───────────────────────────────────────────────────────
+  for (const f of fRows) {
+    if (ALERT_STAGES.has(f.stage as string) && (f.last_activity_at as string) < staleCut)
       add({ kind: "stale_factory", factory_id: f.id, title: `No update in ${STALE_DAYS}+ days`, detail: f.name });
-    if (f.next_action_due && f.next_action_due <= today)
+    if (!TERMINAL.has(f.stage as string) && f.next_action_due && (f.next_action_due as string) <= today)
       add({ kind: "followup_due", factory_id: f.id, title: "Next action due", detail: `${f.name} — ${f.next_action ?? ""}`, due_on: f.next_action_due });
   }
-  for (const c of contacts.data ?? []) {
-    const stale = c.last_activity_at && c.last_activity_at < staleCut;
-    if (stale && c.sequence_state === "active" && !TERMINAL.includes(c.stage))
-      add({ kind: "stale_contact", contact_id: c.id, factory_id: c.factory_id, title: `No update in ${STALE_DAYS}+ days`, detail: c.full_name });
+
+  for (const n of nRows) {
+    if (ALERT_STAGES.has(n.stage as string) && (n.last_activity_at as string) < staleCut)
+      add({ kind: "stale_network", network_id: n.id, title: `No update in ${STALE_DAYS}+ days`, detail: n.name });
+    if (!TERMINAL.has(n.stage as string) && n.next_action_due && (n.next_action_due as string) <= today)
+      add({ kind: "followup_due", network_id: n.id, title: "Next action due", detail: `${n.name} — ${n.next_action ?? ""}`, due_on: n.next_action_due });
+  }
+
+  for (const c of cRows) {
+    if (ALERT_STAGES.has(c.stage as string) && (c.last_activity_at as string) < staleCut)
+      add({ kind: "stale_contact", contact_id: c.id, factory_id: c.factory_id ?? null, network_id: c.network_id ?? null, title: `No update in ${STALE_DAYS}+ days`, detail: c.full_name });
+
     if (c.sequence_state === "active" && c.sequence_id) {
-      const sequenceSteps = allSteps.filter((s) => s.sequence_id === c.sequence_id);
-      const nextStep = sequenceSteps.find((s) => s.step_index > (c.sequence_step ?? 0));
-      const currentStep = sequenceSteps.find((s) => s.step_index === (c.sequence_step ?? 0));
-      const derivedDue = c.next_follow_up
-        ?? (c.last_contacted && currentStep && nextStep
-          ? addDaysISO(
-              new Date(c.last_contacted),
-              Math.max(1, nextStep.day_offset - currentStep.day_offset),
-            )
+      const steps = allSteps.filter((s) => s.sequence_id === c.sequence_id);
+      const nextStep = steps.find((s) => s.step_index > ((c.sequence_step as number) ?? 0));
+      const currentStep = steps.find((s) => s.step_index === ((c.sequence_step as number) ?? 0));
+      const derivedDue =
+        (c.next_follow_up as string | null) ??
+        (c.last_contacted && currentStep && nextStep
+          ? addDaysISO(new Date(c.last_contacted as string), Math.max(1, nextStep.day_offset - currentStep.day_offset))
           : null);
-      if (nextStep && derivedDue && derivedDue <= today) {
-        add({
-          kind: "sequence_step_due",
-          contact_id: c.id,
-          factory_id: c.factory_id,
-          title: `Sequence Day ${nextStep.day_offset} due`,
-          detail: c.full_name,
-          due_on: derivedDue,
-        });
-      }
-    } else if (c.next_follow_up && c.next_follow_up <= today) {
-      add({ kind: "followup_due", contact_id: c.id, factory_id: c.factory_id, title: "Follow-up due", detail: c.full_name, due_on: c.next_follow_up });
+      if (nextStep && derivedDue && derivedDue <= today)
+        add({ kind: "sequence_step_due", contact_id: c.id, factory_id: c.factory_id ?? null, network_id: c.network_id ?? null, title: `Sequence Day ${nextStep.day_offset} due`, detail: c.full_name, due_on: derivedDue });
+    } else if (c.next_follow_up && (c.next_follow_up as string) <= today) {
+      add({ kind: "followup_due", contact_id: c.id, factory_id: c.factory_id ?? null, network_id: c.network_id ?? null, title: "Follow-up due", detail: c.full_name, due_on: c.next_follow_up });
     }
+  }
+
+  // ── Attach an AI recap to each new stale alert (capped) ─────────────────────
+  let summaries = 0;
+  for (const n of toInsert) {
+    if (!String(n.kind).startsWith("stale_") || summaries >= MAX_SUMMARIES) continue;
+    const target =
+      n.kind === "stale_factory" ? (["factory", n.factory_id] as const)
+      : n.kind === "stale_contact" ? (["contact", n.contact_id] as const)
+      : (["network", n.network_id] as const);
+    try {
+      const summary = await buildEntitySummary(sb, target[0], target[1] as string);
+      if (summary) { n.summary = summary; summaries++; }
+    } catch { /* alert still fires without a recap */ }
   }
 
   if (toInsert.length) await sb.from("notifications").insert(toInsert);
 
-  // Push unpushed notifications as a single digest.
+  // ── Push unpushed alerts: Discord embeds (per entity) + email digest ────────
   const { data: unpushed } = await sb.from("notifications").select("*").is("pushed_at", null);
   let pushed = 0;
   if (unpushed && unpushed.length) {
-    const lines = unpushed.map((n) => `• ${n.title}${n.detail ? ` — ${n.detail}` : ""}`);
-    const text = `Minder tracker — ${unpushed.length} alert(s):\n${lines.join("\n")}`;
+    // New/Contacted sourced factories share the source network's Discord
+    // thread. From Replied onward they get their own thread.
+    const enriched = (unpushed as Row[]).map((n) =>
+      enrichDiscordAlert(n, fMap, nMap),
+    );
     const results = await Promise.all([
-      pushDiscord(text),
-      pushEmail(`Minder tracker: ${unpushed.length} alert(s)`, lines.join("<br>")),
+      pushDiscordEmbeds(enriched),
+      pushEmailDigest(unpushed as Row[]),
     ]);
-    if (results.some((result) => result === true)) {
-      const nowIso = new Date(now).toISOString();
+    if (results.some((r) => r === true)) {
       await sb.from("notifications").update({ pushed_at: nowIso }).is("pushed_at", null);
       pushed = unpushed.length;
     }
   }
 
-  return NextResponse.json({ ok: true, created: toInsert.length, pushed });
+  return NextResponse.json({ ok: true, created: toInsert.length, resolved: resolveIds.length, pushed });
 }
 
-async function pushDiscord(content: string): Promise<boolean | null> {
-  const url = process.env.DISCORD_WEBHOOK_URL;
-  if (!url) return null;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: content.slice(0, 1900) }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function pushEmail(subject: string, html: string): Promise<boolean | null> {
+async function pushEmailDigest(notifications: Row[]): Promise<boolean | null> {
   const key = process.env.RESEND_API_KEY;
   const to = process.env.ALERT_EMAIL_TO;
   const from = process.env.ALERT_EMAIL_FROM ?? "alerts@resend.dev";
   if (!key || !to) return null;
+  const lines = notifications.map(
+    (n) => `<p><b>${n.detail ?? ""}</b> — ${n.title ?? ""}${n.summary ? `<br><span style="color:#555">${n.summary}</span>` : ""}</p>`,
+  );
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject: `Minder tracker: ${notifications.length} alert(s)`, html: lines.join("") }),
     });
     return res.ok;
   } catch {

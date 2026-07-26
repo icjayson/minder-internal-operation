@@ -6,12 +6,13 @@ import { useStore } from "@/lib/factories-store";
 import { supabase } from "@/lib/supabase";
 
 export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
-  const { verticals, openFactory } = useStore();
+  const { verticals, networks, openFactory } = useStore();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     vertical_id: verticals[0]?.id ?? "",
+    network_id: "",
     geo_tier: "",
     hq_location: "",
     country: "",
@@ -46,6 +47,7 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
       const payload: Record<string, unknown> = {
         name: form.name.trim(),
         vertical_id: form.vertical_id || null,
+        network_id: form.network_id || null,
         geo_tier: form.geo_tier || null,
         hq_location: form.hq_location.trim() || null,
         country: form.country.trim() || null,
@@ -101,6 +103,12 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
               <select value={form.geo_tier} onChange={(e) => set("geo_tier", e.target.value)} className={inp}>
                 <option value="">—</option>
                 {GEO_TIERS.map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}
+              </select>
+            </Field>
+            <Field label="Network (source)">
+              <select value={form.network_id} onChange={(e) => set("network_id", e.target.value)} className={inp}>
+                <option value="">—</option>
+                {(networks ?? []).map((nw) => <option key={nw.id} value={nw.id}>{nw.name}</option>)}
               </select>
             </Field>
             <Field label="HQ location"><input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} className={inp} /></Field>

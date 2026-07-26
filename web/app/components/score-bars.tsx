@@ -1,6 +1,6 @@
 "use client";
 
-import { SCORE_DIMENSIONS, type ScoreBreakdown } from "@/lib/types";
+import { SCORE_DIMENSIONS, type ScoreBreakdown, type ScoreDimension } from "@/lib/types";
 
 // Compact 0–100 score chip used in the factory table.
 export function ScoreChip({ score, grade }: { score: number | null; grade: string | null }) {
@@ -28,12 +28,18 @@ export function ScoreChip({ score, grade }: { score: number | null; grade: strin
   );
 }
 
-// Full 8-dimension breakdown shown in the drawer.
-export function ScoreBreakdownBars({ breakdown }: { breakdown: ScoreBreakdown | null }) {
+// Full dimension breakdown shown in the drawer (factory rubric by default).
+export function ScoreBreakdownBars({
+  breakdown,
+  dimensions = SCORE_DIMENSIONS as readonly ScoreDimension[],
+}: {
+  breakdown: ScoreBreakdown | null;
+  dimensions?: readonly ScoreDimension[];
+}) {
   if (!breakdown) return null;
   return (
     <div className="space-y-1.5">
-      {SCORE_DIMENSIONS.map((d) => {
+      {dimensions.map((d) => {
         const v = breakdown[d.key] ?? 0;
         const pct = (v / d.max) * 100;
         return (

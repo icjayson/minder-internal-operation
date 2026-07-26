@@ -3,6 +3,7 @@ import { openaiChat } from "@/lib/openai";
 import { recommendNext } from "@/lib/recommendation";
 import { MINDER_DESCRIPTION, PRODUCT_DIRECTION, VERTICAL_TENSIONS } from "@/lib/minder";
 import { supabase } from "@/lib/supabase";
+import { loadContextText } from "@/lib/context-server";
 
 export const runtime = "nodejs";
 
@@ -60,10 +61,14 @@ export async function POST(req: Request) {
       .filter((l) => l.length > 3)
       .join("\n");
 
+    // Per-entity inputted context (uploaded files + text cards).
+    const { text: inputtedContext, items: contextItems } = await loadContextText(sb, "factory", factoryId);
+
     // Enough data to specialise? (context logged OR some evidence captured)
-    const enough = (acts ?? []).length >= 1 || (factory.evidence_level ?? 0) >= 1;
+    const enough = (acts ?? []).length >= 1 || contextItems >= 1 || (factory.evidence_level ?? 0) >= 1;
 
     let recommendation = move.recommendation;
+    let workflow: { title: string; detail: string }[] = [];
     let source: "ai" | "deterministic" = "deterministic";
 
     if (enough && process.env.OPENAI_API_KEY) {
@@ -95,16 +100,27 @@ CONTACTS
 ${contactsText || "(none yet)"}
 ACCUMULATED FIELD CONTEXT (from calls, notes, observed workflow)
 ${fieldContext || "(sparse)"}
+${inputtedContext ? `\nINPUTTED CONTEXT (founder-uploaded files & notes for THIS factory — most authoritative)\n${inputtedContext}\n` : ""}
+Task: propose ONE specific, concrete next workflow/demo to run with this factory. Be top-down: pick a SINGLE core problem from their real context and design a quick demo around just that problem (not a broad rollout). Ground it in a concrete pain they actually mentioned; name the specific contact it involves if relevant. Respect the strategic anchor (don't jump the relationship ladder). British spelling, no pitch clichés.
+Also break the demo into an ordered, runnable workflow of 3-5 short steps (trigger → capture → check → escalate/approve style), each a concrete action.
+Return JSON: { "recommendation": "<2-3 sentences: the specific next workflow/demo>", "rationale": "<one line: which context signal drove it>", "workflow": [ { "title": "<short step name>", "detail": "<one concrete sentence>" } ] }`;
 
-Task: propose ONE specific, concrete next workflow/demo to run with this factory. Be top-down: pick a SINGLE core problem from their real context and describe a quick demo around just that problem (not a broad rollout). Ground it in a concrete pain they actually mentioned; name the specific contact it involves if relevant. Respect the strategic anchor (don't jump the relationship ladder). 2-3 short sentences, British spelling, no pitch clichés.
-Return JSON: { "recommendation": "<the specific next workflow/demo>", "rationale": "<one line: which context signal drove it>" }`;
-
-        const out = await openaiChat(prompt, { temperature: 0.5, maxTokens: 500, json: true });
+        const out = await openaiChat(prompt, { temperature: 0.5, maxTokens: 800, json: true });
         const json = out.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-        const parsed = JSON.parse(json) as { recommendation?: string; rationale?: string };
+        const parsed = JSON.parse(json) as {
+          recommendation?: string;
+          rationale?: string;
+          workflow?: { title?: string; detail?: string }[];
+        };
         if (parsed.recommendation?.trim()) {
           recommendation = parsed.recommendation.trim();
           move.rationale = parsed.rationale?.trim() || move.rationale;
+          if (Array.isArray(parsed.workflow)) {
+            workflow = parsed.workflow
+              .filter((s) => s && (s.title || s.detail))
+              .slice(0, 6)
+              .map((s) => ({ title: (s.title ?? "").slice(0, 80), detail: (s.detail ?? "").slice(0, 240) }));
+          }
           source = "ai";
         }
       } catch {
@@ -119,7 +135,7 @@ Return JSON: { "recommendation": "<the specific next workflow/demo>", "rationale
     if (updateError)
       return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-    return NextResponse.json({ ...move, recommendation, source, daysSinceActivity });
+    return NextResponse.json({ ...move, recommendation, workflow, source, daysSinceActivity });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },

@@ -6,6 +6,8 @@ import { FactoriesProvider, useStore } from "@/lib/factories-store";
 import { Sidebar } from "./sidebar";
 import { FactoryDrawer } from "./factory-drawer";
 import { NewFactoryDrawer } from "./new-factory-drawer";
+import { NetworkDrawer } from "./network-drawer";
+import { NewNetworkDrawer } from "./new-network-drawer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -26,13 +28,18 @@ function GlobalDrawers() {
   const {
     selectedFactoryId,
     selectedContactId,
+    selectedNetworkId,
     closeFactory,
+    closeNetwork,
     newFactoryOpen,
     closeNewFactory,
+    newNetworkOpen,
+    closeNewNetwork,
   } = useStore();
   return (
     <>
       {newFactoryOpen && <NewFactoryDrawer onClose={closeNewFactory} />}
+      {newNetworkOpen && <NewNetworkDrawer onClose={closeNewNetwork} />}
       {selectedFactoryId && (
         <FactoryDrawer
           factoryId={selectedFactoryId}
@@ -40,23 +47,36 @@ function GlobalDrawers() {
           onClose={closeFactory}
         />
       )}
+      {selectedNetworkId && (
+        <NetworkDrawer networkId={selectedNetworkId} onClose={closeNetwork} />
+      )}
     </>
   );
 }
 
-// Opens the factory drawer from ?factory=<id> (extension / shared links).
+// Opens a drawer from ?factory=<id> or ?network=<id> (extension / shared / alert links).
 function DeepLinkOpener() {
   const params = useSearchParams();
-  const { factories, openFactory } = useStore();
+  const { factories, networks, openFactory, openNetwork } = useStore();
   const handled = useRef<string | null>(null);
-  const id = params.get("factory");
+  const factoryId = params.get("factory");
+  const networkId = params.get("network");
   useEffect(() => {
-    if (!id || !factories) return;
-    if (handled.current === id) return;
-    if (factories.some((f) => f.id === id)) {
-      handled.current = id;
-      openFactory(id);
+    if (factoryId && factories) {
+      if (handled.current === factoryId) return;
+      if (factories.some((f) => f.id === factoryId)) {
+        handled.current = factoryId;
+        openFactory(factoryId);
+      }
+      return;
     }
-  }, [id, factories, openFactory]);
+    if (networkId && networks) {
+      if (handled.current === networkId) return;
+      if (networks.some((n) => n.id === networkId)) {
+        handled.current = networkId;
+        openNetwork(networkId);
+      }
+    }
+  }, [factoryId, networkId, factories, networks, openFactory, openNetwork]);
   return null;
 }

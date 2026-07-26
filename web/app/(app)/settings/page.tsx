@@ -86,7 +86,7 @@ export default function SettingsPage() {
         <Card title="Alerts" action={manualScanEnabled ? (
           <button onClick={runScan} className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11px] font-medium cursor-pointer">Run scan now</button>
         ) : undefined}>
-          <p className="text-[12px] text-ink-soft">Scans for stale (&gt;7d) and due items, creates in-app alerts, and pushes a digest via Resend + Discord (set <code className="mono">RESEND_API_KEY</code>, <code className="mono">ALERT_EMAIL_TO</code>, <code className="mono">DISCORD_WEBHOOK_URL</code>). Vercel Cron hits this daily.</p>
+          <p className="text-[12px] text-ink-soft">Flags anything in Replied → Demo with no update in 3+ days (auto-clears when you act), attaches an AI recap, and pushes one Discord embed per entity (set <code className="mono">DISCORD_WEBHOOK_URL</code>; deep links use <code className="mono">APP_URL</code>). Optional email digest via <code className="mono">RESEND_API_KEY</code> + <code className="mono">ALERT_EMAIL_TO</code>. Vercel Cron hits this daily.</p>
           {scan && <p className="mt-2 text-[12px] text-accent mono">{scan}</p>}
         </Card>
       </div>

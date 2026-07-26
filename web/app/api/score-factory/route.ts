@@ -9,6 +9,8 @@ import {
 } from "@/lib/minder";
 import { SCORE_DIMENSIONS } from "@/lib/types";
 import { recommendNext } from "@/lib/recommendation";
+import { loadContextText } from "@/lib/context-server";
+import { persistFactoryScore } from "@/lib/score-persistence";
 
 export const runtime = "nodejs";
 
@@ -72,7 +74,10 @@ export async function POST(req: Request) {
       .filter((l) => l.length > 4)
       .join("\n");
 
-    const prompt = buildPrompt(factory, vertical?.name ?? "unknown", vKey, contextText, contactsText, fieldContext);
+    // Per-entity "inputted context": uploaded-file text + manual text cards.
+    const { text: inputtedContext } = await loadContextText(sb, "factory", factoryId);
+
+    const prompt = buildPrompt(factory, vertical?.name ?? "unknown", vKey, contextText, contactsText, fieldContext, inputtedContext);
     const raw = await openaiChat(prompt, { temperature: 1, maxTokens: 1600, json: true });
     const json = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
@@ -115,9 +120,23 @@ export async function POST(req: Request) {
       blocker,
       scored_at: new Date().toISOString(),
     };
-    await sb.from("factories").update(patch).eq("id", factoryId);
+    const persisted = await persistFactoryScore(
+      (values) => sb.from("factories").update(values).eq("id", factoryId),
+      patch,
+    );
+    if (persisted.error)
+      throw new Error(`Failed to save AI score: ${persisted.error.message ?? persisted.error.code ?? "database error"}`);
 
-    return NextResponse.json(patch, { headers: CORS });
+    return NextResponse.json(
+      {
+        ...patch,
+        persisted_scored_at: persisted.persistedScoredAt,
+        ...(!persisted.persistedScoredAt
+          ? { schema_warning: "factories.scored_at is missing; run migration 016_factory_score_persistence.sql" }
+          : {}),
+      },
+      { headers: CORS },
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ error: msg }, { status: 500, headers: CORS });
@@ -131,6 +150,7 @@ function buildPrompt(
   contextText: string,
   contactsText: string,
   fieldContext: string,
+  inputtedContext: string,
 ): string {
   const tension = (vKey && VERTICAL_TENSIONS[vKey]) || "";
   return `${MINDER_DESCRIPTION}
@@ -153,7 +173,7 @@ Multi-shift: ${f.multi_shift ?? "unknown"}
 Channel: ${f.channel ?? "unknown"}
 Parent company: ${f.parent_company ?? "none"}
 Notes: ${f.notes ?? "none"}
-${contactsText ? `\nCONTACTS\n${contactsText}\n` : ""}${fieldContext ? `\nACCUMULATED FIELD CONTEXT (calls, notes, observed workflow — weight heavily):\n${fieldContext}\n` : ""}
+${contactsText ? `\nCONTACTS\n${contactsText}\n` : ""}${fieldContext ? `\nACCUMULATED FIELD CONTEXT (calls, notes, observed workflow — weight heavily):\n${fieldContext}\n` : ""}${inputtedContext ? `\nINPUTTED CONTEXT (founder-uploaded files & notes for THIS factory — the most authoritative evidence, weight heaviest):\n${inputtedContext}\n` : ""}
 Return JSON exactly like:
 {
   "score_breakdown": { ${SCORE_DIMENSIONS.map((d) => `"${d.key}": <0-${d.max}>`).join(", ")} },

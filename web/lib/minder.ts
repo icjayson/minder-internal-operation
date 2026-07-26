@@ -34,6 +34,18 @@ export const SCORE_RUBRIC = `Qualification score (100 points total):
 Grades: A = 75+ with no hard blocker; B = 60-74 with a defined blocker; C = below 60 (insight contact only).
 Score conservatively; only award points backed by a concrete signal.`;
 
+// Network qualification rubric (fallback when no scope='network' context_doc exists).
+export const NETWORK_SCORE_RUBRIC = `Score a referral network (association / accelerator / institute / cluster / trade body / connector) 0-100:
+- Member reach & IDP fit (25): how many IDP-fit factories can they actually put in front of us?
+- Intro willingness (20): will they make warm introductions, and how actively?
+- Credibility / trust transfer (15): does their endorsement lower a factory's guard?
+- Vertical & geo alignment (15): do their members sit in our beachhead verticals/regions?
+- Activation cost (10): effort / time / quid-pro-quo to switch them on — LOWER cost scores HIGHER.
+- Strategic leverage / exclusivity (10): cluster/parent leverage, repeatability, competitive moat.
+- Relationship quality (5): follow-through, openness, reciprocity.
+Grades: A = 75+ with no hard blocker; B = 60-74 with a defined blocker; C = below 60.
+Score conservatively; only award points backed by a concrete signal.`;
+
 // PDF 1 §2.1 + §2.5 + PDF 2 honesty guardrail — writing assistant rules
 export const WRITING_GUARDRAILS = `You write short, human outreach on behalf of Minder AI to industrial operators.
 PHILOSOPHY (The Mom Test): discovery, not pitching. Talk about THEIR current situation, ask about the last real incident. Lead with the problem.

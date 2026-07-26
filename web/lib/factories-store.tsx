@@ -11,6 +11,7 @@ import type {
   Activity,
   Contact,
   Factory,
+  Network,
   Notification,
   Vertical,
 } from "@/lib/types";
@@ -18,6 +19,7 @@ import { supabase } from "@/lib/supabase";
 
 type Ctx = {
   verticals: Vertical[];
+  networks: Network[] | null;
   factories: Factory[] | null;
   contacts: Contact[] | null;
   activities: Activity[] | null;
@@ -25,34 +27,65 @@ type Ctx = {
   error: string | null;
 
   factory: (id: string | null) => Factory | null;
+  network: (id: string | null) => Network | null;
   contactsOf: (factoryId: string) => Contact[];
+  contactsOfNetwork: (networkId: string) => Contact[];
+  factoriesOfNetwork: (networkId: string) => Factory[];
   activitiesOf: (factoryId: string) => Activity[];
   verticalName: (id: string | null) => string;
+  networkName: (id: string | null) => string;
 
   updateFactory: (id: string, patch: Partial<Factory>) => Promise<void>;
   deleteFactory: (id: string) => Promise<void>;
+  updateNetwork: (id: string, patch: Partial<Network>) => Promise<void>;
+  deleteNetwork: (id: string) => Promise<void>;
   updateContact: (id: string, patch: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
   addContact: (factoryId: string, patch: Partial<Contact>) => Promise<void>;
+  addNetworkContact: (networkId: string, patch: Partial<Contact>) => Promise<void>;
   addActivity: (factoryId: string, patch: Partial<Activity>) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
 
   selectedFactoryId: string | null;
   selectedContactId: string | null;
+  selectedNetworkId: string | null;
   openFactory: (id: string) => void;
   openContact: (id: string) => void;
+  openNetwork: (id: string) => void;
   closeFactory: () => void;
+  closeNetwork: () => void;
+
   newFactoryOpen: boolean;
   openNewFactory: () => void;
   closeNewFactory: () => void;
+  newNetworkOpen: boolean;
+  openNewNetwork: () => void;
+  closeNewNetwork: () => void;
 
   reload: () => Promise<void>;
 };
 
 const StoreContext = createContext<Ctx | null>(null);
 
+// Context items are polymorphic (no FK cascade), so purge them + their storage
+// objects when the owning entity is deleted. No-ops gracefully if the table isn't there.
+async function purgeEntityContext(entityType: "factory" | "network", id: string) {
+  const sb = supabase();
+  const { data: items } = await sb
+    .from("context_items")
+    .select("storage_path,kind")
+    .eq("entity_type", entityType)
+    .eq("entity_id", id);
+  const paths = (items ?? [])
+    .filter((i) => i.kind === "file" && i.storage_path)
+    .map((i) => i.storage_path as string);
+  if (paths.length) await sb.storage.from("context-files").remove(paths);
+  await sb.from("context_items").delete().eq("entity_type", entityType).eq("entity_id", id);
+}
+
 export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   const [verticals, setVerticals] = useState<Vertical[]>([]);
+  const [networks, setNetworks] = useState<Network[] | null>(null);
   const [factories, setFactories] = useState<Factory[] | null>(null);
   const [contacts, setContacts] = useState<Contact[] | null>(null);
   const [activities, setActivities] = useState<Activity[] | null>(null);
@@ -60,18 +93,22 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const [newFactoryOpen, setNewFactoryOpen] = useState(false);
+  const [newNetworkOpen, setNewNetworkOpen] = useState(false);
 
   const reload = useCallback(async () => {
     const sb = supabase();
-    const [v, f, c, a, n] = await Promise.all([
+    const [v, nw, f, c, a, n] = await Promise.all([
       sb.from("verticals").select("*").order("sort"),
+      sb.from("networks").select("*").order("created_at", { ascending: false }),
       sb.from("factories").select("*").order("created_at", { ascending: false }),
       sb.from("contacts").select("*").order("created_at", { ascending: false }),
       sb.from("activities").select("*").order("created_at", { ascending: false }).limit(1000),
       sb.from("notifications").select("*").order("created_at", { ascending: false }),
     ]);
     if (v.data) setVerticals(v.data as Vertical[]);
+    setNetworks((nw.data ?? []) as Network[]);
     if (f.error) setError(f.error.message);
     else setFactories((f.data ?? []) as Factory[]);
     setContacts((c.data ?? []) as Contact[]);
@@ -108,6 +145,7 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
 
     const channel = sb
       .channel("dp-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "networks" }, applyRealtime<Network>(setNetworks))
       .on("postgres_changes", { event: "*", schema: "public", table: "factories" }, applyRealtime<Factory>(setFactories))
       .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, applyRealtime<Contact>(setContacts))
       .on("postgres_changes", { event: "*", schema: "public", table: "activities" }, applyRealtime<Activity>(setActivities))
@@ -129,7 +167,22 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   const deleteFactory = useCallback(async (id: string) => {
     setFactories((prev) => (prev ? prev.filter((f) => f.id !== id) : prev));
     setSelectedFactoryId((cur) => (cur === id ? null : cur));
+    await purgeEntityContext("factory", id);
     const { error } = await supabase().from("factories").delete().eq("id", id);
+    if (error) setError(error.message);
+  }, []);
+
+  const updateNetwork = useCallback(async (id: string, patch: Partial<Network>) => {
+    setNetworks((prev) => (prev ? prev.map((n) => (n.id === id ? { ...n, ...patch } : n)) : prev));
+    const { error } = await supabase().from("networks").update(patch).eq("id", id);
+    if (error) setError(error.message);
+  }, []);
+
+  const deleteNetwork = useCallback(async (id: string) => {
+    setNetworks((prev) => (prev ? prev.filter((n) => n.id !== id) : prev));
+    setSelectedNetworkId((cur) => (cur === id ? null : cur));
+    await purgeEntityContext("network", id);
+    const { error } = await supabase().from("networks").delete().eq("id", id);
     if (error) setError(error.message);
   }, []);
 
@@ -153,6 +206,13 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     if (error) setError(error.message);
   }, []);
 
+  const addNetworkContact = useCallback(async (networkId: string, patch: Partial<Contact>) => {
+    const { error } = await supabase()
+      .from("contacts")
+      .insert({ network_id: networkId, factory_id: null, full_name: "New contact", ...patch });
+    if (error) setError(error.message);
+  }, []);
+
   const addActivity = useCallback(async (factoryId: string, patch: Partial<Activity>) => {
     const { error } = await supabase()
       .from("activities")
@@ -168,41 +228,67 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
 
   const value: Ctx = {
     verticals,
+    networks,
     factories,
     contacts,
     activities,
     notifications,
     error,
     factory: (id) => factories?.find((f) => f.id === id) ?? null,
+    network: (id) => networks?.find((n) => n.id === id) ?? null,
     contactsOf: (factoryId) => (contacts ?? []).filter((c) => c.factory_id === factoryId),
+    contactsOfNetwork: (networkId) => (contacts ?? []).filter((c) => c.network_id === networkId),
+    factoriesOfNetwork: (networkId) => (factories ?? []).filter((f) => f.network_id === networkId),
     activitiesOf: (factoryId) => (activities ?? []).filter((a) => a.factory_id === factoryId),
     verticalName: (id) => verticals.find((v) => v.id === id)?.name ?? "—",
+    networkName: (id) => networks?.find((n) => n.id === id)?.name ?? "—",
     updateFactory,
     deleteFactory,
+    updateNetwork,
+    deleteNetwork,
     updateContact,
     deleteContact,
     addContact,
+    addNetworkContact,
     addActivity,
     markNotificationRead,
     selectedFactoryId,
     selectedContactId,
+    selectedNetworkId,
     openFactory: (id) => {
+      setSelectedNetworkId(null);
       setSelectedContactId(null);
       setSelectedFactoryId(id);
     },
     openContact: (id) => {
       const contact = contacts?.find((c) => c.id === id);
       if (!contact) return;
-      setSelectedContactId(id);
-      setSelectedFactoryId(contact.factory_id);
+      if (contact.factory_id) {
+        setSelectedNetworkId(null);
+        setSelectedContactId(id);
+        setSelectedFactoryId(contact.factory_id);
+      } else if (contact.network_id) {
+        setSelectedFactoryId(null);
+        setSelectedContactId(null);
+        setSelectedNetworkId(contact.network_id);
+      }
+    },
+    openNetwork: (id) => {
+      setSelectedFactoryId(null);
+      setSelectedContactId(null);
+      setSelectedNetworkId(id);
     },
     closeFactory: () => {
       setSelectedFactoryId(null);
       setSelectedContactId(null);
     },
+    closeNetwork: () => setSelectedNetworkId(null),
     newFactoryOpen,
     openNewFactory: () => setNewFactoryOpen(true),
     closeNewFactory: () => setNewFactoryOpen(false),
+    newNetworkOpen,
+    openNewNetwork: () => setNewNetworkOpen(true),
+    closeNewNetwork: () => setNewNetworkOpen(false),
     reload,
   };
 

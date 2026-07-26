@@ -12,6 +12,18 @@ const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
     icon: <path d="M4 6h16M4 12h12M4 18h8" strokeWidth="1.6" strokeLinecap="round" />,
   },
   {
+    href: "/networks",
+    label: "Networks",
+    icon: (
+      <>
+        <circle cx="6" cy="18" r="2.4" strokeWidth="1.5" />
+        <circle cx="18" cy="18" r="2.4" strokeWidth="1.5" />
+        <circle cx="12" cy="5" r="2.4" strokeWidth="1.5" />
+        <path d="M11 7 7 16m6-9 4 9" strokeWidth="1.4" strokeLinecap="round" />
+      </>
+    ),
+  },
+  {
     href: "/factories",
     label: "Factories",
     icon: (
@@ -29,6 +41,18 @@ const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
         <circle cx="9" cy="8" r="3" strokeWidth="1.5" />
         <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeWidth="1.5" strokeLinecap="round" />
         <circle cx="17" cy="7" r="2" strokeWidth="1.5" />
+      </>
+    ),
+  },
+  {
+    href: "/map",
+    label: "Map",
+    icon: (
+      <>
+        <rect x="3" y="4" width="6" height="5" rx="1" strokeWidth="1.5" />
+        <rect x="15" y="3" width="6" height="4.5" rx="1" strokeWidth="1.5" />
+        <rect x="15" y="16.5" width="6" height="4.5" rx="1" strokeWidth="1.5" />
+        <path d="M9 6.5h3.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 0 1.5 1.5H15M14 5.2h1" strokeWidth="1.4" strokeLinecap="round" />
       </>
     ),
   },

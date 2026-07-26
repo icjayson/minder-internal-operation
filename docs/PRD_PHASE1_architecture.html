@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minder Phase 1 — Architecture & ERD</title>
+<style>
+  :root {
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+    --canvas: #eaeef6;
+    --surface: #ffffff;
+    --surface-2: #f4f6fb;
+    --surface-3: #eceff6;
+    --ink: #111726;
+    --ink-soft: #3b455a;
+    --muted: #6b7488;
+    --line: #dde2ec;
+    --line-strong: #c6cddb;
+
+    --accent: #2d44e0;
+    --accent-ink: #2438b8;
+    --accent-soft: rgba(45,68,224,0.09);
+
+    --new: #2d44e0;
+    --new-soft: rgba(45,68,224,0.10);
+    --changed: #b06f12;
+    --changed-soft: rgba(176,111,18,0.11);
+    --reuse: #0f8a61;
+    --reuse-soft: rgba(15,138,97,0.11);
+    --critical: #cf3238;
+    --critical-soft: rgba(207,50,56,0.10);
+
+    --edge: #9aa4bb;
+    --edge-strong: #4a5bd6;
+
+    --shadow: 0 1px 2px rgba(17,23,38,.05), 0 8px 24px -12px rgba(17,23,38,.18);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas: #0a0d13;
+      --surface: #121722;
+      --surface-2: #161c28;
+      --surface-3: #1c2431;
+      --ink: #e9edf6;
+      --ink-soft: #b3bccd;
+      --muted: #7c869b;
+      --line: #232b3a;
+      --line-strong: #323c4f;
+
+      --accent: #6076ff;
+      --accent-ink: #93a2ff;
+      --accent-soft: rgba(96,118,255,0.14);
+
+      --new: #6076ff;
+      --new-soft: rgba(96,118,255,0.15);
+      --changed: #e2a844;
+      --changed-soft: rgba(226,168,68,0.15);
+      --reuse: #2fc48f;
+      --reuse-soft: rgba(47,196,143,0.15);
+      --critical: #f0575c;
+      --critical-soft: rgba(240,87,92,0.15);
+
+      --edge: #55617a;
+      --edge-strong: #7d8dff;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --canvas: #eaeef6; --surface: #ffffff; --surface-2: #f4f6fb; --surface-3: #eceff6;
+    --ink: #111726; --ink-soft: #3b455a; --muted: #6b7488; --line: #dde2ec; --line-strong: #c6cddb;
+    --accent: #2d44e0; --accent-ink: #2438b8; --accent-soft: rgba(45,68,224,0.09);
+    --new: #2d44e0; --new-soft: rgba(45,68,224,0.10); --changed: #b06f12; --changed-soft: rgba(176,111,18,0.11);
+    --reuse: #0f8a61; --reuse-soft: rgba(15,138,97,0.11); --critical: #cf3238; --critical-soft: rgba(207,50,56,0.10);
+    --edge: #9aa4bb; --edge-strong: #4a5bd6;
+    --shadow: 0 1px 2px rgba(17,23,38,.05), 0 8px 24px -12px rgba(17,23,38,.18);
+  }
+  :root[data-theme="dark"] {
+    --canvas: #0a0d13; --surface: #121722; --surface-2: #161c28; --surface-3: #1c2431;
+    --ink: #e9edf6; --ink-soft: #b3bccd; --muted: #7c869b; --line: #232b3a; --line-strong: #323c4f;
+    --accent: #6076ff; --accent-ink: #93a2ff; --accent-soft: rgba(96,118,255,0.14);
+    --new: #6076ff; --new-soft: rgba(96,118,255,0.15); --changed: #e2a844; --changed-soft: rgba(226,168,68,0.15);
+    --reuse: #2fc48f; --reuse-soft: rgba(47,196,143,0.15); --critical: #f0575c; --critical-soft: rgba(240,87,92,0.15);
+    --edge: #55617a; --edge-strong: #7d8dff;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: clamp(20px, 4vw, 56px) clamp(16px, 4vw, 40px) 72px;
+  }
+  .page { max-width: 1080px; margin: 0 auto; }
+
+  /* ── Header ─────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent-ink); font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(26px, 4.4vw, 40px); line-height: 1.08; letter-spacing: -0.02em;
+    font-weight: 680; margin: 10px 0 0; text-wrap: balance;
+  }
+  .lede { color: var(--ink-soft); font-size: clamp(14px, 1.6vw, 16px); max-width: 66ch; margin: 14px 0 0; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 18px; }
+  .pill {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .03em;
+    padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink-soft); white-space: nowrap;
+  }
+
+  /* ── Legend ─────────────────────────────────── */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 22px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .legend-item { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--ink-soft); }
+  .legend-item b { color: var(--ink); font-weight: 600; }
+  .swatch { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+  .swatch.new { background: var(--new); }
+  .swatch.changed { background: var(--changed); }
+  .swatch.reuse { background: var(--reuse); }
+  .swatch.edge { width: 20px; height: 0; border-top: 2px solid var(--edge-strong); border-radius: 0; }
+  .swatch.edge.dash { border-top-style: dashed; border-top-color: var(--edge); }
+
+  /* ── Sections ───────────────────────────────── */
+  section { margin-top: clamp(34px, 5vw, 56px); }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  h2 { font-size: clamp(18px, 2.4vw, 23px); letter-spacing: -0.01em; font-weight: 660; margin: 0; }
+  .sec-sub { color: var(--muted); font-size: 13.5px; margin: 2px 0 20px; max-width: 74ch; }
+
+  /* ── ERD graph ──────────────────────────────── */
+  .graph-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .graph { position: relative; width: 960px; height: 660px; margin: 0 auto; }
+  .edges { position: absolute; inset: 0; width: 960px; height: 660px; z-index: 1; overflow: visible; }
+  .edges path { fill: none; }
+  .edges .solid { stroke: var(--edge-strong); stroke-width: 1.7; }
+  .edges .dash { stroke: var(--edge); stroke-width: 1.5; stroke-dasharray: 5 4; }
+
+  .node {
+    position: absolute; z-index: 2; background: var(--surface);
+    border: 1px solid var(--line-strong); border-left-width: 3px; border-radius: 11px;
+    box-shadow: var(--shadow); padding: 11px 13px; overflow: hidden;
+  }
+  .node[data-status="new"] { border-left-color: var(--new); }
+  .node[data-status="changed"] { border-left-color: var(--changed); }
+  .node[data-status="reuse"] { border-left-color: var(--reuse); }
+  .node-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .node-name { font-family: var(--font-mono); font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .node-b { margin-top: 7px; display: flex; flex-direction: column; gap: 3px; }
+  .node-b div { font-size: 11.5px; color: var(--ink-soft); line-height: 1.32; }
+  .node-b .mono { font-family: var(--font-mono); color: var(--muted); font-size: 10.5px; }
+
+  .tag {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em; font-weight: 600;
+    text-transform: uppercase; padding: 2px 6px; border-radius: 5px; flex: none;
+  }
+  .tag.new { color: var(--new); background: var(--new-soft); }
+  .tag.changed { color: var(--changed); background: var(--changed-soft); }
+  .tag.reuse { color: var(--reuse); background: var(--reuse-soft); }
+
+  .xor { display: inline-block; font-family: var(--font-mono); font-size: 10px; color: var(--accent-ink);
+    background: var(--accent-soft); border: 1px solid var(--line-strong); padding: 1px 5px; border-radius: 5px; }
+
+  .elabel {
+    position: absolute; z-index: 3; font-family: var(--font-mono); font-size: 10px; letter-spacing: .01em;
+    color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line);
+    padding: 2px 6px; border-radius: 6px; white-space: nowrap; box-shadow: var(--shadow);
+  }
+  .elabel.dim { color: var(--muted); }
+
+  /* ── Schema table cards ─────────────────────── */
+  .grid-tables { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 14px; }
+  .tbl { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; }
+  .tbl-h { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 13px; border-bottom: 1px solid var(--line); }
+  .tbl-h .t-name { font-family: var(--font-mono); font-weight: 600; font-size: 13.5px; }
+  .tbl[data-status="new"] .tbl-h { background: var(--new-soft); }
+  .tbl[data-status="changed"] .tbl-h { background: var(--changed-soft); }
+  .cols { list-style: none; margin: 0; padding: 6px 0; }
+  .cols li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px;
+    padding: 4px 13px; font-size: 12px; }
+  .cols li .c-key { font-family: var(--font-mono); font-size: 9px; letter-spacing: .05em; font-weight: 700;
+    color: var(--accent-ink); text-align: left; }
+  .cols li .c-name { font-family: var(--font-mono); color: var(--ink); }
+  .cols li .c-type { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-align: right; }
+  .cols li.add { background: var(--new-soft); box-shadow: inset 3px 0 0 var(--new); }
+  .cols li.add .c-name::before { content: "+ "; color: var(--new); font-weight: 700; }
+  .cols li.chg { background: var(--changed-soft); box-shadow: inset 3px 0 0 var(--changed); }
+  .cols li.chg .c-name { color: var(--ink); }
+  .tbl-foot { padding: 8px 13px 11px; font-size: 11px; color: var(--muted); border-top: 1px dashed var(--line); }
+  .tbl-foot b { color: var(--ink-soft); font-weight: 600; }
+
+  .reuse-strip { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .reuse-strip .lbl { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--muted); margin-right: 4px; }
+  .chip { font-family: var(--font-mono); font-size: 11.5px; padding: 4px 9px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-soft); }
+  .chip.reuse { border-color: color-mix(in srgb, var(--reuse) 40%, var(--line-strong)); }
+
+  /* ── Flow diagrams ──────────────────────────── */
+  .flow { display: grid; align-items: stretch; gap: 12px;
+    grid-template-columns: 1fr auto 1fr auto 1fr; }
+  .band { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .band-cap { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); }
+  .fchip { border: 1px solid var(--line-strong); border-radius: 9px; padding: 9px 11px; background: var(--surface-2); }
+  .fchip .ft { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .fchip .fd { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; line-height: 1.35; }
+  .fchip[data-status="new"] { border-left: 3px solid var(--new); }
+  .fchip[data-status="changed"] { border-left: 3px solid var(--changed); }
+  .fchip[data-status="reuse"] { border-left: 3px solid var(--reuse); }
+  .flow-arrow { align-self: center; color: var(--edge-strong); font-size: 22px; line-height: 1; }
+  @media (max-width: 780px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); justify-self: center; }
+  }
+
+  /* ── Roadmap ────────────────────────────────── */
+  .road { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 12px; counter-reset: p; }
+  .phase { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px; position: relative; }
+  .phase .n { font-family: var(--font-mono); font-size: 11px; color: var(--accent-ink); font-weight: 700; }
+  .phase h3 { margin: 6px 0 5px; font-size: 14px; font-weight: 640; letter-spacing: -0.01em; }
+  .phase p { margin: 0; font-size: 11.5px; color: var(--ink-soft); line-height: 1.4; }
+  .phase .dep { margin-top: 9px; font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+
+  .foot { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted); max-width: 78ch; }
+  .foot code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-3);
+    padding: 1px 5px; border-radius: 5px; color: var(--ink-soft); }
+
+  .wrap { animation: fade .5s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .wrap { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Minder · Design-Partner Platform · Phase 1</div>
+    <h1>System architecture &amp; entity model</h1>
+    <p class="lede">A one-screen read of the Phase-1 build: the Network → Factory → Contact data model, the per-entity context layer, the AI subsystem, and the alert engine. Colour encodes how much is <b>net-new</b> versus reused from today's tracker.</p>
+    <div class="meta-row">
+      <span class="pill">Next.js 16 · React 19</span>
+      <span class="pill">Supabase · Postgres + Realtime</span>
+      <span class="pill">OpenAI gpt-4o-mini (+ gpt-4o vision)</span>
+      <span class="pill">Migration 013 · one file</span>
+    </div>
+
+    <div class="legend" role="list">
+      <span class="legend-item"><span class="swatch new"></span><b>New</b> — net-new table / route / page</span>
+      <span class="legend-item"><span class="swatch changed"></span><b>Changed</b> — existing, extended</span>
+      <span class="legend-item"><span class="swatch reuse"></span><b>Reuse</b> — existing, unchanged</span>
+      <span class="legend-item"><span class="swatch edge"></span>relationship (1→N)</span>
+      <span class="legend-item"><span class="swatch edge dash"></span>polymorphic / cross-cutting</span>
+    </div>
+  </header>
+
+  <!-- ══ ERD ══════════════════════════════════ -->
+  <section>
+    <div class="sec-head"><h2>Entity-relationship model</h2></div>
+    <p class="sec-sub">The spine is Network → Factory → Contact. A contact belongs to a factory <b>or</b> a network (exclusive, DB-enforced). Context items and notifications are polymorphic — one row points at any single entity.</p>
+
+    <div class="graph-scroll">
+      <div class="graph">
+        <svg class="edges" viewBox="0 0 960 660" aria-hidden="true">
+          <defs>
+            <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="4.5" orient="auto">
+              <path d="M1,1 L7,4.5 L1,8" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+          <!-- Vertical -> Factory -->
+          <path class="solid" d="M200,408 L320,408" marker-end="url(#ah)"/>
+          <!-- Network -> Factory (sources) -->
+          <path class="solid" d="M430,254 L430,344" marker-end="url(#ah)"/>
+          <!-- Network -> Contact (direct contacts) -->
+          <path class="solid" d="M540,202 C610,202 640,296 700,296" marker-end="url(#ah)"/>
+          <!-- Factory -> Contact -->
+          <path class="solid" d="M540,408 C610,408 645,344 700,344" marker-end="url(#ah)"/>
+          <!-- ContextItem -> Factory (polymorphic) -->
+          <path class="dash" d="M415,512 L430,472" marker-end="url(#ah)"/>
+          <!-- Notification -> Contact (polymorphic) -->
+          <path class="dash" d="M770,512 L806,378" marker-end="url(#ah)"/>
+        </svg>
+
+        <!-- nodes -->
+        <div class="node" data-status="reuse" style="left:24px;top:358px;width:176px;height:104px">
+          <div class="node-h"><span class="node-name">verticals</span><span class="tag reuse">REUSE</span></div>
+          <div class="node-b"><div>5 IDP domains</div><div class="mono">classifies factories</div></div>
+        </div>
+
+        <div class="node" data-status="new" style="left:320px;top:150px;width:220px;height:104px">
+          <div class="node-h"><span class="node-name">networks</span><span class="tag new">NEW</span></div>
+          <div class="node-b"><div>association · accelerator · institute</div><div class="mono">scored · own pipeline · context</div></div>
+        </div>
+
+        <div class="node" data-status="changed" style="left:320px;top:344px;width:220px;height:128px">
+          <div class="node-h"><span class="node-name">factories</span><span class="tag changed">CHANGED</span></div>
+          <div class="node-b"><div>account / site · AI-scored</div><div class="mono">+ network_id (nullable)</div><div class="mono">+ context_summary</div></div>
+        </div>
+
+        <div class="node" data-status="changed" style="left:700px;top:250px;width:220px;height:128px">
+          <div class="node-h"><span class="node-name">contacts</span><span class="tag changed">CHANGED</span></div>
+          <div class="node-b"><div>owner · BOD · director</div><div><span class="xor">parent: factory ⊕ network</span></div><div class="mono">+ network_id · + context_summary</div></div>
+        </div>
+
+        <div class="node" data-status="new" style="left:300px;top:512px;width:230px;height:96px">
+          <div class="node-h"><span class="node-name">context_items</span><span class="tag new">NEW</span></div>
+          <div class="node-b"><div>file upload + text card</div><div class="mono">extracted text → AI (per-entity only)</div></div>
+        </div>
+
+        <div class="node" data-status="changed" style="left:660px;top:512px;width:220px;height:96px">
+          <div class="node-h"><span class="node-name">notifications</span><span class="tag changed">CHANGED</span></div>
+          <div class="node-b"><div>3-day · Replied+ gate</div><div class="mono">+ summary · auto-resolve</div></div>
+        </div>
+
+        <!-- edge labels -->
+        <span class="elabel" style="left:206px;top:384px">classifies · 1→N</span>
+        <span class="elabel" style="left:442px;top:288px">sources · 1→N (nullable)</span>
+        <span class="elabel" style="left:556px;top:214px">direct contacts · 1→N</span>
+        <span class="elabel" style="left:582px;top:356px">1→N</span>
+        <span class="elabel dim" style="left:298px;top:616px">polymorphic → factory | network | contact</span>
+        <span class="elabel dim" style="left:632px;top:616px">alerts → factory | network | contact</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SCHEMA ═══════════════════════════════ -->
+  <section>
+    <div class="sec-head"><h2>Schema changes</h2><span class="pill">migration 013_networks_and_context.sql</span></div>
+    <p class="sec-sub">Additive and idempotent, matching the repo's migration style. Two new tables, three extended, one new Storage bucket. <b>+</b> marks new columns.</p>
+
+    <div class="grid-tables">
+      <div class="tbl" data-status="new">
+        <div class="tbl-h"><span class="t-name">networks</span><span class="tag new">NEW</span></div>
+        <ul class="cols">
+          <li><span class="c-key">PK</span><span class="c-name">id</span><span class="c-type">uuid</span></li>
+          <li><span class="c-key"></span><span class="c-name">name</span><span class="c-type">text</span></li>
+          <li><span class="c-key"></span><span class="c-name">type</span><span class="c-type">enum</span></li>
+          <li><span class="c-key"></span><span class="c-name">focus_verticals</span><span class="c-type">text[]</span></li>
+          <li><span class="c-key"></span><span class="c-name">score · grade</span><span class="c-type">num · enum</span></li>
+          <li><span class="c-key"></span><span class="c-name">score_breakdown</span><span class="c-type">jsonb</span></li>
+          <li><span class="c-key"></span><span class="c-name">stage</span><span class="c-type">enum</span></li>
+          <li><span class="c-key"></span><span class="c-name">last_activity_at</span><span class="c-type">tstz</span></li>
+          <li><span class="c-key"></span><span class="c-name">context_summary</span><span class="c-type">text</span></li>
+        </ul>
+        <div class="tbl-foot">Own 100-pt rubric via <b>context_docs scope='network'</b>. Manual stage (no roll-up).</div>
+      </div>
+
+      <div class="tbl" data-status="new">
+        <div class="tbl-h"><span class="t-name">context_items</span><span class="tag new">NEW</span></div>
+        <ul class="cols">
+          <li><span class="c-key">PK</span><span class="c-name">id</span><span class="c-type">uuid</span></li>
+          <li><span class="c-key"></span><span class="c-name">entity_type</span><span class="c-type">enum</span></li>
+          <li><span class="c-key"></span><span class="c-name">entity_id</span><span class="c-type">uuid</span></li>
+          <li><span class="c-key"></span><span class="c-name">kind</span><span class="c-type">file · text</span></li>
+          <li><span class="c-key"></span><span class="c-name">title · body</span><span class="c-type">text</span></li>
+          <li><span class="c-key"></span><span class="c-name">storage_path</span><span class="c-type">text</span></li>
+          <li><span class="c-key"></span><span class="c-name">mime_type</span><span class="c-type">text</span></li>
+          <li><span class="c-key"></span><span class="c-name">extraction_status</span><span class="c-type">enum</span></li>
+        </ul>
+        <div class="tbl-foot">Polymorphic (<b>entity_type, entity_id</b>). Feeds <b>only</b> that entity's AI.</div>
+      </div>
+
+      <div class="tbl" data-status="changed">
+        <div class="tbl-h"><span class="t-name">factories</span><span class="tag changed">CHANGED</span></div>
+        <ul class="cols">
+          <li><span class="c-key">PK</span><span class="c-name">id</span><span class="c-type">uuid</span></li>
+          <li><span class="c-key">FK</span><span class="c-name">vertical_id</span><span class="c-type">uuid</span></li>
+          <li class="add"><span class="c-key">FK</span><span class="c-name">network_id</span><span class="c-type">uuid ·null</span></li>
+          <li><span class="c-key"></span><span class="c-name">score · grade · stage</span><span class="c-type">…</span></li>
+          <li class="add"><span class="c-key"></span><span class="c-name">context_summary</span><span class="c-type">text</span></li>
+          <li class="add"><span class="c-key"></span><span class="c-name">context_summary_at</span><span class="c-type">tstz</span></li>
+        </ul>
+        <div class="tbl-foot"><b>Existing columns unchanged.</b> Scorer now also reads context_items.</div>
+      </div>
+
+      <div class="tbl" data-status="changed">
+        <div class="tbl-h"><span class="t-name">contacts</span><span class="tag changed">CHANGED</span></div>
+        <ul class="cols">
+          <li><span class="c-key">PK</span><span class="c-name">id</span><span class="c-type">uuid</span></li>
+          <li class="chg"><span class="c-key">FK</span><span class="c-name">factory_id</span><span class="c-type">→ nullable</span></li>
+          <li class="add"><span class="c-key">FK</span><span class="c-name">network_id</span><span class="c-type">uuid</span></li>
+          <li class="add"><span class="c-key">CHK</span><span class="c-name">one-parent</span><span class="c-type">⊕</span></li>
+          <li><span class="c-key"></span><span class="c-name">stage · role_category</span><span class="c-type">…</span></li>
+          <li class="add"><span class="c-key"></span><span class="c-name">context_summary</span><span class="c-type">text</span></li>
+        </ul>
+        <div class="tbl-foot">CHECK: exactly one of <b>factory_id / network_id</b> is set.</div>
+      </div>
+
+      <div class="tbl" data-status="changed">
+        <div class="tbl-h"><span class="t-name">notifications</span><span class="tag changed">CHANGED</span></div>
+        <ul class="cols">
+          <li><span class="c-key">PK</span><span class="c-name">id</span><span class="c-type">uuid</span></li>
+          <li><span class="c-key"></span><span class="c-name">kind</span><span class="c-type">text</span></li>
+          <li><span class="c-key">FK</span><span class="c-name">factory_id · contact_id</span><span class="c-type">uuid</span></li>
+          <li class="add"><span class="c-key">FK</span><span class="c-name">network_id</span><span class="c-type">uuid</span></li>
+          <li class="add"><span class="c-key"></span><span class="c-name">summary</span><span class="c-type">text</span></li>
+          <li><span class="c-key"></span><span class="c-name">read_at</span><span class="c-type">= resolved</span></li>
+        </ul>
+        <div class="tbl-foot">Scan auto-sets <b>read_at</b> when the entity updates or leaves the alert stages.</div>
+      </div>
+
+      <div class="tbl" data-status="new">
+        <div class="tbl-h"><span class="t-name">storage: context-files</span><span class="tag new">NEW</span></div>
+        <ul class="cols">
+          <li><span class="c-key"></span><span class="c-name">private bucket</span><span class="c-type">supabase</span></li>
+          <li><span class="c-key"></span><span class="c-name">{type}/{id}/…</span><span class="c-type">path</span></li>
+          <li><span class="c-key"></span><span class="c-name">pdf·docx·txt·img</span><span class="c-type">any</span></li>
+        </ul>
+        <div class="tbl-foot">Client upload via bundled <b>@supabase/storage-js</b>. Allow-all until auth lands.</div>
+      </div>
+    </div>
+
+    <div class="reuse-strip">
+      <span class="lbl">Untouched</span>
+      <span class="chip reuse">verticals</span>
+      <span class="chip reuse">sequences</span>
+      <span class="chip reuse">sequence_steps</span>
+      <span class="chip reuse">activities</span>
+      <span class="chip reuse">messages</span>
+      <span class="chip reuse">context_docs</span>
+      <span class="chip reuse">import_jobs</span>
+    </div>
+  </section>
+
+  <!-- ══ AI SUBSYSTEM ═════════════════════════ -->
+  <section>
+    <div class="sec-head"><h2>AI subsystem</h2></div>
+    <p class="sec-sub">Same loop the factory scorer already runs — benchmark + my context → score / recommendation — now extended to networks, grounded in the per-entity context layer, with a shared summariser.</p>
+
+    <div class="flow">
+      <div class="band">
+        <div class="band-cap">Inputs</div>
+        <div class="fchip" data-status="reuse"><div class="ft">Benchmark / workflow</div><div class="fd">minder.ts — IDP profile, 100-pt rubric, guardrails</div></div>
+        <div class="fchip" data-status="reuse"><div class="ft">context_docs</div><div class="fd">global · vertical · minder product</div></div>
+        <div class="fchip" data-status="new"><div class="ft">Per-entity context</div><div class="fd">context_items + activities — this entity only</div></div>
+      </div>
+
+      <div class="flow-arrow" aria-hidden="true">→</div>
+
+      <div class="band">
+        <div class="band-cap">AI routes</div>
+        <div class="fchip" data-status="changed"><div class="ft">score-factory <span class="tag changed">EXT</span></div><div class="fd">reads context_items too</div></div>
+        <div class="fchip" data-status="new"><div class="ft">score-network <span class="tag new">NEW</span></div><div class="fd">network rubric</div></div>
+        <div class="fchip" data-status="changed"><div class="ft">recommend-next <span class="tag changed">EXT</span></div><div class="fd">+ workflow output</div></div>
+        <div class="fchip" data-status="new"><div class="ft">summarize-entity <span class="tag new">NEW</span></div><div class="fd">shared summariser</div></div>
+      </div>
+
+      <div class="flow-arrow" aria-hidden="true">→</div>
+
+      <div class="band">
+        <div class="band-cap">Outputs</div>
+        <div class="fchip"><div class="ft">Score + grade</div><div class="fd">breakdown · re-score on new context</div></div>
+        <div class="fchip"><div class="ft">Next step + demo</div><div class="fd">top-down, one core problem · text (+ Mermaid)</div></div>
+        <div class="fchip"><div class="ft">Entity summary</div><div class="fd">→ context panel · alerts · Discord</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ALERTS ═══════════════════════════════ -->
+  <section>
+    <div class="sec-head"><h2>Alert engine</h2></div>
+    <p class="sec-sub">The existing daily scan, tightened: 3-day window, gated to active-conversation stages, self-resolving, and every alert carries an AI recap of the relationship so far.</p>
+
+    <div class="flow">
+      <div class="band">
+        <div class="band-cap">Trigger</div>
+        <div class="fchip" data-status="reuse"><div class="ft">Vercel Cron</div><div class="fd">daily · vercel.json</div></div>
+        <div class="fchip" data-status="changed"><div class="ft">idle ≥ 3 days</div><div class="fd">was 7 — last_activity_at</div></div>
+        <div class="fchip" data-status="changed"><div class="ft">stage gate</div><div class="fd">Replied · Meeting Booked · Demo — skip New / Contacted / terminal</div></div>
+      </div>
+
+      <div class="flow-arrow" aria-hidden="true">→</div>
+
+      <div class="band">
+        <div class="band-cap">Engine · scan-alerts</div>
+        <div class="fchip" data-status="changed"><div class="ft">auto-resolve pass</div><div class="fd">clear alerts whose entity moved on</div></div>
+        <div class="fchip" data-status="changed"><div class="ft">raise stale_*</div><div class="fd">factory · contact · network</div></div>
+        <div class="fchip" data-status="new"><div class="ft">→ summarize-entity</div><div class="fd">AI recap into notification.summary</div></div>
+      </div>
+
+      <div class="flow-arrow" aria-hidden="true">→</div>
+
+      <div class="band">
+        <div class="band-cap">Delivery</div>
+        <div class="fchip" data-status="changed"><div class="ft">In-app centre</div><div class="fd">stays red until update / stage change · bell badge</div></div>
+        <div class="fchip" data-status="changed"><div class="ft">Discord embed</div><div class="fd">per entity · summary + deep link · #minder-alerts webhook</div></div>
+        <div class="fchip" data-status="reuse"><div class="ft">Email digest</div><div class="fd">optional · Resend</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ROADMAP ══════════════════════════════ -->
+  <section>
+    <div class="sec-head"><h2>Build sequence</h2></div>
+    <p class="sec-sub">Six shippable phases — each verifiable on the preview before the next begins.</p>
+    <div class="road">
+      <div class="phase"><div class="n">Phase 1</div><h3>Networks entity</h3><p>Migration + store slice, /networks page (cloned from factories), polymorphic contacts.</p><div class="dep">foundation</div></div>
+      <div class="phase"><div class="n">Phase 2</div><h3>Context panel</h3><p>Storage bucket, context_items, upload + text cards + extraction in every drawer.</p><div class="dep">needs P1</div></div>
+      <div class="phase"><div class="n">Phase 3</div><h3>AI, grounded</h3><p>Wire context into scorer + recommender, add score-network + summarize-entity.</p><div class="dep">needs P2</div></div>
+      <div class="phase"><div class="n">Phase 4</div><h3>Alerts v2</h3><p>3-day, stage gate, auto-resolve, AI summary, Discord embeds.</p><div class="dep">needs P3</div></div>
+      <div class="phase"><div class="n">Phase 5</div><h3>Whiteboard</h3><p>React Flow /map canvas — Network → Factory → Contact, alert dots, click-to-drawer.</p><div class="dep">needs P1</div></div>
+      <div class="phase"><div class="n">Phase 6</div><h3>Polish</h3><p>Mermaid render, drag-to-reparent, per-alert Discord colour, product file uploads.</p><div class="dep">fast-follow</div></div>
+    </div>
+  </section>
+
+  <p class="foot">Companion to <code>docs/PRD_PHASE1.md</code>. Reuses today's tracker, drawer, scoring, recommendation and alert machinery; net-new work is the Network entity, the per-entity context/artifact layer, the canvas, and the AI-summary / 3-day / stage-gated alert upgrades. Confirmed decisions: alert stages = Replied+, keep Network &amp; Vertical, extract PDF/DOCX/TXT + images via vision, canvas = React Flow.</p>
+
+</div>
+</div>
+</body>
+</html>

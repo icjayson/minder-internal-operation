@@ -13,7 +13,7 @@ import { DataTable, type Column } from "@/app/components/data-table";
 import { NewContactDrawer } from "@/app/components/new-contact-drawer";
 
 export default function ContactsPage() {
-  const { contacts, factory, verticalName, openFactory } = useStore();
+  const { contacts, factory, network, verticalName, openContact } = useStore();
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState<Stage | "All">("All");
   const [showNew, setShowNew] = useState(false);
@@ -40,14 +40,14 @@ export default function ContactsPage() {
     return contacts.filter((c) => {
       if (stage !== "All" && c.stage !== stage) return false;
       if (!q) return true;
-      const f = factory(c.factory_id);
+      const parentName = c.factory_id ? factory(c.factory_id)?.name : network(c.network_id)?.name;
       return (
         c.full_name.toLowerCase().includes(q) ||
         (c.role_title ?? "").toLowerCase().includes(q) ||
-        (f?.name ?? "").toLowerCase().includes(q)
+        (parentName ?? "").toLowerCase().includes(q)
       );
     });
-  }, [contacts, search, stage, factory]);
+  }, [contacts, search, stage, factory, network]);
 
   const columns: Column<Contact>[] = [
     {
@@ -73,12 +73,21 @@ export default function ContactsPage() {
       render: (c) => <span className="text-ink-soft truncate block">{c.role_title ?? "—"}</span>,
     },
     {
-      key: "factory",
-      header: "Factory",
-      width: 170,
+      key: "parent",
+      header: "Belongs to",
+      width: 190,
       sortable: true,
-      sortValue: (c) => factory(c.factory_id)?.name?.toLowerCase() ?? "",
-      render: (c) => <span className="text-ink-soft truncate block">{factory(c.factory_id)?.name ?? "—"}</span>,
+      sortValue: (c) => ((c.factory_id ? factory(c.factory_id)?.name : network(c.network_id)?.name) ?? "").toLowerCase(),
+      render: (c) => {
+        const isNet = !c.factory_id;
+        const nm = isNet ? network(c.network_id)?.name : factory(c.factory_id)?.name;
+        return (
+          <span className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[9px] mono uppercase tracking-wider text-muted shrink-0">{isNet ? "NET" : "FAC"}</span>
+            <span className="text-ink-soft truncate">{nm ?? "—"}</span>
+          </span>
+        );
+      },
     },
     {
       key: "vertical",
@@ -145,7 +154,7 @@ export default function ContactsPage() {
             No contacts match. Add one with “New contact” — you can create its factory inline.
           </div>
         ) : (
-          <DataTable columns={columns} rows={rows} onRowClick={(c) => openFactory(c.factory_id)} storageKey="contacts" />
+          <DataTable columns={columns} rows={rows} onRowClick={(c) => openContact(c.id)} storageKey="contacts" />
         )}
       </div>
 
