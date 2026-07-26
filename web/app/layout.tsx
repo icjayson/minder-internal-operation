@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 // Runs before first paint so the correct sky is set with no flash.
-const THEME_INIT = `(function(){try{var t=localStorage.getItem('minder-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
+const THEME_INIT = `(function(){try{var t=localStorage.getItem('minder-theme');if(t!=='light'&&t!=='dark'){t='light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       suppressHydrationWarning
       className={inter.variable}
-      data-theme="dark"
+      data-theme="light"
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />

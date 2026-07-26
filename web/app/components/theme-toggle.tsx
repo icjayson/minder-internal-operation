@@ -8,7 +8,7 @@ type Theme = "dark" | "light";
 // skies. The actual attribute is set pre-paint by the inline script in the
 // root layout; here we read it on mount and keep it + localStorage in sync.
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -30,6 +30,7 @@ export function ThemeToggle() {
 
   // Icon reflects the sky you'll switch TO.
   const goesLight = theme === "dark";
+  const showMoon = mounted ? !goesLight : true;
 
   return (
     <button
@@ -39,7 +40,7 @@ export function ThemeToggle() {
       className="group relative w-9 h-9 rounded-md grid place-items-center cursor-pointer text-muted hover:bg-surface-2 hover:text-ink-soft transition-colors duration-150"
     >
       {/* Render a stable default until mounted to avoid a hydration mismatch. */}
-      {mounted && !goesLight ? (
+      {showMoon ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path
             d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"

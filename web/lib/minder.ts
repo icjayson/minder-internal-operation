@@ -89,3 +89,4 @@ export const MINDER_DIFFERENTIATORS = [
   "Learns each floor's real workflow; not a generic chatbot",
   "Value in 30-60 days without replacing existing ERP/MES/WMS/CMMS",
 ];
+

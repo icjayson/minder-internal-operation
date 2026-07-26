@@ -15,7 +15,7 @@ export default function MapPage() {
   const [vertical, setVertical] = useState("All");
   const [grade, setGrade] = useState("All");
   const [showContacts, setShowContacts] = useState(false);
-  const [colorMode, setColorMode] = useState<"light" | "dark">("dark");
+  const [colorMode, setColorMode] = useState<"light" | "dark">("light");
 
   // Keep the canvas in step with the app's theme toggle.
   useEffect(() => {
