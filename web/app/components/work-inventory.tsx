@@ -216,9 +216,12 @@ export function WorkInventory({
                           </p>
                         )}
                         <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted min-w-0">
-                          <span className="mono uppercase tracking-[0.1em] shrink-0">PIC</span>
-                          <span aria-hidden="true">·</span>
-                          <span className="truncate text-ink-soft">{pic?.full_name ?? "None"}</span>
+                          <span className="mono uppercase tracking-[0.1em] shrink-0">TO:</span>
+                          <span className="truncate text-ink-soft">
+                            {pic
+                              ? `${pic.full_name}${pic.role_title ? ` — ${pic.role_title}` : ""}`
+                              : "None"}
+                          </span>
                         </div>
                       </article>
                     );

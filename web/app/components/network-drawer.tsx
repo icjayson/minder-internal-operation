@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Contact, Network, Stage } from "@/lib/types";
 import { NETWORK_SCORE_DIMENSIONS, NETWORK_TYPES, ROLE_CATEGORIES, STAGES, VERTICALS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { StagePill } from "./stage-pill";
 import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
@@ -303,7 +304,10 @@ function NetworkContactForm({
       full_name: full_name.trim(),
       role_title: role_title.trim() || null,
       role_category: role_category || null,
-      role_level: (cat?.level as Contact["role_level"]) ?? null,
+      role_level: effectiveContactRoleLevel(
+        role_title,
+        (cat?.level as Contact["role_level"]) ?? null,
+      ),
       is_primary_target: cat?.primary ?? false,
       stage,
       ...(stage !== (contact?.stage ?? "New") ? { last_activity_at: new Date().toISOString() } : {}),

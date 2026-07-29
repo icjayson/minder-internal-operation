@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Contact } from "@/lib/types";
 import { ROLE_CATEGORIES } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { supabase } from "@/lib/supabase";
 
 // Add a contact from the Contacts page. You can attach it to an existing
@@ -74,7 +75,10 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
         full_name: full_name.trim(),
         role_title: role_title.trim() || null,
         role_category: role_category || null,
-        role_level: (cat?.level as Contact["role_level"]) ?? null,
+        role_level: effectiveContactRoleLevel(
+          role_title,
+          (cat?.level as Contact["role_level"]) ?? null,
+        ),
         is_primary_target: cat?.primary ?? false,
         email: email.trim() || null,
         linkedin_url: linkedin_url.trim() || null,

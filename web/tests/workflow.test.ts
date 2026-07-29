@@ -12,6 +12,7 @@ import {
 } from "../lib/import-normalization.ts";
 import { recommendNext } from "../lib/recommendation.ts";
 import { highestStage } from "../lib/stage.ts";
+import { effectiveContactRoleLevel } from "../lib/contact-role.ts";
 
 test("cadence advances to the next ordered sequence step", () => {
   const steps = [
@@ -51,6 +52,14 @@ test("factory stage rolls up to the highest contact stage", () => {
   assert.equal(highestStage(["New", "Meeting Booked"]), "Meeting Booked");
   assert.equal(highestStage(["Closed Lost", "Replied", "Nurture"]), "Replied");
   assert.equal(highestStage([]), "New");
+});
+
+test("executive owner titles always resolve to the highest contact level", () => {
+  assert.equal(effectiveContactRoleLevel("CEO & Co-founder", null), "high");
+  assert.equal(effectiveContactRoleLevel("Founder", null), "high");
+  assert.equal(effectiveContactRoleLevel("Company Owner", "expert"), "high");
+  assert.equal(effectiveContactRoleLevel("Chief Executive Officer", "mid"), "high");
+  assert.equal(effectiveContactRoleLevel("Commercial Director", "mid"), "mid");
 });
 
 test("messy CSV helpers normalize identities and delimiters", () => {

@@ -11,6 +11,7 @@ import {
   WORKER_BANDS,
 } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 import { StagePill } from "./stage-pill";
@@ -504,7 +505,10 @@ function ContactForm({
       full_name: full_name.trim(),
       role_title: role_title.trim() || null,
       role_category: role_category || null,
-      role_level: (cat?.level as Contact["role_level"]) ?? null,
+      role_level: effectiveContactRoleLevel(
+        role_title,
+        (cat?.level as Contact["role_level"]) ?? null,
+      ),
       is_primary_target: cat?.primary ?? false,
       stage,
       ...(stage !== (contact?.stage ?? "New") ? { last_activity_at: new Date().toISOString() } : {}),

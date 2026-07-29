@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GEO_OPTIONS, ROLE_CATEGORIES, ROLE_LEVELS, VERTICALS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { supabase } from "@/lib/supabase";
 import {
   contactIdentity,
@@ -173,6 +174,10 @@ export default function ImportPage() {
     const levelRaw = g(m.contact.role_level).toLowerCase();
     if (ROLE_LEVELS.includes(levelRaw as (typeof ROLE_LEVELS)[number]))
       contact.role_level = levelRaw;
+    contact.role_level = effectiveContactRoleLevel(
+      typeof contact.role_title === "string" ? contact.role_title : null,
+      (contact.role_level as (typeof ROLE_LEVELS)[number] | null | undefined) ?? null,
+    );
     return { factory, contact };
   }
 

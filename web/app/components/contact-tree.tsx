@@ -2,6 +2,7 @@
 
 import type { Contact, Stage } from "@/lib/types";
 import { ROLE_LEVELS, STAGES } from "@/lib/types";
+import { effectiveContactRoleLevel, isTopLevelContactTitle } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { StagePill } from "./stage-pill";
 
@@ -30,10 +31,12 @@ export function ContactTree({
 }: Props) {
   const grouped = ROLE_LEVELS.map((lvl) => ({
     level: lvl,
-    rows: contacts.filter((c) => c.role_level === lvl),
+    rows: contacts.filter((c) => effectiveContactRoleLevel(c.role_title, c.role_level) === lvl),
   })).filter((g) => g.rows.length > 0);
 
-  const ungrouped = contacts.filter((c) => !c.role_level);
+  const ungrouped = contacts.filter(
+    (c) => !effectiveContactRoleLevel(c.role_title, c.role_level),
+  );
 
   return (
     <div>
@@ -56,7 +59,9 @@ export function ContactTree({
       <div className="pl-1 border-l border-line ml-1 space-y-4">
         {[...grouped, ...(ungrouped.length ? [{ level: "other", rows: ungrouped }] : [])].map((g) => (
           <div key={g.level} className="pl-4 relative">
-            <div className="text-[10px] mono uppercase tracking-[0.14em] text-muted mb-1.5">
+            <div className={`text-[10px] mono uppercase tracking-[0.14em] mb-1.5 ${
+              g.level === "high" ? "text-accent font-medium" : "text-muted"
+            }`}>
               {LEVEL_LABEL[g.level] ?? "Other"}
             </div>
             <div className="space-y-1.5">
@@ -88,10 +93,19 @@ function ContactRow({
   onDelete: (id: string) => void;
   onEdit?: (c: Contact) => void;
 }) {
+  const isHighLevel = effectiveContactRoleLevel(c.role_title, c.role_level) === "high";
+  const isTopLevelTitle = isTopLevelContactTitle(c.role_title);
+
   return (
     <div
       className={`group flex items-center gap-2 rounded-md border px-3 py-2 ${
-        c.is_primary_target ? "border-accent/40 bg-accent-dim" : "border-line bg-surface-2/40"
+        isTopLevelTitle
+          ? "border-accent bg-accent-dim shadow-[inset_3px_0_0_var(--color-accent)]"
+          : isHighLevel
+            ? "border-accent/25 bg-accent-dim/45"
+            : c.is_primary_target
+              ? "border-accent/40 bg-accent-dim"
+              : "border-line bg-surface-2/40"
       }`}
     >
       <button onClick={() => onEdit?.(c)} className="min-w-0 flex-1 text-left cursor-pointer" title="Edit contact">
