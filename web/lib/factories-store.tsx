@@ -13,8 +13,10 @@ import type {
   Factory,
   Network,
   Notification,
+  Stage,
   Vertical,
 } from "@/lib/types";
+import { highestStage } from "@/lib/stage";
 import { supabase } from "@/lib/supabase";
 
 type Ctx = {
@@ -41,6 +43,9 @@ type Ctx = {
   deleteNetwork: (id: string) => Promise<void>;
   updateContact: (id: string, patch: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
+  // Stage sync: keep a factory's stage in step with its contacts' highest stage.
+  setContactStage: (id: string, stage: Stage) => Promise<void>;
+  setFactoryStage: (factoryId: string, stage: Stage) => Promise<void>;
   addContact: (factoryId: string, patch: Partial<Contact>) => Promise<void>;
   addNetworkContact: (networkId: string, patch: Partial<Contact>) => Promise<void>;
   addActivity: (factoryId: string, patch: Partial<Activity>) => Promise<void>;
@@ -136,7 +141,10 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
           if (payload.eventType === "INSERT")
             return prev.some((r) => r.id === row.id) ? prev : [row, ...prev];
           if (payload.eventType === "UPDATE")
-            return prev.map((r) => (r.id === row.id ? row : r));
+            // Realtime UPDATE payloads can omit unchanged TOAST-backed fields
+            // (notably long description/notes text). Merge the changed fields
+            // instead of replacing the complete client-side record.
+            return prev.map((r) => (r.id === row.id ? { ...r, ...row } : r));
           if (payload.eventType === "DELETE")
             return prev.filter((r) => r.id !== row.id);
           return prev;
@@ -160,9 +168,24 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
 
   const updateFactory = useCallback(async (id: string, patch: Partial<Factory>) => {
     setFactories((prev) => (prev ? prev.map((f) => (f.id === id ? { ...f, ...patch } : f)) : prev));
-    const { error } = await supabase().from("factories").update(patch).eq("id", id);
-    if (error) setError(error.message);
-  }, []);
+    const { data, error } = await supabase()
+      .from("factories")
+      .update(patch)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) {
+      setError(error.message);
+      await reload();
+      return;
+    }
+    if (data) {
+      const saved = data as Factory;
+      setFactories((prev) => (prev
+        ? prev.map((factory) => (factory.id === id ? { ...factory, ...saved } : factory))
+        : prev));
+    }
+  }, [reload]);
 
   const deleteFactory = useCallback(async (id: string) => {
     setFactories((prev) => (prev ? prev.filter((f) => f.id !== id) : prev));
@@ -187,10 +210,55 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateContact = useCallback(async (id: string, patch: Partial<Contact>) => {
-    setContacts((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, ...patch } : c)) : prev));
-    const { error } = await supabase().from("contacts").update(patch).eq("id", id);
-    if (error) setError(error.message);
-  }, []);
+    const now = new Date().toISOString();
+    const currentContact = contacts?.find((contact) => contact.id === id);
+    const factoryId = patch.stage !== undefined
+      ? currentContact?.factory_id ?? null
+      : null;
+    const rolledStage = factoryId && contacts
+      ? highestStage(
+          contacts
+            .filter((contact) => contact.factory_id === factoryId)
+            .map((contact) => contact.id === id
+              ? (patch.stage ?? contact.stage)
+              : contact.stage),
+        )
+      : null;
+
+    // When a contact's stage moves, roll the parent factory up to the highest
+    // stage across its contacts (instant UI mirror of the DB trigger).
+    setContacts((prev) => (prev
+      ? prev.map((contact) => (contact.id === id ? { ...contact, ...patch } : contact))
+      : prev));
+    if (factoryId && rolledStage) {
+      setFactories((prev) =>
+        prev
+          ? prev.map((f) =>
+              f.id === factoryId
+                ? { ...f, stage: rolledStage!, stage_locked: false, last_activity_at: now }
+                : f,
+            )
+          : prev,
+      );
+    }
+    const sb = supabase();
+    if (factoryId) {
+      const unlockResult = await sb
+        .from("factories")
+        .update({ stage_locked: false })
+        .eq("id", factoryId);
+      if (unlockResult.error) {
+        setError(unlockResult.error.message);
+        await reload();
+        return;
+      }
+    }
+    const contactResult = await sb.from("contacts").update(patch).eq("id", id);
+    if (contactResult.error) {
+      setError(contactResult.error.message);
+      await reload();
+    }
+  }, [contacts, reload]);
 
   const deleteContact = useCallback(async (id: string) => {
     setContacts((prev) => (prev ? prev.filter((c) => c.id !== id) : prev));
@@ -198,6 +266,57 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase().from("contacts").delete().eq("id", id);
     if (error) setError(error.message);
   }, []);
+
+  // Change a contact's stage (factory roll-up handled inside updateContact).
+  const setContactStage = useCallback(
+    async (id: string, stage: Stage) => {
+      await updateContact(id, { stage, last_activity_at: new Date().toISOString() });
+    },
+    [updateContact],
+  );
+
+  // Change a factory's stage and push it down to every contact so the two stay
+  // in sync (the highest contact stage then equals the factory stage).
+  const setFactoryStage = useCallback(async (factoryId: string, stage: Stage) => {
+    const now = new Date().toISOString();
+    const hasContacts = contacts?.some((contact) => contact.factory_id === factoryId) ?? false;
+    setContacts((prev) => (prev
+      ? prev.map((c) =>
+        c.factory_id === factoryId ? { ...c, stage, last_activity_at: now } : c,
+      )
+      : prev));
+    setFactories((prev) =>
+      prev
+        ? prev.map((f) =>
+            f.id === factoryId
+              ? { ...f, stage, stage_locked: false, last_activity_at: now }
+              : f,
+          )
+        : prev,
+    );
+    const sb = supabase();
+    const factoryResult = await sb
+      .from("factories")
+      .update({ stage, stage_locked: false, last_activity_at: now })
+      .eq("id", factoryId);
+    if (factoryResult.error) {
+      setError(factoryResult.error.message);
+      await reload();
+      return;
+    }
+    // The migration propagates direct factory-stage edits. Keep this explicit
+    // update for databases that have not installed that trigger yet.
+    if (hasContacts) {
+      const contactsResult = await sb
+        .from("contacts")
+        .update({ stage, last_activity_at: now })
+        .eq("factory_id", factoryId);
+      if (contactsResult.error) {
+        setError(contactsResult.error.message);
+        await reload();
+      }
+    }
+  }, [contacts, reload]);
 
   const addContact = useCallback(async (factoryId: string, patch: Partial<Contact>) => {
     const { error } = await supabase()
@@ -248,6 +367,8 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     deleteNetwork,
     updateContact,
     deleteContact,
+    setContactStage,
+    setFactoryStage,
     addContact,
     addNetworkContact,
     addActivity,

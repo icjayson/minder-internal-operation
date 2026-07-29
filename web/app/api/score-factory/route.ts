@@ -169,7 +169,8 @@ ${shared.files.design_partner ? `SHARED DESIGN-PARTNER FILE CONTEXT:\n${shared.f
 ${contextText ? `VERTICAL-SPECIFIC CONTEXT (authoritative — weight heavily):\n${contextText}\n` : ""}
 FACTORY TO SCORE
 Name: ${f.name}
-Company URL: ${f.company_url ?? "unknown"}
+Company website: ${f.website_url ?? f.company_url ?? "unknown"}
+Company description: ${f.description ?? "unknown"}
 Vertical: ${verticalName}${tension ? ` (${tension})` : ""}
 Country / HQ: ${f.country ?? "unknown"} / ${f.hq_location ?? "unknown"}
 Geo tier: ${f.geo_tier ?? "unknown"}

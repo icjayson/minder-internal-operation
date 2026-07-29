@@ -9,6 +9,8 @@ export interface OpenaiOptions {
   temperature?: number;
   maxTokens?: number;
   json?: boolean; // request a JSON-object response (prompt must mention "json")
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 
 // Reasoning models (gpt-5*) spend hidden "reasoning tokens" from the same
@@ -45,9 +47,16 @@ export async function openaiChat(
   const baseUrl = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
   const temperature = temperatureForModel(model, opts.temperature);
+  const timeoutSignal = opts.timeoutMs
+    ? AbortSignal.timeout(opts.timeoutMs)
+    : undefined;
+  const signal = opts.signal && timeoutSignal
+    ? AbortSignal.any([opts.signal, timeoutSignal])
+    : opts.signal ?? timeoutSignal;
 
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
+    signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,

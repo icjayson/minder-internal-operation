@@ -51,6 +51,16 @@ export const GEO_TIERS = [
 ] as const;
 export type GeoTier = (typeof GEO_TIERS)[number]["key"];
 
+// Simplified geo model (replaces the friction tiers in the UI).
+export const GEO_OPTIONS = [
+  { key: "UK", label: "UK" },
+  { key: "Europe", label: "Europe" },
+  { key: "VN", label: "VN" },
+] as const;
+
+// Frontline-workforce size bands (selectable in the factory profile).
+export const WORKER_BANDS = ["50 - 200", "200 - 500", "500 - 1000"] as const;
+
 // ── Contact role model (PDF 1 §1.2.2) ───────────────────────────────────────
 export const ROLE_LEVELS = ["high", "mid", "expert"] as const;
 export type RoleLevel = (typeof ROLE_LEVELS)[number];
@@ -185,9 +195,10 @@ export interface Factory {
   company_url: string | null;
   hq_location: string | null;
   country: string | null;
-  geo_tier: GeoTier | null;
+  geo_tier: string | null;
+  description: string | null;
 
-  frontline_workers: number | null;
+  frontline_workers: string | null;
   systems: string[] | null;
   machinery_note: string | null;
   multi_shift: boolean | null;
@@ -279,6 +290,19 @@ export interface Activity {
   evidence_level: number | null;
   taxonomy_tags: string[] | null;
   created_at: string;
+}
+
+export type WorkStatus = "not_started" | "doing" | "done";
+
+export interface FactoryWorkItem {
+  id: string;
+  factory_id: string;
+  pic_contact_id: string | null;
+  title: string;
+  body: string | null;
+  status: WorkStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Message {

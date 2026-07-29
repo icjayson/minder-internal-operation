@@ -2,6 +2,7 @@
 
 import type { Contact, Stage } from "@/lib/types";
 import { ROLE_LEVELS, STAGES } from "@/lib/types";
+import { normalizeUrl } from "@/lib/import-normalization";
 import { StagePill } from "./stage-pill";
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -14,22 +15,18 @@ type Props = {
   factoryName: string;
   contacts: Contact[];
   onStageChange: (id: string, s: Stage) => void;
-  onGenerate: (contactId: string) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
   onEdit?: (c: Contact) => void;
-  generatingId?: string | null;
 };
 
 export function ContactTree({
   factoryName,
   contacts,
   onStageChange,
-  onGenerate,
   onDelete,
   onAdd,
   onEdit,
-  generatingId,
 }: Props) {
   const grouped = ROLE_LEVELS.map((lvl) => ({
     level: lvl,
@@ -68,10 +65,8 @@ export function ContactTree({
                   key={c.id}
                   c={c}
                   onStageChange={onStageChange}
-                  onGenerate={onGenerate}
                   onDelete={onDelete}
                   onEdit={onEdit}
-                  generating={generatingId === c.id}
                 />
               ))}
             </div>
@@ -85,17 +80,13 @@ export function ContactTree({
 function ContactRow({
   c,
   onStageChange,
-  onGenerate,
   onDelete,
   onEdit,
-  generating,
 }: {
   c: Contact;
   onStageChange: (id: string, s: Stage) => void;
-  onGenerate: (contactId: string) => void;
   onDelete: (id: string) => void;
   onEdit?: (c: Contact) => void;
-  generating: boolean;
 }) {
   return (
     <div
@@ -130,14 +121,30 @@ function ContactRow({
         </select>
       </div>
 
-      <button
-        onClick={() => onGenerate(c.id)}
-        disabled={generating}
-        title="Draft outreach with AI"
-        className="h-6 px-2 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[10.5px] font-medium cursor-pointer transition-colors"
-      >
-        {generating ? "…" : "Draft"}
-      </button>
+      {c.linkedin_url && (
+        <a
+          href={normalizeUrl(c.linkedin_url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open LinkedIn in a new tab"
+          className="h-6 px-2 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[10.5px] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+        >
+          LinkedIn
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="h-3 w-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 11 11 5" />
+            <path d="M6 5h5v5" />
+          </svg>
+        </a>
+      )}
       <button
         onClick={() => { if (confirm(`Remove ${c.full_name}?`)) onDelete(c.id); }}
         className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] cursor-pointer transition-all"

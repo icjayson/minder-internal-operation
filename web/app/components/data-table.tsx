@@ -110,7 +110,10 @@ export function DataTable<T extends { id: string }>({
 
   return (
     <div className="rounded-lg border border-line bg-surface overflow-x-auto">
-      <table className="text-[13px]" style={{ tableLayout: "fixed", width: total }}>
+      <table
+        className="text-[13px]"
+        style={{ tableLayout: "fixed", width: "100%", minWidth: total }}
+      >
         <colgroup>
           {columns.map((c) => (
             <col key={c.key} style={{ width: colWidth(c) }} />

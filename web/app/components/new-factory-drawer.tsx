@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CHANNELS, GEO_TIERS } from "@/lib/types";
+import { GEO_OPTIONS, WORKER_BANDS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 
 export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
@@ -14,15 +15,10 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
     vertical_id: verticals[0]?.id ?? "",
     network_id: "",
     geo_tier: "",
-    hq_location: "",
-    country: "",
     frontline_workers: "",
+    hq_location: "",
     website_url: "",
-    company_url: "",
-    channel: "manual",
-    parent_company: "",
-    systems: "",
-    machinery_note: "",
+    description: "",
     notes: "",
   });
 
@@ -49,15 +45,10 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
         vertical_id: form.vertical_id || null,
         network_id: form.network_id || null,
         geo_tier: form.geo_tier || null,
+        frontline_workers: form.frontline_workers || null,
         hq_location: form.hq_location.trim() || null,
-        country: form.country.trim() || null,
-        frontline_workers: form.frontline_workers ? Number(form.frontline_workers) : null,
-        website_url: form.website_url.trim() || null,
-        company_url: form.company_url.trim() || null,
-        channel: form.channel || null,
-        parent_company: form.parent_company.trim() || null,
-        systems: form.systems ? form.systems.split(",").map((s) => s.trim()).filter(Boolean) : null,
-        machinery_note: form.machinery_note.trim() || null,
+        website_url: normalizeUrl(form.website_url) || null,
+        description: form.description.trim() || null,
         notes: form.notes.trim() || null,
         source: "manual",
       };
@@ -99,33 +90,29 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
                 {verticals.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
               </select>
             </Field>
-            <Field label="Geo tier">
+            <Field label="Geo">
               <select value={form.geo_tier} onChange={(e) => set("geo_tier", e.target.value)} className={inp}>
                 <option value="">—</option>
-                {GEO_TIERS.map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}
+                {GEO_OPTIONS.map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}
               </select>
             </Field>
             <Field label="Network (source)">
               <select value={form.network_id} onChange={(e) => set("network_id", e.target.value)} className={inp}>
-                <option value="">—</option>
+                <option value="">None</option>
                 {(networks ?? []).map((nw) => <option key={nw.id} value={nw.id}>{nw.name}</option>)}
               </select>
             </Field>
-            <Field label="HQ location"><input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} className={inp} /></Field>
-            <Field label="Country"><input value={form.country} onChange={(e) => set("country", e.target.value)} className={inp} /></Field>
-            <Field label="Frontline workers"><input type="number" value={form.frontline_workers} onChange={(e) => set("frontline_workers", e.target.value)} className={inp} /></Field>
-            <Field label="Channel">
-              <select value={form.channel} onChange={(e) => set("channel", e.target.value)} className={inp}>
-                {CHANNELS.map((c) => <option key={c} value={c}>{c.replace(/_/g, " ")}</option>)}
+            <Field label="Frontline workers">
+              <select value={form.frontline_workers} onChange={(e) => set("frontline_workers", e.target.value)} className={inp}>
+                <option value="">—</option>
+                {WORKER_BANDS.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </Field>
+            <Field label="Location"><input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} className={inp} /></Field>
+            <Field label="Company website"><input value={form.website_url} onChange={(e) => set("website_url", e.target.value)} className={`${inp} mono`} /></Field>
           </div>
-          <Field label="Website"><input value={form.website_url} onChange={(e) => set("website_url", e.target.value)} className={`${inp} mono`} /></Field>
-          <Field label="Company URL"><input value={form.company_url} onChange={(e) => set("company_url", e.target.value)} placeholder="LinkedIn or company profile URL" className={`${inp} mono`} /></Field>
-          <Field label="Parent company"><input value={form.parent_company} onChange={(e) => set("parent_company", e.target.value)} className={inp} /></Field>
-          <Field label="Systems (comma-sep: ERP, MES, paper…)"><input value={form.systems} onChange={(e) => set("systems", e.target.value)} className={inp} /></Field>
-          <Field label="Machinery note"><input value={form.machinery_note} onChange={(e) => set("machinery_note", e.target.value)} className={inp} /></Field>
-          <Field label="Notes"><textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
+          <Field label="Company description"><textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
+          <Field label="How to approach / Note"><textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
         </form>
 
         <footer className="px-6 py-3 border-t border-line flex items-center gap-2 bg-surface-2/50">

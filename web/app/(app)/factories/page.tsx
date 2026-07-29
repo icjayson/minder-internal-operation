@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Stage } from "@/lib/types";
-import { GEO_TIERS, PIPELINE_STAGES, STAGES } from "@/lib/types";
+import { GEO_OPTIONS, PIPELINE_STAGES, STAGES } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
 import { PipelineChevrons } from "@/app/components/pipeline-chevrons";
@@ -16,7 +16,7 @@ import { SearchInput, SelectControl } from "@/app/components/controls";
 function FactoriesInner() {
   const {
     factories, verticals, verticalName, contactsOf,
-    updateFactory, deleteFactory, openFactory, openNewFactory,
+    setFactoryStage, deleteFactory, openFactory, openNewFactory,
   } = useStore();
   const params = useSearchParams();
   const [search, setSearch] = useState("");
@@ -101,7 +101,7 @@ function FactoriesInner() {
           <SelectControl value={grade} onChange={setGrade}
             options={[{ value: "All", label: "All grades" }, { value: "A", label: "A-grade" }, { value: "B", label: "B-grade" }, { value: "C", label: "C-grade" }]} />
           <SelectControl value={geoTier} onChange={setGeoTier}
-            options={[{ value: "All", label: "All geo tiers" }, ...GEO_TIERS.map((g) => ({ value: g.key, label: g.label }))]} />
+            options={[{ value: "All", label: "All geos" }, ...GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))]} />
           <div className="flex-1" />
           <Link href="/import"
             className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[13px] font-medium text-ink-soft hover:text-ink cursor-pointer inline-flex items-center gap-1.5">
@@ -135,7 +135,7 @@ function FactoriesInner() {
             verticalName={verticalName}
             contactCount={(id) => contactsOf(id).length}
             onSelect={(f) => openFactory(f.id)}
-            onStageChange={(id, s) => updateFactory(id, { stage: s, stage_locked: true, last_activity_at: new Date().toISOString() })}
+            onStageChange={(id, s) => setFactoryStage(id, s)}
             onDelete={deleteFactory}
           />
         )}

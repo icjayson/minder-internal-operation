@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CHANNELS, GEO_TIERS, ROLE_CATEGORIES, ROLE_LEVELS, VERTICALS } from "@/lib/types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { GEO_OPTIONS, ROLE_CATEGORIES, ROLE_LEVELS, VERTICALS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { supabase } from "@/lib/supabase";
 import {
@@ -10,10 +10,8 @@ import {
   normalizeEmail,
   normalizeText,
   normalizeUrl,
-  parseBoolean,
   parseDelimited,
-  parseInteger,
-  parseStringList,
+  normalizeWorkerBand,
 } from "@/lib/import-normalization";
 import { PageHeader } from "@/app/components/page-header";
 
@@ -30,15 +28,10 @@ type Mapping = {
 const FACTORY_FIELDS = [
   "name",
   "website_url",
-  "company_url",
   "hq_location",
-  "country",
   "frontline_workers",
-  "systems",
-  "multi_shift",
-  "parent_company",
-  "channel",
-  "machinery_note",
+  "description",
+  "notes",
 ];
 const CONTACT_FIELDS = [
   "full_name",
@@ -72,33 +65,68 @@ export default function ImportPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportSummary | null>(null);
+  const analysisRequest = useRef<AbortController | null>(null);
+  const fileInput = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    return () => analysisRequest.current?.abort();
+  }, []);
+
+  function cancelAnalysisRequest() {
+    analysisRequest.current?.abort();
+    analysisRequest.current = null;
+  }
 
   function parse(csv: string) {
+    cancelAnalysisRequest();
+    setBusy(null);
     const all = parseDelimited(csv);
-    if (!all.length) return;
-    setHeaders(all[0]);
+    setHeaders(all[0] ?? []);
     setRows(all.slice(1).filter((r) => r.some((c) => c.trim())));
     setMapping(null);
     setResult(null);
+    setError(null);
   }
 
   async function analyze() {
+    cancelAnalysisRequest();
+    const controller = new AbortController();
+    analysisRequest.current = controller;
     setBusy("Analysing with AI…");
     setError(null);
     try {
       const res = await fetch("/api/map-csv", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ headers, samples: representativeRows(rows, 12) }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "AI mapping failed");
+      if (analysisRequest.current !== controller) return;
       setMapping(normalizeMapping(data));
     } catch (e) {
+      if (controller.signal.aborted) return;
       setError(e instanceof Error ? e.message : "failed");
     } finally {
-      setBusy(null);
+      if (analysisRequest.current === controller) {
+        analysisRequest.current = null;
+        setBusy(null);
+      }
     }
+  }
+
+  function deleteAnalysis() {
+    cancelAnalysisRequest();
+    setText("");
+    setFileName(null);
+    setHeaders([]);
+    setRows([]);
+    setMapping(null);
+    setResult(null);
+    setError(null);
+    setBusy(null);
+    if (fileInput.current) fileInput.current.value = "";
   }
 
   const hIndex = useMemo(() => Object.fromEntries(headers.map((h, i) => [h, i])), [headers]);
@@ -110,7 +138,7 @@ export default function ImportPage() {
   }
   function resolveGeo(raw: string): string | null {
     if (!raw) return null;
-    return mapping?.geo_map?.[raw] ?? matchKey(raw, GEO_TIERS.map((g) => ({ key: g.key, text: `${g.key} ${g.label}` })));
+    return mapping?.geo_map?.[raw] ?? matchKey(raw, GEO_OPTIONS.map((g) => ({ key: g.key, text: `${g.key} ${g.label}` })));
   }
   function resolveRole(raw: string) {
     const key = matchKey(raw, ROLE_CATEGORIES.map((r) => ({ key: r.key, text: `${r.key} ${r.label}` })));
@@ -125,11 +153,8 @@ export default function ImportPage() {
     for (const f of FACTORY_FIELDS) {
       const v = g(m.factory[f]);
       if (!v) continue;
-      if (f === "frontline_workers") factory[f] = parseInteger(v);
-      else if (f === "systems") factory[f] = parseStringList(v);
-      else if (f === "multi_shift") factory[f] = parseBoolean(v);
-      else if (f === "website_url" || f === "company_url") factory[f] = normalizeUrl(v);
-      else if (f === "channel") factory[f] = matchKey(v, CHANNELS.map((c) => ({ key: c, text: c.replace(/_/g, " ") }))) ?? "manual";
+      if (f === "frontline_workers") factory[f] = normalizeWorkerBand(v);
+      else if (f === "website_url") factory[f] = normalizeUrl(v);
       else factory[f] = normalizeText(v);
     }
     if (m.vertical_column) factory.vertical_id = resolveVertical(g(m.vertical_column));
@@ -177,6 +202,7 @@ export default function ImportPage() {
       (factories ?? []).forEach((f) => {
         existing.set(factoryIdentity(f.website_url, f.name, f.country), f.id);
         existing.set(factoryIdentity(null, f.name, f.country), f.id);
+        existing.set(factoryIdentity(null, f.name, null), f.id);
       });
       const existingContacts = new Map<string, string>();
       (contacts ?? []).forEach((c) =>
@@ -200,7 +226,7 @@ export default function ImportPage() {
           summary.errors.push({ row: rowNumber, message: `Invalid contact email: ${contact.email}` });
           delete contact.email;
         }
-        const key = factoryIdentity(factory.website_url, factory.name, factory.country);
+        const key = factoryIdentity(factory.website_url, factory.name, null);
         if (!groups.has(key)) groups.set(key, { factory, contacts: [], rows: [] });
         const group = groups.get(key)!;
         group.factory = { ...group.factory, ...nonEmptyPatch(factory) };
@@ -211,7 +237,7 @@ export default function ImportPage() {
       const scoreIds = new Set<string>();
       for (const [key, group] of groups) {
         const { factory, contacts: groupContacts, rows: groupRows } = group;
-        const fallbackKey = factoryIdentity(null, factory.name, factory.country);
+        const fallbackKey = factoryIdentity(null, factory.name, null);
         let fid: string | undefined = existing.get(key) ?? existing.get(fallbackKey);
         if (!fid) {
           const { data, error } = await sb.from("factories").insert(factory).select("id").single();
@@ -321,10 +347,11 @@ export default function ImportPage() {
           <div className="flex items-center gap-2 mb-3">
             <label className="h-8 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[12px] font-medium text-ink-soft cursor-pointer inline-flex items-center">
               Upload .csv
-              <input type="file" accept=".csv,text/csv" className="hidden"
+              <input ref={fileInput} type="file" accept=".csv,text/csv" className="hidden"
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
                   if (f) {
+                    cancelAnalysisRequest();
                     const t = await f.text();
                     setFileName(f.name);
                     setText(t.replace(/^\uFEFF/, ""));
@@ -341,6 +368,13 @@ export default function ImportPage() {
             className="mt-3 h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
             {busy === "Analysing with AI…" ? "Analysing…" : "Analyse with AI"}
           </button>
+          {mapping && (
+            <button onClick={deleteAnalysis} disabled={!!busy}
+              title="Clear the uploaded CSV and its AI mapping. Imported records are not deleted."
+              className="mt-3 ml-2 h-9 px-4 rounded-full border border-[color:var(--color-danger)]/40 bg-surface hover:tint-danger disabled:opacity-60 text-[13px] font-medium text-[color:var(--color-danger)] cursor-pointer">
+              Delete analysis
+            </button>
+          )}
         </section>
 
         {/* Step 2: mapping */}
@@ -356,7 +390,7 @@ export default function ImportPage() {
                 ))}
                 <MapRow label="vertical (col)" value={mapping.vertical_column} headers={headers}
                   onChange={(v) => setMapping({ ...mapping, vertical_column: v })} />
-                <MapRow label="geo tier (col)" value={mapping.geo_column} headers={headers}
+                <MapRow label="geo (col)" value={mapping.geo_column} headers={headers}
                   onChange={(v) => setMapping({ ...mapping, geo_column: v })} />
               </MapGroup>
               <MapGroup title="Contact">

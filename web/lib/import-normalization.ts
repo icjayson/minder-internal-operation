@@ -37,6 +37,21 @@ export function parseInteger(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+export function normalizeWorkerBand(value: unknown): string | null {
+  const numbers = normalizeText(value)
+    .replace(/,/g, "")
+    .match(/\d+/g)
+    ?.map(Number)
+    .filter(Number.isFinite) ?? [];
+  if (!numbers.length) return null;
+  const representative = numbers.length > 1
+    ? (numbers[0] + numbers[1]) / 2
+    : numbers[0];
+  if (representative <= 200) return "50 - 200";
+  if (representative <= 500) return "200 - 500";
+  return "500 - 1000";
+}
+
 export function parseBoolean(value: unknown): boolean | null {
   const normalized = normalizeText(value).toLowerCase();
   if (!normalized) return null;

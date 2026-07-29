@@ -106,12 +106,12 @@ export default function ContactsPage() {
       render: (c) => <StagePill stage={c.stage} />,
     },
     {
-      key: "followup",
-      header: "Next follow-up",
+      key: "last_activity",
+      header: "Last activity",
       width: 140,
       sortable: true,
-      sortValue: (c) => c.next_follow_up ?? "",
-      render: (c) => <span className="mono text-[11px] text-ink-soft">{c.next_follow_up ?? "—"}</span>,
+      sortValue: (c) => (c.last_activity_at ? new Date(c.last_activity_at).getTime() : 0),
+      render: (c) => <span className="mono text-[11px] text-ink-soft">{formatDate(c.last_activity_at)}</span>,
     },
   ];
 
@@ -161,4 +161,13 @@ export default function ContactsPage() {
       {showNew && <NewContactDrawer onClose={() => setShowNew(false)} />}
     </>
   );
+}
+
+function formatDate(d: string | null): string {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  const now = new Date();
+  const sameYear = date.getFullYear() === now.getFullYear();
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", ...(sameYear ? {} : { year: "2-digit" }) });
 }

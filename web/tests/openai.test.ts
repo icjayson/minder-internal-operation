@@ -52,6 +52,33 @@ test("openaiChat omits a custom temperature from the GPT-5 request payload", asy
   assert.equal(requestBody?.max_tokens, 3350);
 });
 
+test("openaiChat forwards cancellation to the upstream request", async () => {
+  const previous = {
+    apiKey: process.env.OPENAI_API_KEY,
+    fetch: globalThis.fetch,
+  };
+  const controller = new AbortController();
+  let requestSignal: AbortSignal | null | undefined;
+
+  process.env.OPENAI_API_KEY = "test-key";
+  globalThis.fetch = async (_input, init) => {
+    requestSignal = init?.signal;
+    return new Response(
+      JSON.stringify({ choices: [{ message: { content: "summary" }, finish_reason: "stop" }] }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    await openaiChat("Summarise this factory", { signal: controller.signal });
+  } finally {
+    restoreEnv("OPENAI_API_KEY", previous.apiKey);
+    globalThis.fetch = previous.fetch;
+  }
+
+  assert.equal(requestSignal, controller.signal);
+});
+
 function restoreEnv(key: string, value: string | undefined) {
   if (value === undefined) delete process.env[key];
   else process.env[key] = value;

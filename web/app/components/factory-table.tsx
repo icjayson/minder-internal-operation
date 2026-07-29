@@ -34,6 +34,7 @@ export function FactoryTable({
       sortable: true,
       sortValue: (f) => f.name.toLowerCase(),
       render: (f) => {
+        const website = f.website_url ?? f.company_url;
         const stale = f.last_activity_at
           ? Date.now() - new Date(f.last_activity_at).getTime() > STALE_MS
           : false;
@@ -46,7 +47,20 @@ export function FactoryTable({
               />
             )}
             <div className="min-w-0">
-              <div className="font-medium truncate text-ink">{f.name}</div>
+              {website ? (
+                <a
+                  href={website}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-medium truncate text-accent hover:underline block"
+                  title={website}
+                >
+                  {f.name}
+                </a>
+              ) : (
+                <div className="font-medium truncate text-ink">{f.name}</div>
+              )}
               {f.hq_location && <div className="text-[11px] text-muted truncate">{f.hq_location}</div>}
             </div>
           </div>
@@ -64,19 +78,27 @@ export function FactoryTable({
     {
       key: "region",
       header: "Region",
-      width: 120,
+      width: 110,
       sortable: true,
       sortValue: (f) => f.geo_tier ?? "",
       render: (f) => <span className="text-ink-soft mono text-[11px]">{f.geo_tier ?? "—"}</span>,
     },
     {
+      key: "description",
+      header: "Description",
+      width: 240,
+      sortable: true,
+      sortValue: (f) => (f.description ?? "").toLowerCase(),
+      render: (f) => <span className="text-ink-soft text-[12px] truncate block" title={f.description ?? undefined}>{f.description ?? "—"}</span>,
+    },
+    {
       key: "workers",
       header: "Workers",
-      width: 100,
+      width: 110,
       align: "right",
       sortable: true,
-      sortValue: (f) => f.frontline_workers ?? -1,
-      render: (f) => <span className="text-ink-soft mono">{f.frontline_workers ?? "—"}</span>,
+      sortValue: (f) => f.frontline_workers ?? "",
+      render: (f) => <span className="text-ink-soft mono text-[11px]">{f.frontline_workers ?? "—"}</span>,
     },
     {
       key: "score",
@@ -110,14 +132,6 @@ export function FactoryTable({
       sortable: true,
       sortValue: (f) => (f.last_activity_at ? new Date(f.last_activity_at).getTime() : 0),
       render: (f) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(f.last_activity_at)}</span>,
-    },
-    {
-      key: "next",
-      header: "Next action",
-      width: 170,
-      sortable: true,
-      sortValue: (f) => (f.next_action ?? "").toLowerCase(),
-      render: (f) => <span className="text-ink-soft text-[12px] truncate block">{f.next_action ?? "—"}</span>,
     },
     {
       key: "actions",

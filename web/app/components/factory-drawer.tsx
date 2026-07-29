@@ -1,31 +1,35 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Contact, Factory, Sequence, SequenceStep, Stage } from "@/lib/types";
 import {
-  CHANNELS,
-  GEO_TIERS,
+  GEO_OPTIONS,
   LADDER,
   ROLE_CATEGORIES,
-  SEQUENCE_STATES,
   STAGES,
+  WORKER_BANDS,
 } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
+import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 import { StagePill } from "./stage-pill";
 import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContactTree } from "./contact-tree";
 import { ContextPanel } from "./context-panel";
+import { WorkInventory } from "./work-inventory";
 
 export function FactoryDrawer({
   factoryId,
   contactId,
   onClose,
+  variant = "drawer",
 }: {
   factoryId: string;
   contactId?: string | null;
   onClose: () => void;
+  variant?: "drawer" | "page";
 }) {
   const {
     factory,
@@ -38,6 +42,8 @@ export function FactoryDrawer({
     deleteFactory,
     updateContact,
     deleteContact,
+    setContactStage,
+    setFactoryStage,
     addContact,
     addActivity,
   } = useStore();
@@ -61,10 +67,11 @@ export function FactoryDrawer({
   const contactSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (variant !== "drawer") return;
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
+  }, [onClose, variant]);
 
   useEffect(() => {
     if (!contactId) return;
@@ -105,6 +112,7 @@ export function FactoryDrawer({
   }, [f?.vertical_id]);
 
   if (!f) return null;
+  const factoryName = f.name;
 
   const set = (patch: Partial<Factory>) =>
     updateFactory(factoryId, { ...patch, last_activity_at: new Date().toISOString() });
@@ -187,15 +195,47 @@ export function FactoryDrawer({
     }
   }
 
+  async function handleDelete() {
+    if (!confirm(`Delete ${factoryName}?`)) return;
+    await deleteFactory(factoryId);
+    onClose();
+  }
+
   return (
     <>
-      <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
+      {variant === "drawer" && (
+        <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
+      )}
+      <section className={
+        variant === "drawer"
+          ? "fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer"
+          : "min-h-screen w-full bg-surface"
+      }>
         {/* Header */}
         <header className="relative px-6 pt-5 pb-4 border-b border-line">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-          <div className="flex items-start justify-between mb-3">
-            <div className="min-w-0 pr-4">
+          <div className="flex items-start gap-2 mb-3">
+            {variant === "drawer" ? (
+              <Link
+                href={`/factories/${factoryId}`}
+                onClick={onClose}
+                title="Open full page"
+                aria-label="Open factory full page"
+                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink shrink-0"
+              >
+                <ExpandIcon />
+              </Link>
+            ) : (
+              <button
+                onClick={onClose}
+                title="Back to factories"
+                aria-label="Back to factories"
+                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer shrink-0"
+              >
+                <BackIcon />
+              </button>
+            )}
+            <div className="min-w-0 flex-1 pr-4">
               <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">
                 {verticalName(f.vertical_id)}
               </div>
@@ -205,9 +245,16 @@ export function FactoryDrawer({
                 className="block w-full text-[22px] font-display text-ink bg-transparent border-none focus:outline-none"
               />
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button onClick={handleDelete}
+                className="w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/10 cursor-pointer"
+                aria-label="Delete factory" title="Delete factory">
+                <DeleteIcon />
+              </button>
+              <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+                <CloseIcon />
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <ScoreChip score={f.score} grade={f.grade} />
@@ -224,7 +271,12 @@ export function FactoryDrawer({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <div className={
+          variant === "drawer"
+            ? "flex-1 overflow-y-auto px-6 py-5"
+            : "grid grid-cols-1 xl:grid-cols-2 items-start"
+        }>
+          <div className={variant === "drawer" ? "space-y-6" : "space-y-6 p-6 lg:p-8"}>
           {/* AI assessment */}
           <Section
             title="AI assessment"
@@ -283,22 +335,18 @@ export function FactoryDrawer({
               <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
                 options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
               <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
+                placeholder="None"
                 options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
-              <SelectField label="Geo tier" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: (v || null) as Factory["geo_tier"] })}
-                options={GEO_TIERS.map((g) => ({ value: g.key, label: g.label }))} />
-              <InputField label="HQ location" value={f.hq_location} onSave={(v) => set({ hq_location: v })} />
-              <InputField label="Country" value={f.country} onSave={(v) => set({ country: v })} />
-              <InputField label="Frontline workers" value={f.frontline_workers?.toString() ?? ""} type="number"
-                onSave={(v) => set({ frontline_workers: v ? Number(v) : null })} />
-              <SelectField label="Channel" value={f.channel ?? ""} onChange={(v) => set({ channel: v || null })}
-                options={CHANNELS.map((c) => ({ value: c, label: c.replace(/_/g, " ") }))} />
-              <InputField label="Website" value={f.website_url} onSave={(v) => set({ website_url: v })} mono />
-              <InputField label="Company URL" value={f.company_url} onSave={(v) => set({ company_url: v })} mono />
-              <InputField label="Parent company" value={f.parent_company} onSave={(v) => set({ parent_company: v })} />
+              <SelectField label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
+                options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} />
+              <SelectField label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
+                options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
+              <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
+              <InputField label="Company website" value={f.website_url ?? f.company_url}
+                onSave={(v) => set({ website_url: normalizeUrl(v) || null })} mono />
             </div>
-            <InputField label="Systems (comma-sep)" value={(f.systems ?? []).join(", ")}
-              onSave={(v) => set({ systems: v ? v.split(",").map((s) => s.trim()).filter(Boolean) : null })} />
-            <InputField label="Machinery note" value={f.machinery_note} onSave={(v) => set({ machinery_note: v })} />
+            <TextareaField label="Company description" value={f.description} onSave={(v) => set({ description: v })} />
+            <TextareaField label="How to approach / Note" value={f.notes} onSave={(v) => set({ notes: v })} />
           </Section>
 
           {/* Pipeline */}
@@ -306,7 +354,7 @@ export function FactoryDrawer({
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Factory stage</span>
-                <select value={f.stage} onChange={(e) => set({ stage: e.target.value as Stage, stage_locked: true })}
+                <select value={f.stage} onChange={(e) => setFactoryStage(factoryId, e.target.value as Stage)}
                   className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
                   {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -319,17 +367,7 @@ export function FactoryDrawer({
               <SelectField label="Relationship ladder" value={String(f.ladder_level ?? 0)}
                 onChange={(v) => set({ ladder_level: Number(v) })}
                 options={LADDER.map((label, i) => ({ value: String(i), label: `L${i} · ${label}` }))} />
-              <SelectField label="Evidence level" value={String(f.evidence_level ?? 0)}
-                onChange={(v) => set({ evidence_level: Number(v) })}
-                options={Array.from({ length: 6 }, (_, i) => ({ value: String(i), label: `E${i}` }))} />
             </div>
-            <InputField label="Next action" value={f.next_action} onSave={(v) => set({ next_action: v })} />
-            {f.stage_locked && (
-              <button onClick={() => updateFactory(factoryId, { stage_locked: false })}
-                className="mt-1 text-[11px] text-muted hover:text-ink underline">
-                Factory stage pinned manually — unlock to auto roll-up from contacts
-              </button>
-            )}
           </Section>
 
           {/* Contacts */}
@@ -339,7 +377,6 @@ export function FactoryDrawer({
                 <ContactForm
                   key={editContact === "new" ? "new" : editContact.id}
                   contact={editContact === "new" ? null : editContact}
-                  sequences={sequences}
                   onCancel={() => setEditContact(null)}
                   onSave={async (patch) => {
                     if (editContact === "new") await addContact(factoryId, patch);
@@ -351,12 +388,10 @@ export function FactoryDrawer({
               <ContactTree
                 factoryName={f.name}
                 contacts={contacts}
-                onStageChange={(id, s) => updateContact(id, { stage: s, last_activity_at: new Date().toISOString() })}
-                onGenerate={generate}
+                onStageChange={(id, s) => setContactStage(id, s)}
                 onDelete={deleteContact}
                 onAdd={() => setEditContact("new")}
                 onEdit={(c) => setEditContact(c)}
-                generatingId={generatingId}
               />
             </Section>
           </div>
@@ -428,44 +463,28 @@ export function FactoryDrawer({
             )}
           </Section>
 
-          {/* Inputted context (files + notes, per-factory) */}
-          <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
-
-          {/* Notes */}
-          <Section title="Notes">
-            <textarea defaultValue={f.notes ?? ""} onBlur={(e) => e.target.value !== (f.notes ?? "") && set({ notes: e.target.value })}
-              rows={4} placeholder="Context, evidence, next steps…"
-              className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink placeholder:text-muted resize-y focus:border-line-strong focus:outline-none" />
-          </Section>
+          </div>
+          <div className={
+            variant === "drawer"
+              ? "mt-6"
+              : "space-y-8 border-t xl:border-t-0 xl:border-l border-line p-6 lg:p-8"
+          }>
+            {/* Inputted context (files + notes, per-factory) */}
+            <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
+            {variant === "page" && <WorkInventory factoryId={factoryId} contacts={contacts} />}
+          </div>
         </div>
-
-        {/* Footer */}
-        <footer className="px-6 py-3 border-t border-line flex items-center gap-2 bg-surface-2/50">
-          {f.website_url && (
-            <a href={f.website_url} target="_blank" rel="noreferrer"
-              className="h-9 px-3 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[12.5px] font-medium text-ink-soft hover:text-ink inline-flex items-center gap-1.5">
-              Website
-            </a>
-          )}
-          <div className="flex-1" />
-          <button onClick={() => { if (confirm(`Delete ${f.name}?`)) { deleteFactory(factoryId); onClose(); } }}
-            className="h-9 w-9 rounded-full border border-line-strong bg-surface hover:bg-[color:var(--color-danger)]/10 text-muted hover:text-[color:var(--color-danger)] cursor-pointer grid place-items-center" aria-label="Delete factory">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
-        </footer>
-      </aside>
+      </section>
     </>
   );
 }
 
 function ContactForm({
   contact,
-  sequences,
   onSave,
   onCancel,
 }: {
   contact: Contact | null;
-  sequences: Sequence[];
   onSave: (patch: Partial<Contact>) => void;
   onCancel: () => void;
 }) {
@@ -475,11 +494,7 @@ function ContactForm({
   const [email, setEmail] = useState(contact?.email ?? "");
   const [linkedin_url, setLi] = useState(contact?.linkedin_url ?? "");
   const [phone, setPhone] = useState(contact?.phone ?? "");
-  const [next_follow_up, setNextFollowUp] = useState(contact?.next_follow_up ?? "");
   const [notes, setNotes] = useState(contact?.notes ?? "");
-  const [ladder_level, setLadder] = useState(String(contact?.ladder_level ?? 0));
-  const [sequence_id, setSequenceId] = useState(contact?.sequence_id ?? "");
-  const [sequence_state, setSequenceState] = useState<Contact["sequence_state"]>(contact?.sequence_state ?? "not_started");
   const [stage, setStage] = useState<Stage>(contact?.stage ?? "New");
 
   function submit() {
@@ -496,14 +511,7 @@ function ContactForm({
       email: email.trim() || null,
       linkedin_url: linkedin_url.trim() || null,
       phone: phone.trim() || null,
-      next_follow_up: next_follow_up || null,
       notes: notes.trim() || null,
-      ladder_level: Number(ladder_level),
-      sequence_id: sequence_id || null,
-      sequence_step: sequence_id && sequence_id === contact?.sequence_id
-        ? (contact?.sequence_step ?? 0)
-        : 0,
-      sequence_state: sequence_id ? sequence_state : "not_started",
     });
   }
 
@@ -523,7 +531,7 @@ function ContactForm({
           </select>
         </label>
         <input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
+          className="h-8 self-end rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
         <select value={role_category} onChange={(e) => setCat(e.target.value)}
           className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
           <option value="">Role category…</option>
@@ -535,26 +543,6 @@ function ContactForm({
           className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
         <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
           className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
-        <input type="date" title="Next follow-up" value={next_follow_up} onChange={(e) => setNextFollowUp(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink mono focus:border-accent focus:outline-none" />
-        <select value={ladder_level} onChange={(e) => setLadder(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-          {LADDER.map((label, i) => <option key={label} value={i}>L{i} · {label}</option>)}
-        </select>
-        <select value={sequence_id} onChange={(e) => {
-          setSequenceId(e.target.value);
-          if (e.target.value && e.target.value !== contact?.sequence_id) setSequenceState("active");
-          if (!e.target.value) setSequenceState("not_started");
-        }}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-          <option value="">No sequence</option>
-          {sequences.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <select value={sequence_state} onChange={(e) => setSequenceState(e.target.value as Contact["sequence_state"])}
-          disabled={!sequence_id}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer disabled:opacity-50 focus:border-accent focus:outline-none">
-          {SEQUENCE_STATES.map((state) => <option key={state} value={state}>{state.replace(/_/g, " ")}</option>)}
-        </select>
       </div>
       <textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
         className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12px] text-ink resize-y focus:border-accent focus:outline-none" />
@@ -579,6 +567,34 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 function Divider() { return <span className="h-4 w-px bg-line-strong" />; }
+function ExpandIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function BackIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="m15 5-7 7 7 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+function DeleteIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 // Vertical flow diagram of the AI-proposed demo workflow.
 function WorkflowFlow({ steps, template }: { steps: { title: string; detail: string }[]; template: boolean }) {
@@ -625,17 +641,29 @@ function InputField({ label, value, onSave, type = "text", mono = false }: {
     </label>
   );
 }
-function SelectField({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
+function SelectField({ label, value, onChange, options, placeholder = "—" }: {
+  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; placeholder?: string;
 }) {
   return (
     <label className="block">
       <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
-        <option value="">—</option>
+        <option value="">{placeholder}</option>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
+    </label>
+  );
+}
+function TextareaField({ label, value, onSave, rows = 3 }: {
+  label: string; value: string | null; onSave: (v: string) => void; rows?: number;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
+      <textarea defaultValue={value ?? ""} rows={rows}
+        onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
+        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
     </label>
   );
 }
