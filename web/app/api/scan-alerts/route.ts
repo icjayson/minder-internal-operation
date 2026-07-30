@@ -19,8 +19,8 @@ const TERMINAL = new Set(["Closed Won", "Closed Lost", "Nurture"]);
 const MAX_SUMMARIES = 25; // cap OpenAI calls per run
 
 type Row = Record<string, unknown>;
-const nkey = (n: { kind: string; factory_id?: unknown; contact_id?: unknown; network_id?: unknown }) =>
-  `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}:${n.network_id ?? ""}`;
+const nkey = (n: { kind: string; factory_id?: unknown; contact_id?: unknown; network_id?: unknown; work_item_id?: unknown }) =>
+  `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}:${n.network_id ?? ""}:${n.work_item_id ?? ""}`;
 
 export async function GET(req: Request) { return scan(req); }
 export async function POST(req: Request) { return scan(req); }
@@ -43,27 +43,39 @@ async function scan(req: Request) {
   const staleCut = new Date(now - STALE_DAYS * 86400000).toISOString();
   const today = nowIso.slice(0, 10);
 
-  const [factories, contacts, networks, stepRows] = await Promise.all([
+  const [factories, contacts, networks, stepRows, workItems] = await Promise.all([
     sb.from("factories").select("id,name,stage,network_id,last_activity_at,next_action,next_action_due"),
     sb.from("contacts").select("id,factory_id,network_id,full_name,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
     sb.from("networks").select("id,name,stage,last_activity_at,next_action,next_action_due"),
     sb.from("sequence_steps").select("*").order("step_index"),
+    sb.from("factory_work_items").select("id,factory_id,title,status,trigger_on"),
   ]);
   const fRows = (factories.data ?? []) as Row[];
   const cRows = (contacts.data ?? []) as Row[];
   const nRows = (networks.data ?? []) as Row[];
   const allSteps = (stepRows.data ?? []) as SequenceStep[];
+  const wRows = (workItems.data ?? []) as Row[];
   const fMap = new Map(fRows.map((f) => [f.id as string, f]));
   const cMap = new Map(cRows.map((c) => [c.id as string, c]));
   const nMap = new Map(nRows.map((n) => [n.id as string, n]));
+  const wMap = new Map(wRows.map((w) => [w.id as string, w]));
 
   // ── Auto-resolve: clear stale alerts whose entity has moved on ──────────────
   const { data: existing } = await sb
     .from("notifications")
-    .select("id,kind,factory_id,contact_id,network_id,created_at")
+    .select("id,kind,factory_id,contact_id,network_id,work_item_id,created_at")
     .is("read_at", null);
   const resolveIds: string[] = [];
   for (const n of existing ?? []) {
+    // Work-item trigger alerts clear once the card is moved to done, its
+    // trigger is cleared/pushed to the future, or the card is deleted.
+    if (n.kind === "work_trigger_due") {
+      const item = wMap.get(n.work_item_id as string);
+      if (!item) { resolveIds.push(n.id as string); continue; } // card deleted
+      if (item.status === "done" || !item.trigger_on || (item.trigger_on as string) > today)
+        resolveIds.push(n.id as string);
+      continue;
+    }
     if (!String(n.kind).startsWith("stale_")) continue;
     const entity =
       n.kind === "stale_factory" ? fMap.get(n.factory_id as string)
@@ -96,6 +108,28 @@ async function scan(req: Request) {
     if (!TERMINAL.has(f.stage as string) && f.next_action_due && (f.next_action_due as string) <= today)
       add({ kind: "followup_due", factory_id: f.id, title: "Next action due", detail: `${f.name} — ${f.next_action ?? ""}`, due_on: f.next_action_due });
   }
+
+  // Kanban work items whose trigger date has arrived but that aren't done yet.
+  // Also auto-advance a triggered "not started" card into "doing".
+  const promoteIds: string[] = [];
+  for (const w of wRows) {
+    if (w.status === "done" || !w.trigger_on || (w.trigger_on as string) > today) continue;
+    if (w.status === "not_started") {
+      w.status = "doing"; // keep in-memory state consistent for this run
+      promoteIds.push(w.id as string);
+    }
+    const factoryName = (fMap.get(w.factory_id as string)?.name as string) ?? "Factory";
+    add({
+      kind: "work_trigger_due",
+      factory_id: w.factory_id,
+      work_item_id: w.id,
+      title: "Work item past trigger",
+      detail: `${factoryName} — ${w.title}`,
+      due_on: w.trigger_on,
+    });
+  }
+  if (promoteIds.length)
+    await sb.from("factory_work_items").update({ status: "doing" }).in("id", promoteIds);
 
   for (const n of nRows) {
     if (ALERT_STAGES.has(n.stage as string) && (n.last_activity_at as string) < staleCut)

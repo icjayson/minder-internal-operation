@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Contact, FactoryWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
@@ -15,18 +15,77 @@ type WorkItemPatch = {
   body: string | null;
   status: WorkStatus;
   pic_contact_id: string | null;
+  trigger_on: string | null;
 };
+
+// Describes a work item's trigger date relative to today — used to label and
+// colour the card's deadline pill (overdue / due today / upcoming).
+function describeTrigger(triggerOn: string | null): {
+  label: string;
+  tone: "overdue" | "today" | "soon" | "later";
+} | null {
+  if (!triggerOn) return null;
+  const due = new Date(`${triggerOn}T00:00:00`);
+  if (Number.isNaN(due.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  const date = due.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (days < 0) return { label: `${date} · ${Math.abs(days)}d overdue`, tone: "overdue" };
+  if (days === 0) return { label: `${date} · today`, tone: "today" };
+  if (days === 1) return { label: `${date} · tomorrow`, tone: "soon" };
+  if (days <= 3) return { label: `${date} · in ${days}d`, tone: "soon" };
+  return { label: date, tone: "later" };
+}
+
+const TRIGGER_TONES: Record<string, string> = {
+  overdue:
+    "border-[color:var(--color-danger)]/35 tint-danger text-[color:var(--color-danger)]",
+  today:
+    "border-accent/40 bg-accent/10 text-accent",
+  soon:
+    "border-[color:var(--color-warn)]/40 text-[color:var(--color-warn)]",
+  later:
+    "border-line text-ink-soft",
+};
+
+// The nearest (earliest) trigger date among open (not-done) work items — this
+// is the date the factory's "next action due" syncs to. ISO date strings sort
+// lexicographically, so the min string is the soonest date.
+function nearestTrigger(items: FactoryWorkItem[]): string | null {
+  const dates = items
+    .filter((item) => item.status !== "done" && item.trigger_on)
+    .map((item) => item.trigger_on as string);
+  if (dates.length === 0) return null;
+  return dates.reduce((min, date) => (date < min ? date : min));
+}
 
 export function WorkInventory({
   factoryId,
   contacts,
+  onNearestTriggerChange,
 }: {
   factoryId: string;
   contacts: Contact[];
+  onNearestTriggerChange?: (date: string | null) => void;
 }) {
   const [items, setItems] = useState<FactoryWorkItem[] | null>(null);
   const [selected, setSelected] = useState<FactoryWorkItem | "new" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Keep the latest callback in a ref so the sync effect below depends only on
+  // `items` (not on the callback identity, which changes every parent render).
+  const onNearestTriggerChangeRef = useRef(onNearestTriggerChange);
+  useEffect(() => {
+    onNearestTriggerChangeRef.current = onNearestTriggerChange;
+  });
+
+  // Whenever the work items change, report the nearest open trigger date up so
+  // the factory's "next action due" can sync to it.
+  useEffect(() => {
+    if (items === null) return;
+    onNearestTriggerChangeRef.current?.(nearestTrigger(items));
+  }, [items]);
 
   const load = useCallback(async () => {
     const { data, error: loadError } = await supabase()
@@ -133,6 +192,7 @@ export function WorkInventory({
       body: item.body,
       status,
       pic_contact_id: item.pic_contact_id ?? null,
+      trigger_on: item.trigger_on ?? null,
     });
   }
 
@@ -198,6 +258,7 @@ export function WorkInventory({
                 {columnItems.map((item) => (
                   (() => {
                     const pic = contacts.find((contact) => contact.id === item.pic_contact_id);
+                    const trigger = describeTrigger(item.trigger_on);
                     return (
                       <article
                         key={item.id}
@@ -223,6 +284,18 @@ export function WorkInventory({
                               : "None"}
                           </span>
                         </div>
+                        {trigger && (
+                          <div
+                            className={`mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] mono font-medium ${TRIGGER_TONES[trigger.tone]}`}
+                            title={`Next-step trigger · ${item.trigger_on}`}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="shrink-0">
+                              <rect x="3" y="4.5" width="18" height="17" rx="2" strokeWidth="1.8" />
+                              <path d="M3 9h18M8 2.5v4M16 2.5v4" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                            <span>{trigger.label}</span>
+                          </div>
+                        )}
                       </article>
                     );
                   })()
@@ -275,6 +348,7 @@ function WorkItemModal({
   const [body, setBody] = useState(item?.body ?? "");
   const [status, setStatus] = useState<WorkStatus>(item?.status ?? "not_started");
   const [picContactId, setPicContactId] = useState(item?.pic_contact_id ?? "");
+  const [triggerOn, setTriggerOn] = useState(item?.trigger_on ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -294,6 +368,7 @@ function WorkItemModal({
       body: body.trim() || null,
       status,
       pic_contact_id: picContactId || null,
+      trigger_on: triggerOn || null,
     });
     setSaving(false);
   }
@@ -327,13 +402,43 @@ function WorkItemModal({
               placeholder="What needs to be done?"
               className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink focus:border-accent focus:outline-none" />
           </label>
-          <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Status</span>
-            <select value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)}
-              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-              {COLUMNS.map((column) => <option key={column.key} value={column.key}>{column.label}</option>)}
-            </select>
-          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Status</span>
+              <select value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)}
+                className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none">
+                {COLUMNS.map((column) => <option key={column.key} value={column.key}>{column.label}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">
+                Next-step trigger
+              </span>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={triggerOn}
+                  onChange={(event) => setTriggerOn(event.target.value)}
+                  className="w-full h-10 rounded-md border border-line bg-canvas px-3 pr-8 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none"
+                />
+                {triggerOn && (
+                  <button
+                    type="button"
+                    onClick={() => setTriggerOn("")}
+                    aria-label="Clear trigger date"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <span className="mt-1 block text-[10.5px] text-muted">
+                When this step should be triggered (deadline).
+              </span>
+            </label>
+          </div>
           <label className="block">
             <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">
               PIC

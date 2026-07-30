@@ -301,6 +301,7 @@ export interface FactoryWorkItem {
   title: string;
   body: string | null;
   status: WorkStatus;
+  trigger_on: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -380,6 +381,7 @@ export interface Notification {
   factory_id: string | null;
   contact_id: string | null;
   network_id: string | null;
+  work_item_id: string | null;
   title: string;
   detail: string | null;
   summary: string | null;

@@ -364,6 +364,7 @@ export function FactoryDrawer({
                 <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Next action due</span>
                 <input type="date" value={f.next_action_due ?? ""} onChange={(e) => set({ next_action_due: e.target.value || null })}
                   className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-line-strong focus:outline-none" />
+                <span className="mt-1 block text-[10px] text-muted">Syncs to the nearest work-inventory trigger.</span>
               </label>
               <SelectField label="Relationship ladder" value={String(f.ladder_level ?? 0)}
                 onChange={(v) => set({ ladder_level: Number(v) })}
@@ -472,7 +473,20 @@ export function FactoryDrawer({
           }>
             {/* Inputted context (files + notes, per-factory) */}
             <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
-            {variant === "page" && <WorkInventory factoryId={factoryId} contacts={contacts} />}
+            {variant === "page" && (
+              <WorkInventory
+                factoryId={factoryId}
+                contacts={contacts}
+                onNearestTriggerChange={(date) => {
+                  // Sync the factory's "next action due" to the nearest open
+                  // kanban trigger. Only push a real date (never clears a
+                  // manually set value), and skip no-op writes.
+                  if (date && date !== (f.next_action_due ?? null)) {
+                    updateFactory(factoryId, { next_action_due: date });
+                  }
+                }}
+              />
+            )}
           </div>
         </div>
       </section>
