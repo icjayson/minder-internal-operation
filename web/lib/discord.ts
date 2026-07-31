@@ -1,14 +1,15 @@
 // Discord push for alerts.
 //   • Text channel  → one message per entity (header + its alert embeds).
-//   • Forum channel → one THREAD per routing owner; each alert of that owner
-//     becomes a separate message inside its thread.
-// Grouping owner: a network and its New/Contacted sourced factories share the
-// network thread. Once a sourced factory reaches Replied, it owns its thread.
+//   • Forum channel → one durable THREAD per Factory / Network; every later
+//     alert is appended to that entity's existing thread.
+
+import type {
+  DiscordThreadOwner,
+  DiscordThreadStore,
+} from "./discord-thread-store.ts";
 
 type Row = Record<string, unknown>;
 type EntityMap = Map<string, Row>;
-
-const NETWORK_OWNED_FACTORY_STAGES = new Set(["New", "Contacted"]);
 
 // Attach transient Discord-only routing metadata. This intentionally does not
 // change factory_id/network_id: those fields still identify the alert target and
@@ -26,20 +27,6 @@ export function enrichDiscordAlert(
     const sourceNetwork = sourceNetworkId ? networks.get(sourceNetworkId) : undefined;
     const sourceNetworkName =
       sourceNetworkId ? String(sourceNetwork?.name ?? sourceNetworkId) : undefined;
-
-    if (
-      sourceNetworkId &&
-      sourceNetwork &&
-      NETWORK_OWNED_FACTORY_STAGES.has(String(factory?.stage ?? ""))
-    ) {
-      return {
-        ...notification,
-        _ownerType: "network",
-        _ownerId: sourceNetworkId,
-        _ownerName: sourceNetwork.name,
-        _sourceNetworkName: sourceNetworkName,
-      };
-    }
 
     return {
       ...notification,
@@ -77,12 +64,12 @@ export function deepLink(n: Row): string {
 
 // Which entity's thread does this alert belong to? Prefer explicit _owner fields
 // (set by the scanner so contact alerts inherit the parent's name); else derive.
-function ownerOf(n: Row): { key: string; name: string; kind: "factory" | "network" } {
+function ownerOf(n: Row): { key: string; id: string | null; name: string; kind: "factory" | "network" } {
   if (n._ownerType && n._ownerId)
-    return { key: `${n._ownerType}:${n._ownerId}`, name: String(n._ownerName ?? n.detail ?? "Alerts"), kind: n._ownerType === "network" ? "network" : "factory" };
-  if (n.network_id) return { key: `network:${n.network_id}`, name: String(n.detail ?? "Network"), kind: "network" };
-  if (n.factory_id) return { key: `factory:${n.factory_id}`, name: String(n.detail ?? "Factory"), kind: "factory" };
-  return { key: "misc", name: String(n.detail ?? "Alerts"), kind: "factory" };
+    return { key: `${n._ownerType}:${n._ownerId}`, id: String(n._ownerId), name: String(n._ownerName ?? n.detail ?? "Alerts"), kind: n._ownerType === "network" ? "network" : "factory" };
+  if (n.factory_id) return { key: `factory:${n.factory_id}`, id: String(n.factory_id), name: String(n.detail ?? "Factory"), kind: "factory" };
+  if (n.network_id) return { key: `network:${n.network_id}`, id: String(n.network_id), name: String(n.detail ?? "Network"), kind: "network" };
+  return { key: "misc", id: null, name: String(n.detail ?? "Alerts"), kind: "factory" };
 }
 
 export function discordEmbedFor(n: Row) {
@@ -106,17 +93,12 @@ export function discordEmbedFor(n: Row) {
   };
 }
 
-function stamp(): string {
-  return new Date().toISOString().slice(0, 16).replace("T", " ");
-}
-
 export function discordThreadTitleFor(
   kind: "factory" | "network",
   name: string,
-  when = stamp(),
 ): string {
   const kindLabel = kind === "network" ? "Network" : "Factory";
-  return `${kindLabel} alert · ${name} · ${when}`.slice(0, 100);
+  return `${kindLabel} · ${name}`.slice(0, 100);
 }
 
 export function discordThreadContentFor(name: string, alertCount: number): string {
@@ -126,7 +108,7 @@ export function discordThreadContentFor(name: string, alertCount: number): strin
 // Returns true if any message posted, null if no webhook configured, false on error.
 export async function pushDiscordEmbeds(
   notifications: Row[],
-  opts: { webhookUrl?: string; forum?: boolean; threadPrefix?: string } = {},
+  opts: { webhookUrl?: string; forum?: boolean; threadPrefix?: string; threadStore?: DiscordThreadStore | null } = {},
 ): Promise<boolean | null> {
   const url = opts.webhookUrl ?? process.env.DISCORD_WEBHOOK_URL;
   if (!url) return null;
@@ -137,13 +119,18 @@ export async function pushDiscordEmbeds(
   const legacyForumHint = (opts.threadPrefix ?? process.env.DISCORD_THREAD_NAME ?? "").trim();
   const forum =
     opts.forum ?? (process.env.DISCORD_FORUM === "true" || legacyForumHint !== "");
-  const when = stamp();
+  const threadStore = forum
+    ? opts.threadStore === undefined
+      ? (await import("./discord-thread-store.ts")).supabaseDiscordThreadStore()
+      : opts.threadStore
+    : null;
+  const webhookKey = discordWebhookKey(url);
 
   // Group alerts by owning entity.
-  const groups = new Map<string, { name: string; kind: "factory" | "network"; rows: Row[] }>();
+  const groups = new Map<string, { id: string | null; name: string; kind: "factory" | "network"; rows: Row[] }>();
   for (const n of notifications) {
     const o = ownerOf(n);
-    const g = groups.get(o.key) ?? { name: o.name, kind: o.kind, rows: [] };
+    const g = groups.get(o.key) ?? { id: o.id, name: o.name, kind: o.kind, rows: [] };
     g.rows.push(n);
     groups.set(o.key, g);
   }
@@ -153,25 +140,64 @@ export async function pushDiscordEmbeds(
 
   try {
     let ok = false;
-    for (const { name, kind, rows } of groups.values()) {
+    for (const { id, name, kind, rows } of groups.values()) {
       const content = discordThreadContentFor(name, rows.length);
       const embeds = rows.map(discordEmbedFor);
 
       if (forum) {
-        // Create the entity's thread (header + first alert), then add the rest.
-        const title = discordThreadTitleFor(kind, name, when);
-        const res = await post(`${url}?wait=true`, { thread_name: title, content, embeds: [embeds[0]] });
-        ok = ok || res.ok;
+        const owner: DiscordThreadOwner | null = id
+          ? { ownerType: kind, ownerId: id, webhookKey }
+          : null;
         let threadId: string | null = null;
-        if (res.ok) {
-          try {
-            const j = (await res.json()) as { channel_id?: string; id?: string };
-            threadId = j.channel_id ?? j.id ?? null;
-          } catch { /* can't thread the rest; they'd start new posts */ }
+        let claimed = !threadStore || !owner;
+
+        if (threadStore && owner) {
+          let claim = await threadStore.claim(owner);
+          claimed = claim.claimed;
+          threadId = claim.threadId;
+          // Another request may currently be creating this entity's thread.
+          for (let attempt = 0; !claimed && !threadId && attempt < 12; attempt++) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            claim = await threadStore.claim(owner);
+            claimed = claim.claimed;
+            threadId = claim.threadId;
+          }
         }
-        for (let i = 1; i < embeds.length && threadId; i++) {
-          const r = await post(`${url}?thread_id=${threadId}`, { embeds: [embeds[i]] });
-          ok = ok || r.ok;
+
+        if (threadId) {
+          for (let i = 0; i < embeds.length; i++) {
+            const r = await post(webhookEndpoint(url, { thread_id: threadId }), {
+              content: i === 0 ? content : undefined,
+              embeds: [embeds[i]],
+            });
+            if (!r.ok) return false;
+            ok = true;
+          }
+          continue;
+        }
+
+        if (!claimed) return false;
+
+        // First alert creates the canonical thread; every later alert reuses it.
+        const title = discordThreadTitleFor(kind, name);
+        const res = await post(webhookEndpoint(url, { wait: "true" }), { thread_name: title, content, embeds: [embeds[0]] });
+        if (!res.ok) {
+          if (threadStore && owner) await threadStore.release(owner);
+          return false;
+        }
+        try {
+          const json = (await res.json()) as { channel_id?: string };
+          threadId = json.channel_id ?? null;
+        } catch { threadId = null; }
+        if (!threadId) {
+          if (threadStore && owner) await threadStore.release(owner);
+          return false;
+        }
+        if (threadStore && owner) await threadStore.complete({ ...owner, threadId, threadName: title });
+        ok = true;
+        for (let i = 1; i < embeds.length; i++) {
+          const r = await post(webhookEndpoint(url, { thread_id: threadId }), { embeds: [embeds[i]] });
+          if (!r.ok) return false;
         }
       } else {
         // Text channel: one message per entity (batch embeds, ≤10 per message).
@@ -185,4 +211,23 @@ export async function pushDiscordEmbeds(
   } catch {
     return false;
   }
+}
+
+export function discordWebhookKey(webhookUrl: string): string {
+  try {
+    const parsed = new URL(webhookUrl);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const webhookIndex = parts.lastIndexOf("webhooks");
+    const webhookId = webhookIndex >= 0 ? parts[webhookIndex + 1] : null;
+    if (webhookId) return `webhook:${webhookId}`;
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return webhookUrl.split("?")[0];
+  }
+}
+
+function webhookEndpoint(webhookUrl: string, params: Record<string, string>): string {
+  const endpoint = new URL(webhookUrl);
+  for (const [key, value] of Object.entries(params)) endpoint.searchParams.set(key, value);
+  return endpoint.toString();
 }

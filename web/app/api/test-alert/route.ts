@@ -39,9 +39,8 @@ async function run(opts: Opts) {
     [nordic, { id: nordic, name: "Nordic Textiles Cluster (sample)" }],
   ]);
 
-  // Acme is Contacted, so its two alerts share the Nordic network thread.
-  // Bergen is Replied, so it has its own factory thread. Both factory embeds
-  // explicitly show "Source network: Nordic Textiles Cluster (sample)".
+  // Every factory owns exactly one thread regardless of stage. Direct network
+  // alerts continue to use the network's own thread.
   const rawSamples = [
     {
       kind: "followup_due",
@@ -49,14 +48,14 @@ async function run(opts: Opts) {
       detail: "Acme Foods Ltd (sample)",
       due_on: today,
       summary:
-        "Sample alert. This Contacted factory is still managed through its source network, so this message belongs in the network thread.",
+        "Sample alert. This Contacted factory still owns its own durable factory thread.",
       factory_id: acme,
     },
     {
       kind: "sequence_step_due",
       title: "Sequence Day 4 due",
       detail: "Jonas Berg — Ops Director (sample)",
-      summary: "Contact at Acme; this alert follows its Contacted factory into the network thread.",
+      summary: "Contact at Acme; this alert follows its parent factory thread.",
       factory_id: acme,
     },
     {
@@ -79,7 +78,7 @@ async function run(opts: Opts) {
     enrichDiscordAlert(sample, factories, networks),
   );
 
-  const pushed = await pushDiscordEmbeds(samples, { webhookUrl: opts.webhookUrl, forum, threadPrefix });
+  const pushed = await pushDiscordEmbeds(samples, { webhookUrl: opts.webhookUrl, forum, threadPrefix, threadStore: null });
   const forumOn = forum ?? (process.env.DISCORD_FORUM === "true" || !!process.env.DISCORD_THREAD_NAME);
   const threadCount = new Set(samples.map((s) => s._ownerId)).size;
   return NextResponse.json({

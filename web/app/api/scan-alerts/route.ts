@@ -204,8 +204,8 @@ async function scan(req: Request) {
   const { data: unpushed } = await sb.from("notifications").select("*").is("pushed_at", null);
   let pushed = 0;
   if (unpushed && unpushed.length) {
-    // New/Contacted sourced factories share the source network's Discord
-    // thread. From Replied onward they get their own thread.
+    // Every Factory and Network owns one durable Discord thread. Contact alerts
+    // inherit their parent entity's thread.
     const enriched = (unpushed as Row[]).map((n) =>
       enrichDiscordAlert(n, fMap, nMap),
     );

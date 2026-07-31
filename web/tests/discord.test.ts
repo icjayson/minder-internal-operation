@@ -4,8 +4,11 @@ import {
   discordEmbedFor,
   discordThreadContentFor,
   discordThreadTitleFor,
+  discordWebhookKey,
   enrichDiscordAlert,
+  pushDiscordEmbeds,
 } from "../lib/discord.ts";
+import type { DiscordThreadStore } from "../lib/discord-thread-store.ts";
 
 const factoryId = "factory-1";
 const networkId = "network-1";
@@ -13,7 +16,7 @@ const networks = new Map([
   [networkId, { id: networkId, name: "Source Network" }],
 ]);
 
-test("New and Contacted sourced factories route to the network thread", () => {
+test("every sourced factory owns its own thread regardless of stage", () => {
   for (const stage of ["New", "Contacted"]) {
     const factories = new Map([
       [factoryId, { id: factoryId, name: "Factory One", stage, network_id: networkId }],
@@ -24,9 +27,9 @@ test("New and Contacted sourced factories route to the network thread", () => {
       networks,
     );
 
-    assert.equal(alert._ownerType, "network");
-    assert.equal(alert._ownerId, networkId);
-    assert.equal(alert._ownerName, "Source Network");
+    assert.equal(alert._ownerType, "factory");
+    assert.equal(alert._ownerId, factoryId);
+    assert.equal(alert._ownerName, "Factory One");
     assert.equal(alert._sourceNetworkName, "Source Network");
     assert.equal(alert.factory_id, factoryId);
     assert.equal(alert.network_id, undefined);
@@ -65,14 +68,53 @@ test("factory embed shows its source network note", () => {
 
 test("thread display text starts at Network/Factory alert without a configured prefix", () => {
   assert.equal(
-    discordThreadTitleFor("network", "SIHUB Sài Gòn", "2026-07-26 04:45"),
-    "Network alert · SIHUB Sài Gòn · 2026-07-26 04:45",
+    discordThreadTitleFor("network", "SIHUB Sài Gòn"),
+    "Network · SIHUB Sài Gòn",
   );
   assert.equal(
-    discordThreadTitleFor("factory", "Đặc Sản Kinh Đô Huế", "2026-07-26 04:45"),
-    "Factory alert · Đặc Sản Kinh Đô Huế · 2026-07-26 04:45",
+    discordThreadTitleFor("factory", "Đặc Sản Kinh Đô Huế"),
+    "Factory · Đặc Sản Kinh Đô Huế",
   );
   assert.equal(discordThreadContentFor("SIHUB Sài Gòn", 2), "SIHUB Sài Gòn — 2 alert(s)");
+});
+
+test("webhook identity ignores a rotated token and query parameters", () => {
+  assert.equal(
+    discordWebhookKey("https://discord.com/api/webhooks/123456/secret-token?wait=true"),
+    "webhook:123456",
+  );
+});
+
+test("forum pushes create once and append later alerts to the stored thread", async () => {
+  let storedThreadId: string | null = null;
+  const store: DiscordThreadStore = {
+    async claim() { return storedThreadId ? { claimed: false, threadId: storedThreadId } : { claimed: true, threadId: null }; },
+    async complete(owner) { storedThreadId = owner.threadId; },
+    async release() {},
+  };
+  const calls: { url: string; body: Record<string, unknown> }[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
+    calls.push({ url: String(input), body });
+    return new Response(JSON.stringify({ channel_id: "thread-123" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const alert = { kind: "activity_created", factory_id: factoryId, _ownerType: "factory", _ownerId: factoryId, _ownerName: "Factory One", detail: "Factory One" };
+    assert.equal(await pushDiscordEmbeds([alert], { webhookUrl: "https://discord.com/api/webhooks/123/token", forum: true, threadStore: store }), true);
+    assert.equal(await pushDiscordEmbeds([alert], { webhookUrl: "https://discord.com/api/webhooks/123/token", forum: true, threadStore: store }), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0]?.body.thread_name, "Factory · Factory One");
+  assert.equal(calls[1]?.body.thread_name, undefined);
+  assert.equal(new URL(calls[1]!.url).searchParams.get("thread_id"), "thread-123");
 });
 
 test("manual and day-3 reminders use distinct Discord emphasis", () => {
