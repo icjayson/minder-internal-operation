@@ -12,6 +12,9 @@ const KIND_LABEL: Record<string, string> = {
   followup_due: "Follow-up due",
   sequence_step_due: "Sequence step due",
   work_trigger_due: "Work item due",
+  work_trigger_overdue_1d: "Overdue · day 1",
+  work_trigger_overdue_3d: "Overdue · day 3",
+  manual_factory: "Manual notification",
 };
 
 export default function AlertsPage() {
@@ -26,7 +29,7 @@ export default function AlertsPage() {
   return (
     <>
       <PageHeader eyebrow="Alerts" title="Reminders & alerts"
-        subtitle="Anything in Replied → Demo with no update in 3+ days, a due follow-up, or a work item past its trigger and not yet done. Auto-clears when you act on it; also pushed to Discord."
+        subtitle="Anything in Replied → Demo with no update in 3+ days, a due follow-up, or a work item due / overdue by 1 or 3 days. Auto-clears when you act on it; also pushed to Discord."
         right={<><span>{rows.length}</span><span className="opacity-50">unread</span></>} />
       <div className="px-8 py-5 max-w-3xl">
         {rows.length === 0 ? (

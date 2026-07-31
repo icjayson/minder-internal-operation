@@ -1,7 +1,7 @@
 "use client";
 
 import type { Factory, Stage } from "@/lib/types";
-import { STAGES } from "@/lib/types";
+import { LADDER, STAGES } from "@/lib/types";
 import { StagePill } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
 import { DataTable, type Column } from "./data-table";
@@ -28,9 +28,9 @@ export function FactoryTable({
   const columns: Column<Factory>[] = [
     {
       key: "name",
-      header: "Factory",
-      width: 230,
-      minWidth: 140,
+      header: "Account",
+      width: 300,
+      minWidth: 220,
       sortable: true,
       sortValue: (f) => f.name.toLowerCase(),
       render: (f) => {
@@ -61,65 +61,52 @@ export function FactoryTable({
               ) : (
                 <div className="font-medium truncate text-ink">{f.name}</div>
               )}
-              {f.hq_location && <div className="text-[11px] text-muted truncate">{f.hq_location}</div>}
+              <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted">
+                <span className="truncate">{verticalName(f.vertical_id)}</span>
+                {(f.geo_tier || f.hq_location) && <span aria-hidden>·</span>}
+                <span className="truncate">{f.geo_tier ?? f.hq_location}</span>
+              </div>
             </div>
           </div>
         );
       },
     },
     {
-      key: "vertical",
-      header: "Vertical",
-      width: 150,
-      sortable: true,
-      sortValue: (f) => verticalName(f.vertical_id),
-      render: (f) => <span className="text-ink-soft truncate block">{verticalName(f.vertical_id)}</span>,
-    },
-    {
-      key: "region",
-      header: "Region",
-      width: 110,
-      sortable: true,
-      sortValue: (f) => f.geo_tier ?? "",
-      render: (f) => <span className="text-ink-soft mono text-[11px]">{f.geo_tier ?? "—"}</span>,
-    },
-    {
-      key: "description",
-      header: "Description",
-      width: 240,
-      sortable: true,
-      sortValue: (f) => (f.description ?? "").toLowerCase(),
-      render: (f) => <span className="text-ink-soft text-[12px] truncate block" title={f.description ?? undefined}>{f.description ?? "—"}</span>,
-    },
-    {
-      key: "workers",
-      header: "Workers",
-      width: 110,
-      align: "right",
-      sortable: true,
-      sortValue: (f) => f.frontline_workers ?? "",
-      render: (f) => <span className="text-ink-soft mono text-[11px]">{f.frontline_workers ?? "—"}</span>,
-    },
-    {
       key: "score",
       header: "Score",
-      width: 150,
+      width: 110,
       sortable: true,
       sortValue: (f) => f.score ?? -1,
       render: (f) => <ScoreChip score={f.score} grade={f.grade} />,
     },
     {
       key: "stage",
-      header: "Stage",
-      width: 150,
+      header: "Pipeline",
+      width: 160,
       sortable: true,
       sortValue: (f) => STAGES.indexOf(f.stage),
       render: (f) => <StageSelect stage={f.stage} onChange={(s) => onStageChange(f.id, s)} />,
     },
     {
+      key: "relationship",
+      header: "Relationship",
+      width: 210,
+      sortable: true,
+      sortValue: (f) => f.ladder_level ?? 0,
+      render: (f) => <RelationshipMini level={f.ladder_level ?? 0} />,
+    },
+    {
+      key: "due",
+      header: "Next action",
+      width: 140,
+      sortable: true,
+      sortValue: (f) => f.next_action_due ?? "9999-12-31",
+      render: (f) => <DueDate value={f.next_action_due} />,
+    },
+    {
       key: "contacts",
       header: "Contacts",
-      width: 100,
+      width: 90,
       align: "center",
       sortable: true,
       sortValue: (f) => contactCount(f.id),
@@ -128,7 +115,7 @@ export function FactoryTable({
     {
       key: "last",
       header: "Last activity",
-      width: 130,
+      width: 120,
       sortable: true,
       sortValue: (f) => (f.last_activity_at ? new Date(f.last_activity_at).getTime() : 0),
       render: (f) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(f.last_activity_at)}</span>,
@@ -156,6 +143,39 @@ export function FactoryTable({
   ];
 
   return <DataTable columns={columns} rows={factories} onRowClick={onSelect} storageKey="factories" />;
+}
+
+function RelationshipMini({ level }: { level: number }) {
+  const safeLevel = Math.min(Math.max(level, 0), LADDER.length - 1);
+  return (
+    <div title={`L${safeLevel} · ${LADDER[safeLevel]}`}>
+      <div className="flex items-center gap-1" aria-hidden>
+        {LADDER.map((_, index) => (
+          <span key={index} className={`h-1.5 flex-1 rounded-full ${index <= safeLevel ? "bg-[#0fa79b]" : "bg-surface-3"}`} />
+        ))}
+      </div>
+      <div className="mt-1 truncate text-[10px] text-ink-soft">L{safeLevel} · {LADDER[safeLevel]}</div>
+    </div>
+  );
+}
+
+function DueDate({ value }: { value: string | null }) {
+  if (!value) return <span className="text-[11px] text-muted">Not scheduled</span>;
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = value < today;
+  const dueToday = value === today;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10.5px] ${
+      overdue
+        ? "border-[color:var(--color-danger)]/30 tint-danger text-[color:var(--color-danger)]"
+        : dueToday
+          ? "border-[color:var(--color-warn)]/30 tint-warn text-[color:var(--color-warn)]"
+          : "border-line bg-surface-2 text-ink-soft"
+    }`}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2" strokeWidth="1.7" /><path d="M8 3v4m8-4v4M3 10h18" strokeWidth="1.7" strokeLinecap="round" /></svg>
+      {overdue ? "Overdue · " : dueToday ? "Today · " : ""}{formatDate(value)}
+    </span>
+  );
 }
 
 function StageSelect({ stage, onChange }: { stage: Stage; onChange: (s: Stage) => void }) {

@@ -13,6 +13,7 @@ import {
 import { recommendNext } from "../lib/recommendation.ts";
 import { highestStage } from "../lib/stage.ts";
 import { effectiveContactRoleLevel } from "../lib/contact-role.ts";
+import { visibleFactoryActivities, withoutBulkStageFanout } from "../lib/activity.ts";
 
 test("cadence advances to the next ordered sequence step", () => {
   const steps = [
@@ -52,6 +53,56 @@ test("factory stage rolls up to the highest contact stage", () => {
   assert.equal(highestStage(["New", "Meeting Booked"]), "Meeting Booked");
   assert.equal(highestStage(["Closed Lost", "Replied", "Nurture"]), "Replied");
   assert.equal(highestStage([]), "New");
+});
+
+test("legacy factory-stage fan-out is hidden without hiding a single contact change", () => {
+  const base = {
+    factory_id: "factory-1",
+    network_id: null,
+    type: "stage_change",
+    body: "New → Contacted",
+    evidence_level: null,
+    taxonomy_tags: null,
+    created_at: "2026-07-31T15:51:44.000Z",
+  };
+  const activities = [
+    { ...base, id: "bulk-1", contact_id: "contact-1" },
+    { ...base, id: "bulk-2", contact_id: "contact-2" },
+    { ...base, id: "single", contact_id: "contact-3", created_at: "2026-07-31T16:00:00.000Z" },
+    { ...base, id: "factory", contact_id: null },
+  ];
+
+  assert.deepEqual(
+    withoutBulkStageFanout(activities).map((activity) => activity.id),
+    ["single", "factory"],
+  );
+});
+
+test("factory activity keeps forward milestones only up to the current stage", () => {
+  const base = {
+    factory_id: "factory-1",
+    network_id: null,
+    contact_id: null,
+    type: "stage_change",
+    evidence_level: null,
+    taxonomy_tags: null,
+    created_at: "2026-07-31T16:00:00.000Z",
+  };
+  const activities = [
+    { ...base, id: "forward-1", body: "New → Contacted" },
+    { ...base, id: "forward-2", body: "Contacted → Replied" },
+    { ...base, id: "backward", body: "Replied → Contacted" },
+    { ...base, id: "contact", contact_id: "contact-1", body: "Replied → Contacted" },
+  ];
+
+  assert.deepEqual(
+    visibleFactoryActivities(activities, "Contacted").map((activity) => activity.id),
+    ["forward-1", "contact"],
+  );
+  assert.deepEqual(
+    visibleFactoryActivities(activities, "New").map((activity) => activity.id),
+    ["contact"],
+  );
 });
 
 test("executive owner titles always resolve to the highest contact level", () => {

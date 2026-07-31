@@ -164,6 +164,17 @@ h1, h2, h3, h4, .font-display {
 .tint-warn   { background: color-mix(in srgb, var(--color-warn) 15%, transparent); }
 .tint-danger { background: color-mix(in srgb, var(--color-danger) 14%, transparent); }
 
+.journey-section-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--journey-accent) 28%, transparent);
+  border-radius: 8px;
+  background: var(--journey-soft);
+  color: var(--journey-accent);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

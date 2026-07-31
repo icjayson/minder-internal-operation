@@ -12,11 +12,14 @@ import { StagePill } from "@/app/components/stage-pill";
 import { DataTable, type Column } from "@/app/components/data-table";
 import { NewContactDrawer } from "@/app/components/new-contact-drawer";
 
+type ContactFocus = "all" | "targets" | "engaged" | "due";
+
 export default function ContactsPage() {
   const { contacts, factory, network, verticalName, openContact } = useStore();
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState<Stage | "All">("All");
   const [showNew, setShowNew] = useState(false);
+  const [focus, setFocus] = useState<ContactFocus>("all");
 
   const stats = useMemo(() => {
     if (!contacts) return null;
@@ -37,8 +40,13 @@ export default function ContactsPage() {
   const rows = useMemo(() => {
     if (!contacts) return null;
     const q = search.trim().toLowerCase();
+    const today = new Date().toISOString().slice(0, 10);
+    const repliedIdx = PIPELINE_STAGES.indexOf("Replied");
     return contacts.filter((c) => {
       if (stage !== "All" && c.stage !== stage) return false;
+      if (focus === "targets" && !c.is_primary_target) return false;
+      if (focus === "engaged" && PIPELINE_STAGES.indexOf(c.stage) < repliedIdx) return false;
+      if (focus === "due" && !(c.next_follow_up && c.next_follow_up <= today)) return false;
       if (!q) return true;
       const parentName = c.factory_id ? factory(c.factory_id)?.name : network(c.network_id)?.name;
       return (
@@ -47,7 +55,7 @@ export default function ContactsPage() {
         (parentName ?? "").toLowerCase().includes(q)
       );
     });
-  }, [contacts, search, stage, factory, network]);
+  }, [contacts, search, stage, focus, factory, network]);
 
   const columns: Column<Contact>[] = [
     {
@@ -113,6 +121,14 @@ export default function ContactsPage() {
       sortValue: (c) => (c.last_activity_at ? new Date(c.last_activity_at).getTime() : 0),
       render: (c) => <span className="mono text-[11px] text-ink-soft">{formatDate(c.last_activity_at)}</span>,
     },
+    {
+      key: "next_follow_up",
+      header: "Next touch",
+      width: 130,
+      sortable: true,
+      sortValue: (c) => c.next_follow_up ?? "9999-12-31",
+      render: (c) => <FollowUpDate value={c.next_follow_up} />,
+    },
   ];
 
   return (
@@ -127,7 +143,7 @@ export default function ContactsPage() {
           onSelect={(s) => setStage(stage === s ? "All" : s)}
         />
         {stats && (
-          <div className="grid grid-cols-4 gap-3 mt-5">
+          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard label="Total contacts" value={stats.total} />
             <StatCard label="Primary targets" value={stats.targets} tone="accent" />
             <StatCard label="Replied+" value={stats.engaged} />
@@ -136,7 +152,14 @@ export default function ContactsPage() {
         )}
       </PageHeader>
 
-      <div className="px-8 py-5">
+      <div className="px-4 py-5 sm:px-6 lg:px-8">
+        {stats && <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved contact views">
+          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
+          <FocusButton label="All contacts" count={stats.total} active={focus === "all"} onClick={() => setFocus("all")} />
+          <FocusButton label="Primary targets" count={stats.targets} active={focus === "targets"} onClick={() => setFocus("targets")} />
+          <FocusButton label="Engaged" count={stats.engaged} active={focus === "engaged"} onClick={() => setFocus("engaged")} />
+          <FocusButton label="Follow-ups due" count={stats.due} active={focus === "due"} tone="warn" onClick={() => setFocus("due")} />
+        </div>}
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 max-w-md"><SearchInput value={search} onChange={setSearch} placeholder="Search name, role or factory…" /></div>
           <div className="flex-1" />
@@ -161,6 +184,17 @@ export default function ContactsPage() {
       {showNew && <NewContactDrawer onClose={() => setShowNew(false)} />}
     </>
   );
+}
+
+function FocusButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn"; onClick: () => void }) {
+  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-accent/40 bg-accent-dim text-accent" : "border-line bg-surface text-ink-soft hover:border-line-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span></button>;
+}
+
+function FollowUpDate({ value }: { value: string | null }) {
+  if (!value) return <span className="text-[11px] text-muted">Not scheduled</span>;
+  const today = new Date().toISOString().slice(0, 10);
+  const due = value <= today;
+  return <span className={`inline-flex rounded-full border px-2 py-1 text-[10.5px] ${due ? "border-[color:var(--color-warn)]/30 tint-warn text-[color:var(--color-warn)]" : "border-line bg-surface-2 text-ink-soft"}`}>{due && value === today ? "Today · " : due ? "Due · " : ""}{formatDate(value)}</span>;
 }
 
 function formatDate(d: string | null): string {

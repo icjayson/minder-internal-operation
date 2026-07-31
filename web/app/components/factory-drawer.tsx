@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { Contact, Factory, Sequence, SequenceStep, Stage } from "@/lib/types";
+import type { Contact, Factory, FactoryWorkItem, Sequence, SequenceStep, Stage } from "@/lib/types";
 import {
   GEO_OPTIONS,
-  LADDER,
   ROLE_CATEGORIES,
   STAGES,
   WORKER_BANDS,
@@ -15,11 +14,14 @@ import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 import { StagePill } from "./stage-pill";
-import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
+import { AssessmentScoreBadge, ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContactTree } from "./contact-tree";
 import { ContextPanel } from "./context-panel";
 import { WorkInventory } from "./work-inventory";
+import { JourneyOverview } from "./journey-overview";
+import { FactoryNotificationModal } from "./factory-notification-modal";
+import { ActivityRowActions } from "./activity-alert-countdown";
 
 export function FactoryDrawer({
   factoryId,
@@ -47,6 +49,7 @@ export function FactoryDrawer({
     setFactoryStage,
     addContact,
     addActivity,
+    deleteActivity,
   } = useStore();
 
   const f = factory(factoryId);
@@ -54,8 +57,6 @@ export function FactoryDrawer({
   const activities = activitiesOf(factoryId);
 
   const [scoring, setScoring] = useState(false);
-  const [recommending, setRecommending] = useState(false);
-  const [rec, setRec] = useState<{ recommendation: string; workflow?: { title: string; detail: string }[]; source?: string } | null>(null);
   const [ctxStats, setCtxStats] = useState<{ count: number; latestAt: string | null }>({ count: 0, latestAt: null });
   const [error, setError] = useState<string | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
@@ -65,7 +66,13 @@ export function FactoryDrawer({
   const [steps, setSteps] = useState<SequenceStep[]>([]);
   const [activityNote, setActivityNote] = useState("");
   const [activityContact, setActivityContact] = useState("");
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [journeyNotice, setJourneyNotice] = useState<{ message: string; undo: () => void } | null>(null);
+  const [nextWorkItem, setNextWorkItem] = useState<FactoryWorkItem | null>(null);
   const contactSectionRef = useRef<HTMLDivElement>(null);
+  const workInventoryRef = useRef<HTMLDivElement>(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   useEffect(() => {
     if (variant !== "drawer") return;
@@ -112,8 +119,48 @@ export function FactoryDrawer({
     return () => { live = false; };
   }, [f?.vertical_id]);
 
+  useEffect(() => {
+    if (!journeyNotice) return;
+    const timeout = window.setTimeout(() => setJourneyNotice(null), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [journeyNotice]);
+
+  useEffect(() => {
+    const sb = supabase();
+    let live = true;
+    const loadNextWorkItem = async () => {
+      const { data } = await sb
+        .from("factory_work_items")
+        .select("*")
+        .eq("factory_id", factoryId)
+        .neq("status", "done")
+        .not("trigger_on", "is", null)
+        .order("trigger_on", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (live) setNextWorkItem((data as FactoryWorkItem | null) ?? null);
+    };
+    void loadNextWorkItem();
+    const channel = sb
+      .channel(`factory-next-work-${factoryId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "factory_work_items", filter: `factory_id=eq.${factoryId}` },
+        () => { void loadNextWorkItem(); },
+      )
+      .subscribe();
+    return () => {
+      live = false;
+      sb.removeChannel(channel);
+    };
+  }, [factoryId]);
+
   if (!f) return null;
   const factoryName = f.name;
+  const sourceNetwork = (networks ?? []).find((network) => network.id === f.network_id);
+  const notificationDestination = sourceNetwork && (f.stage === "New" || f.stage === "Contacted")
+    ? `Network · ${sourceNetwork.name}`
+    : `Factory · ${f.name}`;
 
   const set = (patch: Partial<Factory>) =>
     updateFactory(factoryId, { ...patch, last_activity_at: new Date().toISOString() });
@@ -127,7 +174,7 @@ export function FactoryDrawer({
     f.score != null &&
     (scoredAtMs
       ? activities.some((a) => new Date(a.created_at).getTime() > scoredAtMs) ||
-        (ctxStats.latestAt ? new Date(ctxStats.latestAt).getTime() > scoredAtMs : false)
+      (ctxStats.latestAt ? new Date(ctxStats.latestAt).getTime() > scoredAtMs : false)
       : activities.length > 0 || ctxStats.count > 0);
 
   async function score() {
@@ -146,25 +193,6 @@ export function FactoryDrawer({
       setError(e instanceof Error ? e.message : "Score failed");
     } finally {
       setScoring(false);
-    }
-  }
-
-  async function recommend() {
-    setRecommending(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/recommend-next", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ factoryId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
-      setRec({ recommendation: data.recommendation ?? "", workflow: data.workflow ?? [], source: data.source });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Recommendation failed");
-    } finally {
-      setRecommending(false);
     }
   }
 
@@ -202,20 +230,56 @@ export function FactoryDrawer({
     onClose();
   }
 
+  async function changeStage(next: Stage) {
+    const currentFactory = factory(factoryId);
+    if (!currentFactory || next === currentFactory.stage) return;
+    const previous = currentFactory.stage;
+    await setFactoryStage(factoryId, next);
+    setJourneyNotice({
+      message: `Pipeline moved to ${next}`,
+      undo: () => {
+        void setFactoryStage(factoryId, previous);
+        setJourneyNotice(null);
+      },
+    });
+  }
+
+  async function changeLadder(next: number) {
+    const currentFactory = factory(factoryId);
+    if (!currentFactory || next === currentFactory.ladder_level) return;
+    const previous = currentFactory.ladder_level;
+    await set({ ladder_level: next });
+    setJourneyNotice({
+      message: `Relationship moved to L${next}`,
+      undo: () => {
+        void set({ ladder_level: previous });
+        setJourneyNotice(null);
+      },
+    });
+  }
+
   return (
     <>
+      {notificationOpen && (
+        <FactoryNotificationModal
+          factoryId={factoryId}
+          factoryName={f.name}
+          destination={notificationDestination}
+          onClose={() => setNotificationOpen(false)}
+        />
+      )}
       {variant === "drawer" && (
         <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
       )}
       <section className={
         variant === "drawer"
-          ? "fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer"
+          ? "fixed right-0 top-0 bottom-0 w-full max-w-[720px] bg-canvas border-l border-line-strong z-50 flex flex-col shadow-drawer"
           : "min-h-screen w-full bg-surface"
       }>
         {/* Header */}
-        <header className="relative px-6 pt-5 pb-4 border-b border-line">
+        <header className="relative bg-surface px-5 py-4 border-b border-line sm:px-6">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-          <div className="flex items-start gap-2 mb-3">
+          <div className="flex items-center gap-3">
             {variant === "drawer" ? (
               <Link
                 href={`/factories/${factoryId}`}
@@ -236,15 +300,36 @@ export function FactoryDrawer({
                 <BackIcon />
               </button>
             )}
-            <div className="min-w-0 flex-1 pr-4">
+            <div className="min-w-0 flex-1">
               <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">
                 {verticalName(f.vertical_id)}
               </div>
-              <input
-                defaultValue={f.name}
-                onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })}
-                className="block w-full text-[22px] font-display text-ink bg-transparent border-none focus:outline-none"
-              />
+              {editingProfile ? (
+                <input
+                  defaultValue={f.name}
+                  aria-label="Factory name"
+                  onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })}
+                  className="block w-full rounded-md border border-line bg-canvas px-2 py-1 text-[20px] font-display text-ink focus:border-accent focus:outline-none"
+                />
+              ) : (
+                <h1 className="truncate text-[21px] leading-tight font-display text-ink">{f.name}</h1>
+              )}
+            </div>
+            <div className="hidden items-center gap-2 sm:flex">
+              <button
+                type="button"
+                onClick={() => setNotificationOpen(true)}
+                className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
+              >
+                Create notification
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingProfile((value) => !value)}
+                className={`h-8 rounded-full border px-3.5 text-[11.5px] font-medium ${editingProfile ? "border-accent bg-accent-dim text-accent" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"}`}
+              >
+                {editingProfile ? "Done" : "Edit"}
+              </button>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button onClick={handleDelete}
@@ -252,12 +337,14 @@ export function FactoryDrawer({
                 aria-label="Delete factory" title="Delete factory">
                 <DeleteIcon />
               </button>
-              <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
-                <CloseIcon />
-              </button>
+              {variant === "drawer" && (
+                <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+                  <CloseIcon />
+                </button>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="mt-3 flex items-center gap-3 flex-wrap pl-10">
             <ScoreChip score={f.score} grade={f.grade} />
             <Divider />
             <span title="Factory stage"><StagePill stage={f.stage} /></span>
@@ -272,226 +359,371 @@ export function FactoryDrawer({
           </div>
         )}
 
-        <div className={
-          variant === "drawer"
-            ? "flex-1 overflow-y-auto px-6 py-5"
-            : "grid grid-cols-1 xl:grid-cols-2 items-start"
-        }>
-          <div className={variant === "drawer" ? "space-y-6" : "space-y-6 p-6 lg:p-8"}>
-          {/* AI assessment */}
-          <Section
-            title="AI assessment"
-            action={
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={recommend}
-                  disabled={recommending}
-                  className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11.5px] font-medium text-ink-soft hover:text-ink cursor-pointer disabled:opacity-60 transition-colors"
-                >
-                  {recommending ? "Thinking…" : "Next action"}
-                </button>
-                <button
-                  onClick={score}
-                  disabled={scoring}
-                  title={contextStale ? "New context logged since last score" : undefined}
-                  className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${
-                    contextStale
-                      ? "bg-accent text-white hover:bg-[#3a51ff]"
-                      : "border border-line-strong bg-surface-2 hover:bg-surface-3 text-ink-soft hover:text-ink"
-                  }`}
-                >
-                  {contextStale && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  {scoring ? "Scoring…" : f.score != null ? "Re-score" : "Score"}
-                </button>
+        {journeyNotice && (
+          <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 text-[12px] text-ink shadow-soft" role="status">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-white"><CheckIcon /></span>
+            {journeyNotice.message}
+            <button type="button" onClick={journeyNotice.undo} className="font-semibold text-accent hover:underline">Undo</button>
+          </div>
+        )}
+
+        <div className={variant === "drawer" ? "flex-1 overflow-y-auto" : ""}>
+          <div className="border-b border-line bg-surface px-4 py-5 sm:px-6 lg:px-8">
+            <JourneyOverview
+              stage={f.stage}
+              ladderLevel={f.ladder_level ?? 0}
+              nextActionDue={f.next_action_due}
+              onStageChange={(next) => { void changeStage(next); }}
+              onLadderChange={(next) => { void changeLadder(next); }}
+              compact={variant === "drawer"}
+            />
+          </div>
+
+          <div className={variant === "drawer" ? "flex flex-col bg-surface px-4 sm:px-6" : "grid grid-cols-1 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"}>
+            <div className={variant === "drawer" ? "contents" : "space-y-0 px-5 sm:px-6 lg:px-8"}>
+              {/* Activity first: this is the account's operating narrative. */}
+              <Section title={`Activity · ${activities.length}`} className={variant === "drawer" ? "order-[8]" : ""}>
+                <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas p-1.5 transition-colors focus-within:border-line-strong focus-within:bg-surface-2/35">
+                  <select value={activityContact} onChange={(e) => setActivityContact(e.target.value)}
+                    aria-label="Attribute activity to"
+                    className="h-8 shrink-0 max-w-[132px] rounded-md bg-surface-2 px-2 text-[11px] text-ink-soft cursor-pointer focus:outline-none focus-visible:outline-none">
+                    <option value="">Factory</option>
+                    {contacts.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+                  </select>
+                  <input
+                value={activityNote}
+                    onChange={(e) => setActivityNote(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key !== "Enter" || !activityNote.trim()) return;
+                      await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null });
+                      setActivityNote("");
+                    }}
+                    placeholder="Log a call, note, reply or evidence…"
+                    className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-ink focus:outline-none focus-visible:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!activityNote.trim()) return;
+                      await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null });
+                      setActivityNote("");
+                    }}
+                    className="h-8 rounded-full bg-accent px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
+                  >
+                    Add
+                  </button>
+                </div>
+                {activities.length === 0 ? (
+                  <EmptyState title="No activity yet" body="Log the first touchpoint to start this account timeline." />
+                ) : (
+                  <div className="relative ml-2 space-y-0 border-l border-line">
+                    {activities.slice(0, 30).map((a) => {
+                      const contactName = contacts.find((c) => c.id === a.contact_id)?.full_name;
+                      return (
+                        <article key={a.id} className="group relative py-3 pl-6">
+                          <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-accent"><ActivityIcon type={a.type} /></span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{a.type.replace(/_/g, " ")}</span>
+                            <span className="text-[10px] mono text-muted">{formatTimestamp(a.created_at)}</span>
+                            {a.evidence_level != null && <span className="text-[9px] mono text-muted">E{a.evidence_level}</span>}
+                            <ActivityRowActions
+                              createdAt={a.created_at}
+                              onDelete={() => { void deleteActivity(a.id); }}
+                            />
+                          </div>
+                          <p className="mt-0.5 text-[12px] leading-relaxed text-ink-soft">
+                            <strong className="font-medium text-ink">{contactName ?? "Factory"}: </strong>{a.body ?? "—"}
+                          </p>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </Section>
+
+              {/* AI assessment is summarized first and expanded on demand. */}
+              <Section
+                title="AI assessment"
+                className={variant === "drawer" ? "order-[4]" : ""}
+                action={
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={score}
+                      disabled={scoring}
+                      title={contextStale ? "New context logged since last score" : undefined}
+                      className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${contextStale
+                          ? "bg-accent text-white hover:bg-[#3a51ff]"
+                          : "border border-line-strong bg-surface-2 hover:bg-surface-3 text-ink-soft hover:text-ink"
+                        }`}
+                    >
+                      {contextStale && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      {scoring ? "Scoring…" : f.score != null ? "Re-score" : "Score"}
+                    </button>
+                  </div>
+                }
+              >
+                <div className="flex items-start gap-3 bg-accent-dim/35 px-3 py-2.5 rounded-xl">
+                  <AssessmentScoreBadge score={f.score} grade={f.grade} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12.5px] leading-relaxed text-ink-soft">
+                      {f.score != null
+                        ? "Qualification score based on the current factory profile, evidence and context."
+                        : "Score this account against the design-partner qualification rubric."}
+                    </p>
+                    <button type="button" onClick={() => setAssessmentOpen((value) => !value)} className="mt-2 text-[11px] font-semibold text-accent hover:underline">
+                      {assessmentOpen ? "Hide score details" : "View score details"}
+                    </button>
+                  </div>
+                </div>
+                {assessmentOpen && f.score != null && (
+                  <div className="mt-3 border-t border-line-soft pt-3">
+                    {contextStale && <p className="mb-2 text-[11.5px] text-[color:var(--color-warn)]">Context changed since last score — re-score to update.</p>}
+                    <ScoreBreakdownBars breakdown={f.score_breakdown} />
+                    {f.blocker && <p className="mt-3 text-[12px] text-[color:var(--color-warn)]">Blocker: {f.blocker}</p>}
+                    {f.ai_reasoning && <p className="mt-3 text-[12px] leading-relaxed text-ink-soft">{f.ai_reasoning}</p>}
+                  </div>
+                )}
+              </Section>
+
+              {/* Profile */}
+              <Section
+                title="Profile"
+                className={variant === "drawer" ? "order-[3]" : ""}
+                action={<button type="button" onClick={() => setEditingProfile((value) => !value)} className="text-[11px] font-semibold text-accent hover:underline">{editingProfile ? "Done editing" : "Edit profile"}</button>}
+              >
+                {editingProfile ? <>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
+                      options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
+                    <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
+                      placeholder="None"
+                      options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
+                    <SelectField label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
+                      options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} />
+                    <SelectField label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
+                      options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
+                    <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
+                    <InputField label="Company website" value={f.website_url ?? f.company_url}
+                      onSave={(v) => set({ website_url: normalizeUrl(v) || null })} mono />
+                  </div>
+                  <TextareaField label="Company description" value={f.description} onSave={(v) => set({ description: v })} />
+                  <TextareaField label="How to approach / Note" value={f.notes} onSave={(v) => set({ notes: v })} />
+                </> : <ProfileSummary factory={f} vertical={verticalName(f.vertical_id)} network={(networks ?? []).find((network) => network.id === f.network_id)?.name ?? "No source network"} />}
+              </Section>
+
+              {/* Contacts */}
+              <div ref={contactSectionRef} className={`scroll-mt-4 ${variant === "drawer" ? "order-[5]" : ""}`}>
+                <Section title={`Contacts · ${contacts.length}`}>
+                  {editContact && (
+                    <ContactForm
+                      key={editContact === "new" ? "new" : editContact.id}
+                      contact={editContact === "new" ? null : editContact}
+                      onCancel={() => setEditContact(null)}
+                      onSave={async (patch) => {
+                        if (editContact === "new") await addContact(factoryId, patch);
+                        else await updateContact(editContact.id, patch);
+                        setEditContact(null);
+                      }}
+                    />
+                  )}
+                  <ContactTree
+                    factoryName={f.name}
+                    contacts={contacts}
+                    onStageChange={(id, s) => setContactStage(id, s)}
+                    onTargetChange={(id, isTarget) => updateContact(id, { is_primary_target: isTarget })}
+                    onDelete={deleteContact}
+                    onAdd={() => setEditContact("new")}
+                    onEdit={(c) => setEditContact(c)}
+                  />
+                </Section>
               </div>
-            }
-          >
-            {f.score != null ? (
-              <>
-                {contextStale && (
-                  <p className="mb-2 text-[11.5px] text-[color:var(--color-warn)]">
-                    Context changed since last score — re-score to update.
-                  </p>
-                )}
-                <ScoreBreakdownBars breakdown={f.score_breakdown} />
-                {f.blocker && (
-                  <p className="mt-3 text-[12px] text-[color:var(--color-warn)]">Blocker: {f.blocker}</p>
-                )}
-                {f.ai_reasoning && <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">{f.ai_reasoning}</p>}
-                {f.ai_recommendation && (
-                  <p className="mt-2 text-[13px] text-accent leading-relaxed">→ {f.ai_recommendation}</p>
-                )}
-              </>
-            ) : (
-              <p className="text-[13px] text-muted">Not scored. Click Score to rate against the 100-pt design-partner rubric.</p>
-            )}
-            {rec?.workflow && rec.workflow.length > 0 && (
-              <WorkflowFlow steps={rec.workflow} template={rec.source !== "ai"} />
-            )}
-          </Section>
 
-          {/* Profile */}
-          <Section title="Profile">
-            <div className="grid grid-cols-2 gap-3">
-              <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
-                options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
-              <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
-                placeholder="None"
-                options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
-              <SelectField label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
-                options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} />
-              <SelectField label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
-                options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
-              <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
-              <InputField label="Company website" value={f.website_url ?? f.company_url}
-                onSave={(v) => set({ website_url: normalizeUrl(v) || null })} mono />
+              {/* Latest draft */}
+              {draft && (
+                <Section title={`Draft for ${draft.contact}`} className={variant === "drawer" ? "order-[5]" : ""}>
+                  {draft.subject && <div className="text-[12px] text-ink-soft mb-1">Subject: {draft.subject}</div>}
+                  <textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={6}
+                    className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
+                  <button onClick={() => navigator.clipboard.writeText(draft.body)}
+                    className="mt-2 h-6 px-2 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">
+                    Copy
+                  </button>
+                </Section>
+              )}
+
             </div>
-            <TextareaField label="Company description" value={f.description} onSave={(v) => set({ description: v })} />
-            <TextareaField label="How to approach / Note" value={f.notes} onSave={(v) => set({ notes: v })} />
-          </Section>
-
-          {/* Pipeline */}
-          <Section title="Factory pipeline">
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Factory stage</span>
-                <select value={f.stage} onChange={(e) => setFactoryStage(factoryId, e.target.value as Stage)}
-                  className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
-                  {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Next action due</span>
-                <input type="date" value={f.next_action_due ?? ""} onChange={(e) => set({ next_action_due: e.target.value || null })}
-                  className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-line-strong focus:outline-none" />
-                <span className="mt-1 block text-[10px] text-muted">Syncs to the nearest work-inventory trigger.</span>
-              </label>
-              <SelectField label="Relationship ladder" value={String(f.ladder_level ?? 0)}
-                onChange={(v) => set({ ladder_level: Number(v) })}
-                options={LADDER.map((label, i) => ({ value: String(i), label: `L${i} · ${label}` }))} />
-            </div>
-          </Section>
-
-          {/* Contacts */}
-          <div ref={contactSectionRef} className="scroll-mt-4">
-            <Section title={`Contacts · ${contacts.length}`}>
-              {editContact && (
-                <ContactForm
-                  key={editContact === "new" ? "new" : editContact.id}
-                  contact={editContact === "new" ? null : editContact}
-                  onCancel={() => setEditContact(null)}
-                  onSave={async (patch) => {
-                    if (editContact === "new") await addContact(factoryId, patch);
-                    else await updateContact(editContact.id, patch);
-                    setEditContact(null);
+            <div className={
+              variant === "drawer"
+                ? "contents"
+                : "space-y-4 border-t border-line px-5 py-5 sm:px-6 lg:px-8 xl:sticky xl:top-0 xl:border-l xl:border-t-0"
+            }>
+              <div className={variant === "drawer" ? "order-[6] border-b border-line-soft py-5" : ""}>
+                <NextActionCard
+                  item={nextWorkItem}
+                  pic={contacts.find((contact) => contact.id === nextWorkItem?.pic_contact_id) ?? null}
+                  onViewWork={() => {
+                    if (workInventoryRef.current) {
+                      workInventoryRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+                    } else {
+                      window.location.assign(`/factories/${factoryId}`);
+                    }
                   }}
                 />
-              )}
-              <ContactTree
-                factoryName={f.name}
-                contacts={contacts}
-                onStageChange={(id, s) => setContactStage(id, s)}
-                onDelete={deleteContact}
-                onAdd={() => setEditContact("new")}
-                onEdit={(c) => setEditContact(c)}
-              />
-            </Section>
-          </div>
-
-          {/* Latest draft */}
-          {draft && (
-            <Section title={`Draft for ${draft.contact}`}>
-              {draft.subject && <div className="text-[12px] text-ink-soft mb-1">Subject: {draft.subject}</div>}
-              <textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={6}
-                className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
-              <button onClick={() => navigator.clipboard.writeText(draft.body)}
-                className="mt-2 h-6 px-2 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">
-                Copy
-              </button>
-            </Section>
-          )}
-
-          <Section title={`Activity · ${activities.length}`}>
-            <div className="flex items-center gap-2">
-              <select value={activityContact} onChange={(e) => setActivityContact(e.target.value)}
-                title="Attribute this context to a contact (or the factory)"
-                className="h-8 shrink-0 max-w-[120px] rounded-md border border-line bg-canvas px-2 text-[11px] text-ink-soft cursor-pointer focus:border-accent focus:outline-none">
-                <option value="">Factory</option>
-                {contacts.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-              </select>
-              <input
-                value={activityNote}
-                onChange={(e) => setActivityNote(e.target.value)}
-                onKeyDown={async (e) => {
-                  if (e.key !== "Enter" || !activityNote.trim()) return;
-                  await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null });
-                  setActivityNote("");
-                }}
-                placeholder="Add a note or evidence update…"
-                className="flex-1 h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink focus:border-accent focus:outline-none"
-              />
-              <button
-                onClick={async () => {
-                  if (!activityNote.trim()) return;
-                  await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null });
-                  setActivityNote("");
-                }}
-                className="h-8 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer"
-              >
-                Add
-              </button>
-            </div>
-            {activities.length === 0 ? (
-              <p className="text-[12px] text-muted">No activity recorded yet.</p>
-            ) : (
-              <div className="border-l border-line ml-1.5 space-y-3">
-                {activities.slice(0, 30).map((a) => {
-                  const contactName = contacts.find((c) => c.id === a.contact_id)?.full_name;
-                  return (
-                    <div key={a.id} className="relative pl-4">
-                      <span className="absolute -left-[4px] top-1.5 w-1.5 h-1.5 rounded-full bg-accent" />
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] mono uppercase tracking-wider text-accent">{a.type.replace(/_/g, " ")}</span>
-                        <span className="text-[10px] mono text-muted">{formatTimestamp(a.created_at)}</span>
-                        {a.evidence_level != null && <span className="text-[9px] mono text-muted">E{a.evidence_level}</span>}
-                      </div>
-                      <p className="text-[12px] text-ink-soft leading-relaxed">
-                        {contactName ? `${contactName}: ` : ""}{a.body ?? "—"}
-                      </p>
-                    </div>
-                  );
-                })}
               </div>
-            )}
-          </Section>
-
-          </div>
-          <div className={
-            variant === "drawer"
-              ? "mt-6"
-              : "space-y-8 border-t xl:border-t-0 xl:border-l border-line p-6 lg:p-8"
-          }>
-            {/* Inputted context (files + notes, per-factory) */}
-            <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
-            {variant === "page" && (
-              <WorkInventory
-                factoryId={factoryId}
-                contacts={contacts}
-                onNearestTriggerChange={(date) => {
-                  // Sync the factory's "next action due" to the nearest open
-                  // kanban trigger. Only push a real date (never clears a
-                  // manually set value), and skip no-op writes.
-                  if (date && date !== (f.next_action_due ?? null)) {
-                    updateFactory(factoryId, { next_action_due: date });
-                  }
-                }}
-              />
-            )}
+              {/* Inputted context (files + notes, per-factory) */}
+              <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+                <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
+              </div>
+              {variant === "page" && (
+                <div ref={workInventoryRef} className="scroll-mt-4">
+                  <WorkInventory
+                    factoryId={factoryId}
+                    contacts={contacts}
+                    onNextWorkItemChange={setNextWorkItem}
+                    onNearestTriggerChange={(date) => {
+                      // The nearest open work trigger is the single source of
+                      // truth for the factory's next-action due date.
+                      if (date !== (f.next_action_due ?? null)) {
+                        updateFactory(factoryId, { next_action_due: date });
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
     </>
   );
+}
+
+function NextActionCard({
+  item,
+  pic,
+  onViewWork,
+}: {
+  item: FactoryWorkItem | null;
+  pic: Contact | null;
+  onViewWork: () => void;
+}) {
+  return (
+    <section className="relative overflow-hidden rounded-lg border border-accent/25 bg-accent-dim p-4">
+      <span className="absolute right-0 top-0 h-24 w-24 rounded-full bg-accent/10 blur-2xl" aria-hidden />
+      <div className="relative flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent text-white shadow-glow"><AlertIcon /></span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">Next best action</div>
+          <p className="mt-1 text-[13px] font-medium leading-relaxed text-ink">
+            {item?.title || "No open work item has a next-step trigger."}
+          </p>
+          {item?.body && <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-ink-soft">{item.body}</p>}
+          {pic && <p className="mt-1 text-[10.5px] text-muted">PIC: <span className="text-ink-soft">{pic.full_name}</span></p>}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={onViewWork}
+              className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-semibold text-white hover:bg-[#3a51ff]">
+              {item ? "View work item" : "Open work inventory"}
+            </button>
+            {item?.trigger_on && <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/70 px-2.5 py-1 text-[10.5px] text-ink-soft"><CalendarSmallIcon /> {formatShortDate(item.trigger_on)}</span>}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProfileSummary({ factory, vertical, network }: { factory: Factory; vertical: string; network: string }) {
+  const website = factory.website_url ?? factory.company_url;
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-3">
+        <ProfileDatum label="Vertical" value={vertical} />
+        <ProfileDatum label="Source" value={network} />
+        <ProfileDatum label="Region" value={factory.geo_tier ?? "Not set"} />
+        <ProfileDatum label="Workers" value={factory.frontline_workers ?? "Not set"} />
+        <ProfileDatum label="Location" value={factory.hq_location ?? "Not set"} />
+        <div>
+          <div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted">Website</div>
+          {website ? <a href={website} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-[12px] text-accent hover:underline">{website.replace(/^https?:\/\//, "")}</a> : <p className="mt-0.5 text-[12px] text-muted">Not set</p>}
+        </div>
+      </div>
+      {(factory.description || factory.notes) && <div className="grid gap-3 sm:grid-cols-2">
+        {factory.description && <ReadBlock label="Company snapshot" body={factory.description} />}
+        {factory.notes && <ReadBlock label="Approach" body={factory.notes} />}
+      </div>}
+    </div>
+  );
+}
+
+function ProfileDatum({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-0"><div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted">{label}</div><div className="mt-0.5 truncate text-[12px] text-ink-soft" title={value}>{value}</div></div>;
+}
+
+function ReadBlock({ label, body }: { label: string; body: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isApproach = label === "Approach";
+
+  return (
+    <article className="rounded-xl border border-line-soft bg-surface-2/55 p-3.5 shadow-sm transition-colors hover:border-line-strong">
+      <div className="flex items-center gap-2.5">
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-[#e6f8f5] text-[#118b7c]" : "bg-accent-dim text-accent"}`}>
+          <ProfileCardIcon kind={isApproach ? "approach" : "company"} />
+        </span>
+        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-ink-soft">{label}</h4>
+      </div>
+      <p className={`mt-2.5 text-[12px] leading-[1.55] text-ink-soft ${expanded ? "whitespace-pre-line" : "line-clamp-2"}`}>
+        {body}
+      </p>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
+      >
+        {expanded ? "Show less" : "Show more"}
+        <ChevronIcon expanded={expanded} />
+      </button>
+    </article>
+  );
+}
+
+function EmptyState({ title, body }: { title: string; body: string }) {
+  return <div className="border-y border-dashed border-line px-4 py-5 text-center"><div className="text-[12px] font-medium text-ink">{title}</div><p className="mx-auto mt-1 max-w-sm text-[11px] text-muted">{body}</p></div>;
+}
+
+function ActivityIcon({ type }: { type: string }) {
+  if (type.includes("email") || type.includes("message")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16v12H4zM4 7l8 6 8-6" strokeWidth="1.8" strokeLinejoin="round" /></svg>;
+  if (type.includes("call")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h4l2 5-2.5 1.5a14 14 0 0 0 5 5L15 13l5 2v4c0 1-1 2-2 2C10 20 4 14 3 6c0-1 1-2 2-2Z" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h12v16H6zM9 8h6m-6 4h6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function CheckIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 4 4L19 6" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function AlertIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden><path d="M12 3 2.8 19h18.4L12 3Z" strokeWidth="1.7" strokeLinejoin="round" /><path d="M12 9v4.5m0 2.8v.2" strokeWidth="1.9" strokeLinecap="round" /></svg>;
+}
+
+function CalendarSmallIcon() {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2" strokeWidth="1.7" /><path d="M8 3v4m8-4v4M3 10h18" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+}
+
+function ChevronIcon({ expanded = false }: { expanded?: boolean }) {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${expanded ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function ProfileCardIcon({ kind }: { kind: "company" | "approach" }) {
+  if (kind === "approach") {
+    return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden><circle cx="12" cy="12" r="8" strokeWidth="1.7" /><circle cx="12" cy="12" r="3" strokeWidth="1.7" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+  }
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden><path d="M4 20V7l8-4 8 4v13M8 20v-4h8v4M8 9h1m3 0h1m3 0h1M8 12h1m3 0h1m3 0h1" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function formatShortDate(value: string): string {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined });
 }
 
 function ContactForm({
@@ -523,7 +755,6 @@ function ContactForm({
         role_title,
         (cat?.level as Contact["role_level"]) ?? null,
       ),
-      is_primary_target: cat?.primary ?? false,
       stage,
       ...(stage !== (contact?.stage ?? "New") ? { last_activity_at: new Date().toISOString() } : {}),
       email: email.trim() || null,
@@ -573,11 +804,11 @@ function ContactForm({
 }
 
 // ── small field helpers ─────────────────────────────────────────────
-function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, action, children, className = "" }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted font-medium">{title}</h3>
+    <section className={`border-b border-line-soft py-5 last:border-b-0 ${className}`}>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h3 className="text-[13px] font-semibold text-ink">{title}</h3>
         {action}
       </div>
       <div className="space-y-2.5">{children}</div>
@@ -611,29 +842,6 @@ function DeleteIcon() {
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  );
-}
-
-// Vertical flow diagram of the AI-proposed demo workflow.
-function WorkflowFlow({ steps, template }: { steps: { title: string; detail: string }[]; template: boolean }) {
-  return (
-    <div className="mt-3 rounded-md border border-line bg-surface-2/50 p-2.5">
-      <div className="text-[9px] mono uppercase tracking-[0.14em] text-accent mb-2">
-        Demo workflow{template ? " · template" : ""}
-      </div>
-      <div className="relative">
-        {steps.map((s, i) => (
-          <div key={i} className="relative pl-7 pb-2.5 last:pb-0">
-            {i < steps.length - 1 && <span className="absolute left-[10px] top-6 bottom-0 w-px bg-line-strong" />}
-            <span className="absolute left-0 top-0.5 w-[21px] h-[21px] rounded-full bg-accent text-white text-[10px] font-semibold grid place-items-center mono">{i + 1}</span>
-            <div className="rounded-md border border-line bg-surface px-2.5 py-1.5">
-              <div className="text-[12px] font-medium text-ink leading-snug">{s.title}</div>
-              {s.detail && <div className="text-[11px] text-ink-soft leading-relaxed mt-0.5">{s.detail}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 

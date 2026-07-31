@@ -79,7 +79,6 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
           role_title,
           (cat?.level as Contact["role_level"]) ?? null,
         ),
-        is_primary_target: cat?.primary ?? false,
         email: email.trim() || null,
         linkedin_url: linkedin_url.trim() || null,
         phone: phone.trim() || null,

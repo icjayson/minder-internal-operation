@@ -74,3 +74,26 @@ test("thread display text starts at Network/Factory alert without a configured p
   );
   assert.equal(discordThreadContentFor("SIHUB Sài Gòn", 2), "SIHUB Sài Gòn — 2 alert(s)");
 });
+
+test("manual and day-3 reminders use distinct Discord emphasis", () => {
+  const manual = discordEmbedFor({ kind: "manual_factory", title: "Decision needed", detail: "Factory One" });
+  const overdue = discordEmbedFor({ kind: "work_trigger_overdue_3d", title: "Overdue", detail: "Factory One — Task" });
+  assert.equal(manual.title.startsWith("📣 "), true);
+  assert.equal(manual.color, 0x2d44e0);
+  assert.equal(overdue.title.startsWith("⚠️ "), true);
+  assert.equal(overdue.color, 0xe0607f);
+});
+
+test("activity alerts use the activity icon, colour and field label", () => {
+  const embed = discordEmbedFor({
+    kind: "activity_created",
+    title: "New contact activity · Note",
+    detail: "Alex Owner · Factory One",
+    summary: "Call completed",
+    _activityCreatedAt: "2026-08-01T00:00:00.000Z",
+  });
+  assert.equal(embed.title.startsWith("📝 "), true);
+  assert.equal(embed.color, 0x22a98b);
+  assert.equal(embed.fields[0]?.name, "Activity");
+  assert.equal(embed.fields.some((field) => field.name === "Recorded"), true);
+});

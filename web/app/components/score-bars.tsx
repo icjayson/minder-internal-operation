@@ -28,6 +28,28 @@ export function ScoreChip({ score, grade }: { score: number | null; grade: strin
   );
 }
 
+// Prominent score treatment used inside the AI assessment summary.
+export function AssessmentScoreBadge({ score, grade }: { score: number | null; grade: string | null }) {
+  const tone = grade === "A"
+    ? { ring: "border-[#27ad7c] bg-[#e8f8f2] text-[#087454]", mark: "bg-[#15986b] text-white" }
+    : grade === "B"
+      ? { ring: "border-[#e0a62f] bg-[#fff7df] text-[#9a6500]", mark: "bg-[#ca8611] text-white" }
+      : { ring: "border-[#dd6571] bg-[#fff0f1] text-[#a82d3a]", mark: "bg-[#c74452] text-white" };
+
+  return (
+    <div className="relative mb-1 h-12 w-12 shrink-0" aria-label={score == null ? "Not scored" : `Score ${Math.round(score)} out of 100, grade ${grade ?? "ungraded"}`}>
+      <div className={`grid h-12 w-12 place-items-center rounded-full border-[3px] ${score == null ? "border-line-strong bg-surface-2 text-muted" : tone.ring}`}>
+        <span className="text-[18px] font-bold leading-none tabular-nums">{score == null ? "—" : Math.round(score)}</span>
+      </div>
+      {grade && (
+        <span className={`absolute -bottom-1 left-1/2 grid h-[18px] min-w-[18px] -translate-x-1/2 place-items-center rounded-full border-2 border-surface px-1 text-[9px] font-bold shadow-sm ${tone.mark}`}>
+          {grade}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // Full dimension breakdown shown in the drawer (factory rubric by default).
 export function ScoreBreakdownBars({
   breakdown,

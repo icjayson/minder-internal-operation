@@ -9,21 +9,25 @@ import { StagePill } from "./stage-pill";
 import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContextPanel } from "./context-panel";
+import { ActivityRowActions } from "./activity-alert-countdown";
 
 export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClose: () => void }) {
   const {
-    network, contactsOfNetwork, factoriesOfNetwork,
+    network, contactsOfNetwork, factoriesOfNetwork, activitiesOfNetwork,
     updateNetwork, deleteNetwork, addNetworkContact, updateContact, deleteContact,
-    openFactory,
+    addNetworkActivity, deleteActivity, openFactory,
   } = useStore();
 
   const n = network(networkId);
   const contacts = contactsOfNetwork(networkId);
   const factories = factoriesOfNetwork(networkId);
+  const activities = activitiesOfNetwork(networkId);
   const [editContact, setEditContact] = useState<Contact | "new" | null>(null);
   const [scoring, setScoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ctxStats, setCtxStats] = useState<{ count: number; latestAt: string | null }>({ count: 0, latestAt: null });
+  const [activityNote, setActivityNote] = useState("");
+  const [activityContact, setActivityContact] = useState("");
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -61,6 +65,16 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
   const focus = n.focus_verticals ?? [];
   const toggleFocus = (key: string) =>
     set({ focus_verticals: focus.includes(key) ? focus.filter((k) => k !== key) : [...focus, key] });
+
+  async function logActivity() {
+    if (!activityNote.trim()) return;
+    await addNetworkActivity(networkId, {
+      type: "note",
+      body: activityNote.trim(),
+      contact_id: activityContact || null,
+    });
+    setActivityNote("");
+  }
 
   return (
     <>
@@ -178,6 +192,48 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
               </label>
             </div>
             <InputField label="Next action" value={n.next_action} onSave={(v) => set({ next_action: v })} />
+          </Section>
+
+          {/* Network + network-contact activities share one timeline. */}
+          <Section title={`Activity · ${activities.length}`}>
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas p-1.5 transition-colors focus-within:border-line-strong focus-within:bg-surface-2/35">
+              <select value={activityContact} onChange={(event) => setActivityContact(event.target.value)} aria-label="Attribute network activity to"
+                className="h-8 max-w-[132px] shrink-0 rounded-md bg-surface-2 px-2 text-[11px] text-ink-soft focus:outline-none focus-visible:outline-none">
+                <option value="">Network</option>
+                {contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.full_name}</option>)}
+              </select>
+              <input value={activityNote} onChange={(event) => setActivityNote(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") void logActivity(); }}
+                placeholder="Log a call, note, reply or evidence…"
+                className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-ink focus:outline-none focus-visible:outline-none" />
+              <button type="button" onClick={() => { void logActivity(); }} disabled={!activityNote.trim()}
+                className="h-8 rounded-full bg-accent px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-45">
+                Add
+              </button>
+            </div>
+            {activities.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-line px-4 py-5 text-center text-[11.5px] text-muted">No network activity yet.</p>
+            ) : (
+              <div className="relative ml-2 border-l border-line">
+                {activities.slice(0, 30).map((activity) => {
+                  const contactName = contacts.find((contact) => contact.id === activity.contact_id)?.full_name;
+                  return (
+                    <article key={activity.id} className="group relative py-3 pl-6">
+                      <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-accent"><NetworkActivityIcon /></span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{activity.type.replace(/_/g, " ")}</span>
+                        <span className="text-[10px] mono text-muted">{formatActivityTimestamp(activity.created_at)}</span>
+                        <ActivityRowActions
+                          createdAt={activity.created_at}
+                          onDelete={() => { void deleteActivity(activity.id); }}
+                        />
+                      </div>
+                      <p className="mt-0.5 text-[12px] leading-relaxed text-ink-soft"><strong className="font-medium text-ink">{contactName ?? "Network"}: </strong>{activity.body ?? "—"}</p>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </Section>
 
           {/* Sourced factories */}
@@ -308,7 +364,6 @@ function NetworkContactForm({
         role_title,
         (cat?.level as Contact["role_level"]) ?? null,
       ),
-      is_primary_target: cat?.primary ?? false,
       stage,
       ...(stage !== (contact?.stage ?? "New") ? { last_activity_at: new Date().toISOString() } : {}),
       email: email.trim() || null,
@@ -373,6 +428,16 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 function Divider() { return <span className="h-4 w-px bg-line-strong" />; }
+
+function NetworkActivityIcon() {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden><path d="M6 4h12v16H6zM9 8h6m-6 4h6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+function formatActivityTimestamp(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 
 function InputField({ label, value, onSave, mono = false }: {
   label: string; value: string | null; onSave: (v: string) => void; mono?: boolean;

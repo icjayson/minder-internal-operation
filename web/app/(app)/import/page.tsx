@@ -144,7 +144,7 @@ export default function ImportPage() {
   function resolveRole(raw: string) {
     const key = matchKey(raw, ROLE_CATEGORIES.map((r) => ({ key: r.key, text: `${r.key} ${r.label}` })));
     const cat = ROLE_CATEGORIES.find((r) => r.key === key);
-    return { role_category: cat?.key ?? null, role_level: cat?.level ?? null, is_primary_target: cat?.primary ?? false };
+    return { role_category: cat?.key ?? null, role_level: cat?.level ?? null };
   }
 
   function transform(row: string[]) {
@@ -343,7 +343,8 @@ export default function ImportPage() {
     <>
       <PageHeader eyebrow="Import" title="Import CSV"
         subtitle="Drop a messy export from Clay / Apollo / Sales Navigator. AI restructures it to the factory + contact schema." />
-      <div className="px-8 py-5 max-w-4xl space-y-5">
+      <div className="max-w-4xl space-y-5 px-4 py-5 sm:px-6 lg:px-8">
+        <ImportProgress current={result ? 3 : mapping ? 2 : headers.length ? 1 : 0} />
         {error && <div className="rounded-md border border-[color:var(--color-danger)]/30 tint-danger px-3 py-2 text-[13px] text-[color:var(--color-danger)]">{error}</div>}
 
         {/* Step 1: input */}
@@ -469,6 +470,25 @@ export default function ImportPage() {
 }
 
 // ── helpers ─────────────────────────────────────────────
+function ImportProgress({ current }: { current: number }) {
+  const steps = ["Upload", "Map columns", "Review", "Complete"];
+  return (
+    <section className="rounded-card border border-line bg-surface px-4 py-4 shadow-soft" aria-label="Import progress">
+      <div className="relative grid grid-cols-4">
+        <span className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-line-strong" aria-hidden>
+          <span className="block h-full bg-accent transition-[width] duration-300" style={{ width: `${(current / (steps.length - 1)) * 100}%` }} />
+        </span>
+        {steps.map((step, index) => (
+          <div key={step} className="relative z-[1] flex flex-col items-center text-center">
+            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-accent bg-accent text-white" : index === current ? "border-accent bg-accent text-white ring-4 ring-accent-dim" : "border-line-strong bg-surface text-muted"}`}>{index < current ? "✓" : index + 1}</span>
+            <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-ink" : "text-muted"}`}>{step}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MapGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>

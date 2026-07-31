@@ -87,17 +87,21 @@ function ownerOf(n: Row): { key: string; name: string; kind: "factory" | "networ
 
 export function discordEmbedFor(n: Row) {
   const stale = String(n.kind ?? "").startsWith("stale_");
+  const manual = n.kind === "manual_factory";
+  const activity = n.kind === "activity_created";
+  const urgent = stale || n.kind === "work_trigger_overdue_3d";
   const fields: { name: string; value: string; inline: boolean }[] = [
-    { name: "Alert", value: String(n.title ?? n.kind ?? "Alert"), inline: true },
+    { name: activity ? "Activity" : "Alert", value: String(n.title ?? n.kind ?? "Alert"), inline: true },
   ];
   if (n.due_on) fields.push({ name: "Due", value: String(n.due_on), inline: true });
+  if (n._activityCreatedAt) fields.push({ name: "Recorded", value: String(n._activityCreatedAt), inline: true });
   if (n._sourceNetworkName)
     fields.push({ name: "Source network", value: String(n._sourceNetworkName), inline: false });
   return {
-    title: `${stale ? "⚠️ " : "⏰ "}${String(n.detail ?? "Alert").slice(0, 240)}`,
+    title: `${manual ? "📣 " : activity ? "📝 " : urgent ? "⚠️ " : "⏰ "}${String(n.detail ?? "Alert").slice(0, 240)}`,
     description: (n.summary ? String(n.summary) : "").slice(0, 2000),
     url: deepLink(n),
-    color: stale ? 0xe0607f : 0xf5b544,
+    color: manual ? 0x2d44e0 : activity ? 0x22a98b : urgent ? 0xe0607f : 0xf5b544,
     fields,
   };
 }

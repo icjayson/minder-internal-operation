@@ -52,22 +52,24 @@ const TRIGGER_TONES: Record<string, string> = {
 // The nearest (earliest) trigger date among open (not-done) work items — this
 // is the date the factory's "next action due" syncs to. ISO date strings sort
 // lexicographically, so the min string is the soonest date.
-function nearestTrigger(items: FactoryWorkItem[]): string | null {
-  const dates = items
-    .filter((item) => item.status !== "done" && item.trigger_on)
-    .map((item) => item.trigger_on as string);
-  if (dates.length === 0) return null;
-  return dates.reduce((min, date) => (date < min ? date : min));
+export function nextTriggeredWorkItem(items: FactoryWorkItem[]): FactoryWorkItem | null {
+  return items.reduce<FactoryWorkItem | null>((nearest, item) => {
+    if (item.status === "done" || !item.trigger_on) return nearest;
+    if (!nearest || !nearest.trigger_on || item.trigger_on < nearest.trigger_on) return item;
+    return nearest;
+  }, null);
 }
 
 export function WorkInventory({
   factoryId,
   contacts,
   onNearestTriggerChange,
+  onNextWorkItemChange,
 }: {
   factoryId: string;
   contacts: Contact[];
   onNearestTriggerChange?: (date: string | null) => void;
+  onNextWorkItemChange?: (item: FactoryWorkItem | null) => void;
 }) {
   const [items, setItems] = useState<FactoryWorkItem[] | null>(null);
   const [selected, setSelected] = useState<FactoryWorkItem | "new" | null>(null);
@@ -76,15 +78,19 @@ export function WorkInventory({
   // Keep the latest callback in a ref so the sync effect below depends only on
   // `items` (not on the callback identity, which changes every parent render).
   const onNearestTriggerChangeRef = useRef(onNearestTriggerChange);
+  const onNextWorkItemChangeRef = useRef(onNextWorkItemChange);
   useEffect(() => {
     onNearestTriggerChangeRef.current = onNearestTriggerChange;
+    onNextWorkItemChangeRef.current = onNextWorkItemChange;
   });
 
   // Whenever the work items change, report the nearest open trigger date up so
   // the factory's "next action due" can sync to it.
   useEffect(() => {
     if (items === null) return;
-    onNearestTriggerChangeRef.current?.(nearestTrigger(items));
+    const nextItem = nextTriggeredWorkItem(items);
+    onNearestTriggerChangeRef.current?.(nextItem?.trigger_on ?? null);
+    onNextWorkItemChangeRef.current?.(nextItem);
   }, [items]);
 
   const load = useCallback(async () => {

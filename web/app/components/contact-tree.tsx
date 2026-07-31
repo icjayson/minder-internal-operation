@@ -16,6 +16,7 @@ type Props = {
   factoryName: string;
   contacts: Contact[];
   onStageChange: (id: string, s: Stage) => void;
+  onTargetChange: (id: string, isTarget: boolean) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
   onEdit?: (c: Contact) => void;
@@ -25,6 +26,7 @@ export function ContactTree({
   factoryName,
   contacts,
   onStageChange,
+  onTargetChange,
   onDelete,
   onAdd,
   onEdit,
@@ -70,6 +72,7 @@ export function ContactTree({
                   key={c.id}
                   c={c}
                   onStageChange={onStageChange}
+                  onTargetChange={onTargetChange}
                   onDelete={onDelete}
                   onEdit={onEdit}
                 />
@@ -85,11 +88,13 @@ export function ContactTree({
 function ContactRow({
   c,
   onStageChange,
+  onTargetChange,
   onDelete,
   onEdit,
 }: {
   c: Contact;
   onStageChange: (id: string, s: Stage) => void;
+  onTargetChange: (id: string, isTarget: boolean) => void;
   onDelete: (id: string) => void;
   onEdit?: (c: Contact) => void;
 }) {
@@ -108,6 +113,20 @@ function ContactRow({
               : "border-line bg-surface-2/40"
       }`}
     >
+      <button
+        type="button"
+        onClick={() => onTargetChange(c.id, !c.is_primary_target)}
+        aria-label={c.is_primary_target ? `Remove ${c.full_name} from primary targets` : `Mark ${c.full_name} as a primary target`}
+        aria-pressed={c.is_primary_target}
+        title={c.is_primary_target ? "Confirmed primary target — click to remove" : "Confirm as primary target"}
+        className={`grid h-7 w-7 shrink-0 place-items-center rounded-full transition-colors ${
+          c.is_primary_target
+            ? "bg-accent text-white shadow-glow"
+            : "text-muted hover:bg-accent-dim hover:text-accent"
+        }`}
+      >
+        <TargetStarIcon filled={c.is_primary_target} />
+      </button>
       <button onClick={() => onEdit?.(c)} className="min-w-0 flex-1 text-left cursor-pointer" title="Edit contact">
         <div className="flex items-center gap-2">
           <span className="text-[13px] font-medium text-ink truncate hover:text-accent transition-colors">{c.full_name}</span>
@@ -169,5 +188,23 @@ function ContactRow({
         </svg>
       </button>
     </div>
+  );
+}
+
+function TargetStarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+    </svg>
   );
 }

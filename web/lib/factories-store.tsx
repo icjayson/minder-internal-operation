@@ -17,6 +17,7 @@ import type {
   Vertical,
 } from "@/lib/types";
 import { highestStage } from "@/lib/stage";
+import { visibleFactoryActivities } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 type Ctx = {
@@ -34,6 +35,7 @@ type Ctx = {
   contactsOfNetwork: (networkId: string) => Contact[];
   factoriesOfNetwork: (networkId: string) => Factory[];
   activitiesOf: (factoryId: string) => Activity[];
+  activitiesOfNetwork: (networkId: string) => Activity[];
   verticalName: (id: string | null) => string;
   networkName: (id: string | null) => string;
 
@@ -43,12 +45,15 @@ type Ctx = {
   deleteNetwork: (id: string) => Promise<void>;
   updateContact: (id: string, patch: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
-  // Stage sync: keep a factory's stage in step with its contacts' highest stage.
+  // Contact changes can roll up the factory stage, while direct factory-stage
+  // changes remain factory-level actions.
   setContactStage: (id: string, stage: Stage) => Promise<void>;
   setFactoryStage: (factoryId: string, stage: Stage) => Promise<void>;
   addContact: (factoryId: string, patch: Partial<Contact>) => Promise<void>;
   addNetworkContact: (networkId: string, patch: Partial<Contact>) => Promise<void>;
   addActivity: (factoryId: string, patch: Partial<Activity>) => Promise<void>;
+  addNetworkActivity: (networkId: string, patch: Partial<Activity>) => Promise<void>;
+  deleteActivity: (id: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
 
   selectedFactoryId: string | null;
@@ -275,16 +280,10 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     [updateContact],
   );
 
-  // Change a factory's stage and push it down to every contact so the two stay
-  // in sync (the highest contact stage then equals the factory stage).
+  // Change only the factory stage. The database records one factory-level
+  // activity and deliberately leaves each contact's individual stage intact.
   const setFactoryStage = useCallback(async (factoryId: string, stage: Stage) => {
     const now = new Date().toISOString();
-    const hasContacts = contacts?.some((contact) => contact.factory_id === factoryId) ?? false;
-    setContacts((prev) => (prev
-      ? prev.map((c) =>
-        c.factory_id === factoryId ? { ...c, stage, last_activity_at: now } : c,
-      )
-      : prev));
     setFactories((prev) =>
       prev
         ? prev.map((f) =>
@@ -304,19 +303,7 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
       await reload();
       return;
     }
-    // The migration propagates direct factory-stage edits. Keep this explicit
-    // update for databases that have not installed that trigger yet.
-    if (hasContacts) {
-      const contactsResult = await sb
-        .from("contacts")
-        .update({ stage, last_activity_at: now })
-        .eq("factory_id", factoryId);
-      if (contactsResult.error) {
-        setError(contactsResult.error.message);
-        await reload();
-      }
-    }
-  }, [contacts, reload]);
+  }, [reload]);
 
   const addContact = useCallback(async (factoryId: string, patch: Partial<Contact>) => {
     const { error } = await supabase()
@@ -339,6 +326,22 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     if (error) setError(error.message);
   }, []);
 
+  const addNetworkActivity = useCallback(async (networkId: string, patch: Partial<Activity>) => {
+    const { error } = await supabase()
+      .from("activities")
+      .insert({ network_id: networkId, factory_id: null, type: "note", ...patch });
+    if (error) setError(error.message);
+  }, []);
+
+  const deleteActivity = useCallback(async (id: string) => {
+    setActivities((prev) => (prev ? prev.filter((activity) => activity.id !== id) : prev));
+    const { error } = await supabase().from("activities").delete().eq("id", id);
+    if (error) {
+      setError(error.message);
+      await reload();
+    }
+  }, [reload]);
+
   const markNotificationRead = useCallback(async (id: string) => {
     const readAt = new Date().toISOString();
     setNotifications((prev) => (prev ? prev.map((n) => (n.id === id ? { ...n, read_at: readAt } : n)) : prev));
@@ -358,7 +361,14 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     contactsOf: (factoryId) => (contacts ?? []).filter((c) => c.factory_id === factoryId),
     contactsOfNetwork: (networkId) => (contacts ?? []).filter((c) => c.network_id === networkId),
     factoriesOfNetwork: (networkId) => (factories ?? []).filter((f) => f.network_id === networkId),
-    activitiesOf: (factoryId) => (activities ?? []).filter((a) => a.factory_id === factoryId),
+    activitiesOf: (factoryId) => {
+      const factoryStage = factories?.find((factory) => factory.id === factoryId)?.stage ?? "New";
+      return visibleFactoryActivities(
+        (activities ?? []).filter((activity) => activity.factory_id === factoryId),
+        factoryStage,
+      );
+    },
+    activitiesOfNetwork: (networkId) => (activities ?? []).filter((activity) => activity.network_id === networkId),
     verticalName: (id) => verticals.find((v) => v.id === id)?.name ?? "—",
     networkName: (id) => networks?.find((n) => n.id === id)?.name ?? "—",
     updateFactory,
@@ -372,6 +382,8 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     addContact,
     addNetworkContact,
     addActivity,
+    addNetworkActivity,
+    deleteActivity,
     markNotificationRead,
     selectedFactoryId,
     selectedContactId,

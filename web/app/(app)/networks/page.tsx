@@ -65,7 +65,7 @@ export default function NetworksPage() {
           onSelect={(s) => setStage(stage === s ? "All" : s)}
         />
         {stats && (
-          <div className="grid grid-cols-4 gap-3 mt-5">
+          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard label="Total networks" value={stats.total} />
             <StatCard label="A-grade" value={stats.aGrade} tone="accent" />
             <StatCard label="Avg score" value={stats.avg || "—"} />
@@ -74,7 +74,7 @@ export default function NetworksPage() {
         )}
       </PageHeader>
 
-      <div className="px-8 py-5">
+      <div className="px-4 py-5 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <div className="flex-1 min-w-[200px] max-w-sm">
             <SearchInput value={search} onChange={setSearch} placeholder="Search network or country…" />

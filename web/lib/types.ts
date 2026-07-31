@@ -66,16 +66,16 @@ export const ROLE_LEVELS = ["high", "mid", "expert"] as const;
 export type RoleLevel = (typeof ROLE_LEVELS)[number];
 
 export const ROLE_CATEGORIES = [
-  { key: "owner_md_coo", label: "Owner / MD / COO / Ops Director", level: "high", primary: true },
-  { key: "plant_director", label: "Plant / Factory Director", level: "high", primary: true },
-  { key: "ops_manager", label: "Production / Operations Manager", level: "high", primary: false },
-  { key: "ci_opex", label: "CI / OPEX / Lean Lead", level: "mid", primary: false },
-  { key: "materials_mgr", label: "Materials / Warehouse / Logistics Manager", level: "mid", primary: false },
-  { key: "shift_lead", label: "Shift Supervisor / Team Leader", level: "mid", primary: false },
-  { key: "operator", label: "Operator / Technician", level: "expert", primary: false },
-  { key: "it_ot", label: "IT / OT & Cybersecurity", level: "mid", primary: false },
-  { key: "hr_dpo", label: "HR / DPO / Works Council / HSE", level: "mid", primary: false },
-  { key: "procurement", label: "Procurement / Finance", level: "mid", primary: false },
+  { key: "owner_md_coo", label: "Owner / MD / COO / Ops Director", level: "high" },
+  { key: "plant_director", label: "Plant / Factory Director", level: "high" },
+  { key: "ops_manager", label: "Production / Operations Manager", level: "high" },
+  { key: "ci_opex", label: "CI / OPEX / Lean Lead", level: "mid" },
+  { key: "materials_mgr", label: "Materials / Warehouse / Logistics Manager", level: "mid" },
+  { key: "shift_lead", label: "Shift Supervisor / Team Leader", level: "mid" },
+  { key: "operator", label: "Operator / Technician", level: "expert" },
+  { key: "it_ot", label: "IT / OT & Cybersecurity", level: "mid" },
+  { key: "hr_dpo", label: "HR / DPO / Works Council / HSE", level: "mid" },
+  { key: "procurement", label: "Procurement / Finance", level: "mid" },
 ] as const;
 export type RoleCategory = (typeof ROLE_CATEGORIES)[number]["key"];
 
@@ -284,6 +284,7 @@ export interface SequenceStep {
 export interface Activity {
   id: string;
   factory_id: string | null;
+  network_id: string | null;
   contact_id: string | null;
   type: string;
   body: string | null;

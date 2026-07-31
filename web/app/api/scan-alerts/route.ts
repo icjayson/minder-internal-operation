@@ -4,6 +4,7 @@ import { addDaysISO } from "@/lib/cadence";
 import { supabase } from "@/lib/supabase";
 import { buildEntitySummary } from "@/lib/summary-server";
 import { enrichDiscordAlert, pushDiscordEmbeds } from "@/lib/discord";
+import { isWorkTriggerNotificationKind, isoDateInTimeZone, workTriggerReminderFor } from "@/lib/work-alerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ async function scan(req: Request) {
   const now = Date.now();
   const nowIso = new Date(now).toISOString();
   const staleCut = new Date(now - STALE_DAYS * 86400000).toISOString();
-  const today = nowIso.slice(0, 10);
+  const today = isoDateInTimeZone(new Date(now), process.env.ALERT_TIME_ZONE ?? "Asia/Ho_Chi_Minh");
 
   const [factories, contacts, networks, stepRows, workItems] = await Promise.all([
     sb.from("factories").select("id,name,stage,network_id,last_activity_at,next_action,next_action_due"),
@@ -59,17 +60,29 @@ async function scan(req: Request) {
   const cMap = new Map(cRows.map((c) => [c.id as string, c]));
   const nMap = new Map(nRows.map((n) => [n.id as string, n]));
   const wMap = new Map(wRows.map((w) => [w.id as string, w]));
+  const factoriesWithOpenWorkTrigger = new Set(
+    wRows
+      .filter((w) => w.status !== "done" && w.factory_id && w.trigger_on)
+      .map((w) => String(w.factory_id)),
+  );
 
   // ── Auto-resolve: clear stale alerts whose entity has moved on ──────────────
-  const { data: existing } = await sb
-    .from("notifications")
-    .select("id,kind,factory_id,contact_id,network_id,work_item_id,created_at")
-    .is("read_at", null);
+  const [{ data: existing }, { data: workAlertHistory }] = await Promise.all([
+    sb
+      .from("notifications")
+      .select("id,kind,factory_id,contact_id,network_id,work_item_id,created_at")
+      .is("read_at", null),
+    sb
+      .from("notifications")
+      .select("kind,factory_id,contact_id,network_id,work_item_id")
+      .like("kind", "work_trigger_%")
+      .not("work_item_id", "is", null),
+  ]);
   const resolveIds: string[] = [];
   for (const n of existing ?? []) {
     // Work-item trigger alerts clear once the card is moved to done, its
     // trigger is cleared/pushed to the future, or the card is deleted.
-    if (n.kind === "work_trigger_due") {
+    if (isWorkTriggerNotificationKind(n.kind)) {
       const item = wMap.get(n.work_item_id as string);
       if (!item) { resolveIds.push(n.id as string); continue; } // card deleted
       if (item.status === "done" || !item.trigger_on || (item.trigger_on as string) > today)
@@ -93,11 +106,15 @@ async function scan(req: Request) {
   // De-dupe against still-unread alerts.
   const stillUnread = (existing ?? []).filter((n) => !resolveIds.includes(n.id as string));
   const seen = new Set(stillUnread.map((n) => nkey(n as never)));
+  // Work-item milestones must fire at most once even when the user manually
+  // marks an earlier reminder as read while the card remains overdue.
+  const historicalWorkMilestones = new Set((workAlertHistory ?? []).map((n) => nkey(n as never)));
   const toInsert: Row[] = [];
   const add = (n: Row) => {
     const k = nkey(n as never);
-    if (seen.has(k)) return;
+    if (seen.has(k) || (isWorkTriggerNotificationKind(n.kind) && historicalWorkMilestones.has(k))) return;
     seen.add(k);
+    if (isWorkTriggerNotificationKind(n.kind)) historicalWorkMilestones.add(k);
     toInsert.push(n);
   };
 
@@ -105,7 +122,11 @@ async function scan(req: Request) {
   for (const f of fRows) {
     if (ALERT_STAGES.has(f.stage as string) && (f.last_activity_at as string) < staleCut)
       add({ kind: "stale_factory", factory_id: f.id, title: `No update in ${STALE_DAYS}+ days`, detail: f.name });
-    if (!TERMINAL.has(f.stage as string) && f.next_action_due && (f.next_action_due as string) <= today)
+    // next_action_due mirrors the nearest open Work Inventory trigger. While
+    // the factory has a triggered work card, that card's milestone below is
+    // the single source of alerts; do not also emit a generic factory reminder.
+    const dueBackedByWork = factoriesWithOpenWorkTrigger.has(String(f.id));
+    if (!TERMINAL.has(f.stage as string) && f.next_action_due && (f.next_action_due as string) <= today && !dueBackedByWork)
       add({ kind: "followup_due", factory_id: f.id, title: "Next action due", detail: `${f.name} — ${f.next_action ?? ""}`, due_on: f.next_action_due });
   }
 
@@ -113,17 +134,22 @@ async function scan(req: Request) {
   // Also auto-advance a triggered "not started" card into "doing".
   const promoteIds: string[] = [];
   for (const w of wRows) {
-    if (w.status === "done" || !w.trigger_on || (w.trigger_on as string) > today) continue;
+    const reminder = workTriggerReminderFor({
+      triggerOn: (w.trigger_on as string | null) ?? null,
+      today,
+      status: String(w.status ?? "not_started"),
+    });
+    if (!reminder) continue;
     if (w.status === "not_started") {
       w.status = "doing"; // keep in-memory state consistent for this run
       promoteIds.push(w.id as string);
     }
     const factoryName = (fMap.get(w.factory_id as string)?.name as string) ?? "Factory";
     add({
-      kind: "work_trigger_due",
+      kind: reminder.kind,
       factory_id: w.factory_id,
       work_item_id: w.id,
-      title: "Work item past trigger",
+      title: reminder.title,
       detail: `${factoryName} — ${w.title}`,
       due_on: w.trigger_on,
     });

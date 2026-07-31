@@ -13,6 +13,8 @@ import { FactoryTable } from "@/app/components/factory-table";
 import { FactoryTree } from "@/app/components/factory-tree";
 import { SearchInput, SelectControl } from "@/app/components/controls";
 
+type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
+
 function FactoriesInner() {
   const {
     factories, verticals, verticalName, contactsOf,
@@ -25,6 +27,10 @@ function FactoriesInner() {
   const [geoTier, setGeoTier] = useState("All");
   const [stage, setStage] = useState<Stage | "All">("All");
   const [view, setView] = useState<"table" | "tree">("table");
+  const focusParam = params.get("focus");
+  const [savedView, setSavedView] = useState<SavedView>(
+    focusParam === "needs_action" || focusParam === "high_potential" || focusParam === "stalled" ? focusParam : "all",
+  );
 
   const stats = useMemo(() => {
     if (!factories) return null;
@@ -45,17 +51,38 @@ function FactoriesInner() {
   const rows = useMemo(() => {
     if (!factories) return null;
     const q = search.trim().toLowerCase();
+    const today = new Date().toISOString().slice(0, 10);
+    const staleBefore = Date.now() - 7 * 86400000;
     return factories
       .filter((f) => {
         if (vertical !== "All" && f.vertical_id !== vertical) return false;
         if (grade !== "All" && f.grade !== grade) return false;
         if (geoTier !== "All" && f.geo_tier !== geoTier) return false;
         if (stage !== "All" && f.stage !== stage) return false;
+        if (savedView === "needs_action" && !(f.next_action_due && f.next_action_due <= today)) return false;
+        if (savedView === "high_potential" && !(f.grade === "A" || (f.score ?? 0) >= 75)) return false;
+        if (savedView === "stalled") {
+          const active = f.stage !== "Closed Won" && f.stage !== "Closed Lost";
+          const stale = !f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore;
+          if (!active || !stale) return false;
+        }
         if (!q) return true;
         return f.name.toLowerCase().includes(q) || (f.hq_location ?? "").toLowerCase().includes(q);
       })
       .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
-  }, [factories, search, vertical, grade, geoTier, stage]);
+  }, [factories, search, vertical, grade, geoTier, stage, savedView]);
+
+  const savedViewCounts = useMemo(() => {
+    const all = factories ?? [];
+    const today = new Date().toISOString().slice(0, 10);
+    const staleBefore = Date.now() - 7 * 86400000;
+    return {
+      all: all.length,
+      needs_action: all.filter((f) => f.next_action_due && f.next_action_due <= today).length,
+      high_potential: all.filter((f) => f.grade === "A" || (f.score ?? 0) >= 75).length,
+      stalled: all.filter((f) => f.stage !== "Closed Won" && f.stage !== "Closed Lost" && (!f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore)).length,
+    };
+  }, [factories]);
 
   return (
     <>
@@ -72,7 +99,7 @@ function FactoriesInner() {
           onSelect={(s) => setStage(stage === s ? "All" : s)}
         />
         {stats && (
-          <div className="grid grid-cols-4 gap-3 mt-5">
+          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard label="Total factories" value={stats.total} />
             <StatCard label="A-grade" value={stats.aGrade} tone="accent" />
             <StatCard label="Avg score" value={stats.avg || "—"} />
@@ -81,7 +108,14 @@ function FactoriesInner() {
         )}
       </PageHeader>
 
-      <div className="px-8 py-5">
+      <div className="px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved factory views">
+          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
+          <SavedViewButton label="All accounts" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
+          <SavedViewButton label="Needs action" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
+          <SavedViewButton label="High potential" count={savedViewCounts.high_potential} active={savedView === "high_potential"} onClick={() => setSavedView("high_potential")} />
+          <SavedViewButton label="Stalled" count={savedViewCounts.stalled} active={savedView === "stalled"} tone="danger" onClick={() => setSavedView("stalled")} />
+        </div>
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Table / Tree view toggle */}
           <div className="inline-flex items-center rounded-full border border-line-strong bg-surface-2 p-0.5 shrink-0">
@@ -116,7 +150,7 @@ function FactoriesInner() {
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted text-sm mono uppercase tracking-wider">Loading factories…</div>
+          <FactoryTableSkeleton />
         ) : rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
             <div className="text-lg font-display mb-2">No factories match</div>
@@ -141,6 +175,29 @@ function FactoriesInner() {
         )}
       </div>
     </>
+  );
+}
+
+function SavedViewButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn" | "danger"; onClick: () => void }) {
+  const activeTone = tone === "warn"
+    ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]"
+    : tone === "danger"
+      ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
+      : "border-accent/40 bg-accent-dim text-accent";
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active}
+      className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink"}`}>
+      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span>
+    </button>
+  );
+}
+
+function FactoryTableSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-line bg-surface" aria-label="Loading factories">
+      <div className="h-10 animate-pulse border-b border-line bg-surface-2/60" />
+      {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-line-soft px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-surface-3" /><span className="h-3 w-20 animate-pulse rounded bg-surface-3" /><span className="h-3 w-32 animate-pulse rounded bg-surface-3" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-surface-3" /></div>)}
+    </div>
   );
 }
 

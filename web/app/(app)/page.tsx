@@ -7,7 +7,7 @@ import { PageHeader } from "@/app/components/page-header";
 import { StatCard } from "@/app/components/stat-card";
 
 export default function VerticalsPage() {
-  const { verticals, factories, openNewFactory } = useStore();
+  const { verticals, factories, openFactory, openNewFactory } = useStore();
 
   const stats = useMemo(() => {
     if (!factories) return null;
@@ -15,8 +15,20 @@ export default function VerticalsPage() {
     const a = factories.filter((f) => f.grade === "A").length;
     const scored = factories.filter((f) => f.score != null);
     const avg = scored.length ? scored.reduce((s, f) => s + (f.score ?? 0), 0) / scored.length : 0;
-    const won = factories.filter((f) => f.stage === "Closed Won").length;
-    return { total, a, avg, won };
+    const today = new Date().toISOString().slice(0, 10);
+    const staleBefore = Date.now() - 7 * 86400000;
+    const due = factories.filter((f) => f.next_action_due && f.next_action_due <= today).length;
+    const stalled = factories.filter((f) => f.stage !== "Closed Won" && f.stage !== "Closed Lost" && (!f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore)).length;
+    return { total, a, avg, due, stalled };
+  }, [factories]);
+
+  const priorities = useMemo(() => {
+    if (!factories) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    return [...factories]
+      .filter((factory) => factory.next_action_due && factory.next_action_due <= today)
+      .sort((a, b) => (a.next_action_due ?? "").localeCompare(b.next_action_due ?? "") || (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 4);
   }, [factories]);
 
   const perVertical = useMemo(() => {
@@ -35,23 +47,43 @@ export default function VerticalsPage() {
     <>
       <PageHeader
         eyebrow="Design partners · live"
-        title="Verticals"
-        subtitle="Industrial design-partner pipeline · scored by the 100-pt IDP rubric"
+        title="Design partner workspace"
+        subtitle="Know what needs attention, why it matters, and what to do next."
         right={<><span>{stats ? `${stats.total}` : "—"}</span><span className="opacity-50">factories</span></>}
       >
         {stats && (
-          <div className="grid grid-cols-4 gap-3 mt-5">
-            <StatCard label="Factories" value={stats.total} />
-            <StatCard label="A-grade" value={stats.a} tone="accent" />
-            <StatCard label="Avg score" value={stats.avg ? Math.round(stats.avg) : "—"} />
-            <StatCard label="Closed won" value={stats.won} tone="accent" />
+          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <StatCard label="Accounts" value={stats.total} />
+            <StatCard label="Needs action" value={stats.due} tone="warn" hint="Due today or overdue" />
+            <StatCard label="Stalled" value={stats.stalled} tone="danger" hint="No update in 7+ days" />
+            <StatCard label="High potential" value={stats.a} tone="accent" hint={`Avg score ${stats.avg ? Math.round(stats.avg) : "—"}`} />
           </div>
         )}
       </PageHeader>
 
-      <div className="px-8 py-5">
+      <div className="px-4 py-5 sm:px-6 lg:px-8">
+        <section className="mb-7" aria-labelledby="today-heading">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div><h2 id="today-heading" className="text-[15px] font-semibold text-ink">Today</h2><p className="text-[11.5px] text-muted">Start with the accounts that need a decision or follow-up.</p></div>
+            <Link href="/factories?focus=needs_action" className="text-[11.5px] font-semibold text-accent hover:underline">View action queue →</Link>
+          </div>
+          {priorities.length ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {priorities.map((factory) => (
+                <button key={factory.id} type="button" onClick={() => openFactory(factory.id)} className="group rounded-card border border-line bg-surface p-4 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-line-strong">
+                  <div className="flex items-start justify-between gap-3"><span className="line-clamp-2 text-[13px] font-semibold text-ink">{factory.name}</span><span data-tone={factory.grade === "A" ? "green" : factory.grade === "B" ? "amber" : "neutral"} className="tone rounded-full px-2 py-0.5 text-[9px] font-semibold">{factory.score ?? "—"}</span></div>
+                  <p className="mt-2 line-clamp-2 min-h-8 text-[11px] leading-relaxed text-muted">{factory.ai_recommendation || "Review this account and set a clear next action."}</p>
+                  <div className="mt-3 flex items-center justify-between border-t border-line-soft pt-2 text-[10px]"><span className="text-ink-soft">{factory.stage}</span><span className="font-medium text-[color:var(--color-warn)]">Due {formatDue(factory.next_action_due)}</span></div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-card border border-dashed border-line bg-surface/60 px-5 py-7 text-center"><div className="text-[13px] font-medium text-ink">You’re caught up</div><p className="mt-1 text-[11px] text-muted">No account actions are due today.</p></div>
+          )}
+        </section>
+
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[13px] mono uppercase tracking-[0.14em] text-muted">By vertical</h2>
+          <div><h2 className="text-[15px] font-semibold text-ink">Explore by vertical</h2><p className="text-[11.5px] text-muted">Compare portfolio shape and relationship maturity.</p></div>
           <button onClick={openNewFactory}
             className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
@@ -90,6 +122,13 @@ export default function VerticalsPage() {
       </div>
     </>
   );
+}
+
+function formatDue(value: string | null): string {
+  if (!value) return "unscheduled";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 function GradeDot({ tone, n, label }: { tone: string; n: number; label: string }) {
