@@ -8,10 +8,6 @@
     {
       "path": "/api/scan-alerts",
       "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/process-activity-alerts",
-      "schedule": "* * * * *"
     }
   ]
 }
