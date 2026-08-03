@@ -46,10 +46,10 @@ async function scan(req: Request) {
 
   const [factories, contacts, networks, stepRows, workItems] = await Promise.all([
     sb.from("factories").select("id,name,stage,network_id,last_activity_at,next_action,next_action_due"),
-    sb.from("contacts").select("id,factory_id,network_id,full_name,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
+    sb.from("contacts").select("id,factory_id,network_id,full_name,linkedin_url,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
     sb.from("networks").select("id,name,stage,last_activity_at,next_action,next_action_due"),
     sb.from("sequence_steps").select("*").order("step_index"),
-    sb.from("factory_work_items").select("id,factory_id,title,status,trigger_on"),
+    sb.from("factory_work_items").select("id,factory_id,pic_contact_id,title,status,trigger_on"),
   ]);
   const fRows = (factories.data ?? []) as Row[];
   const cRows = (contacts.data ?? []) as Row[];
@@ -207,7 +207,7 @@ async function scan(req: Request) {
     // Every Factory and Network owns one durable Discord thread. Contact alerts
     // inherit their parent entity's thread.
     const enriched = (unpushed as Row[]).map((n) =>
-      enrichDiscordAlert(n, fMap, nMap),
+      enrichDiscordAlert(n, fMap, nMap, cMap, wMap),
     );
     const results = await Promise.all([
       pushDiscordEmbeds(enriched),

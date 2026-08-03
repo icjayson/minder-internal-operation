@@ -1,5 +1,5 @@
 // Discord push for alerts.
-//   • Text channel  → one message per entity (header + its alert embeds).
+//   • Text channel  → one message per entity containing its alert embeds.
 //   • Forum channel → one durable THREAD per Factory / Network; every later
 //     alert is appended to that entity's existing thread.
 
@@ -18,7 +18,22 @@ export function enrichDiscordAlert(
   notification: Row,
   factories: EntityMap,
   networks: EntityMap,
+  contacts: EntityMap = new Map(),
+  workItems: EntityMap = new Map(),
 ): Row {
+  const contactId =
+    typeof notification.contact_id === "string"
+      ? notification.contact_id
+      : typeof notification.work_item_id === "string"
+        ? workItems.get(notification.work_item_id)?.pic_contact_id
+        : null;
+  const contact = typeof contactId === "string" ? contacts.get(contactId) : undefined;
+  const pic = contact
+    ? {
+        _picName: contact.full_name,
+        _picLinkedInUrl: contact.linkedin_url,
+      }
+    : {};
   const factoryId = typeof notification.factory_id === "string" ? notification.factory_id : null;
   if (factoryId) {
     const factory = factories.get(factoryId);
@@ -30,6 +45,7 @@ export function enrichDiscordAlert(
 
     return {
       ...notification,
+      ...pic,
       _ownerType: "factory",
       _ownerId: factoryId,
       _ownerName: factory?.name ?? notification.detail,
@@ -42,13 +58,14 @@ export function enrichDiscordAlert(
     const network = networks.get(networkId);
     return {
       ...notification,
+      ...pic,
       _ownerType: "network",
       _ownerId: networkId,
       _ownerName: network?.name ?? notification.detail,
     };
   }
 
-  return notification;
+  return { ...notification, ...pic };
 }
 
 function appUrl(): string {
@@ -78,19 +95,52 @@ export function discordEmbedFor(n: Row) {
   const activity = n.kind === "activity_created";
   const urgent = stale || n.kind === "work_trigger_overdue_3d";
   const fields: { name: string; value: string; inline: boolean }[] = [
-    { name: activity ? "Activity" : "Alert", value: String(n.title ?? n.kind ?? "Alert"), inline: true },
+    { name: activity ? "Status update" : "Alert", value: String(n.title ?? n.kind ?? "Alert"), inline: true },
   ];
   if (n.due_on) fields.push({ name: "Due", value: String(n.due_on), inline: true });
-  if (n._activityCreatedAt) fields.push({ name: "Recorded", value: String(n._activityCreatedAt), inline: true });
+  if (n._picName) fields.push({ name: "PIC", value: discordPicValue(n), inline: true });
   if (n._sourceNetworkName)
     fields.push({ name: "Source network", value: String(n._sourceNetworkName), inline: false });
+  const ownerName = String(n._ownerName ?? n.detail ?? "Alert");
+  const mainBody = discordMainBody(n, ownerName);
   return {
-    title: `${manual ? "📣 " : activity ? "📝 " : urgent ? "⚠️ " : "⏰ "}${String(n.detail ?? "Alert").slice(0, 240)}`,
-    description: (n.summary ? String(n.summary) : "").slice(0, 2000),
+    title: ownerName.slice(0, 256),
+    description: formatMainBody(mainBody),
     url: deepLink(n),
     color: manual ? 0x2d44e0 : activity ? 0x22a98b : urgent ? 0xe0607f : 0xf5b544,
     fields,
   };
+}
+
+function discordMainBody(n: Row, ownerName: string): string {
+  if (n.summary) return String(n.summary);
+  const detail = String(n.detail ?? "");
+  const ownerPrefix = `${ownerName} — `;
+  return detail.startsWith(ownerPrefix) ? detail.slice(ownerPrefix.length) : "";
+}
+
+function formatMainBody(value: string): string {
+  if (!value.trim()) return "";
+  const lines = value.trim().split(/\r?\n/).filter((line) => line.trim());
+  const formatted: string[] = [];
+  let used = 0;
+  for (const line of lines) {
+    const separatorLength = formatted.length ? 1 : 0;
+    const wrapperLength = "## ****".length;
+    const available = 2000 - used - separatorLength - wrapperLength;
+    if (available <= 0) break;
+    const next = `## **${line.trim().slice(0, available)}**`;
+    formatted.push(next);
+    used += separatorLength + next.length;
+  }
+  return formatted.join("\n");
+}
+
+function discordPicValue(n: Row): string {
+  const name = String(n._picName);
+  const url = typeof n._picLinkedInUrl === "string" ? n._picLinkedInUrl.trim() : "";
+  if (!/^https?:\/\//i.test(url)) return name;
+  return `[${name.replace(/[\[\]]/g, "")}](${url})`;
 }
 
 export function discordThreadTitleFor(
@@ -99,10 +149,6 @@ export function discordThreadTitleFor(
 ): string {
   const kindLabel = kind === "network" ? "Network" : "Factory";
   return `${kindLabel} · ${name}`.slice(0, 100);
-}
-
-export function discordThreadContentFor(name: string, alertCount: number): string {
-  return `${name} — ${alertCount} alert(s)`;
 }
 
 // Returns true if any message posted, null if no webhook configured, false on error.
@@ -141,7 +187,6 @@ export async function pushDiscordEmbeds(
   try {
     let ok = false;
     for (const { id, name, kind, rows } of groups.values()) {
-      const content = discordThreadContentFor(name, rows.length);
       const embeds = rows.map(discordEmbedFor);
 
       if (forum) {
@@ -167,7 +212,6 @@ export async function pushDiscordEmbeds(
         if (threadId) {
           for (let i = 0; i < embeds.length; i++) {
             const r = await post(webhookEndpoint(url, { thread_id: threadId }), {
-              content: i === 0 ? content : undefined,
               embeds: [embeds[i]],
             });
             if (!r.ok) return false;
@@ -180,7 +224,7 @@ export async function pushDiscordEmbeds(
 
         // First alert creates the canonical thread; every later alert reuses it.
         const title = discordThreadTitleFor(kind, name);
-        const res = await post(webhookEndpoint(url, { wait: "true" }), { thread_name: title, content, embeds: [embeds[0]] });
+        const res = await post(webhookEndpoint(url, { wait: "true" }), { thread_name: title, embeds: [embeds[0]] });
         if (!res.ok) {
           if (threadStore && owner) await threadStore.release(owner);
           return false;
@@ -202,7 +246,7 @@ export async function pushDiscordEmbeds(
       } else {
         // Text channel: one message per entity (batch embeds, ≤10 per message).
         for (let i = 0; i < embeds.length; i += 10) {
-          const r = await post(url, { content: i === 0 ? content : undefined, embeds: embeds.slice(i, i + 10) });
+          const r = await post(url, { embeds: embeds.slice(i, i + 10) });
           ok = ok || r.ok;
         }
       }

@@ -16,19 +16,23 @@ test("factory activity builds a factory-routed Discord notification", () => {
   });
   assert.equal(result?.factory_id, "f1");
   assert.equal(result?.network_id, undefined);
-  assert.equal(result?.title, "New factory activity · Note");
+  assert.equal(result?.title, "Factory activity · Note");
   assert.equal(result?.summary, "Call completed");
+  assert.equal(result?._activityCreatedAt, undefined);
 });
 
 test("factory contact activity retains its contact and factory routing", () => {
   const result = activityDiscordNotification({
     activity: { id: "a2", factory_id: "f1", network_id: null, contact_id: "c1", type: "stage_change", body: "New → Contacted", created_at: createdAt } as never,
-    contact: { id: "c1", factory_id: "f1", network_id: null, full_name: "Alex Owner" } as never,
+    contact: { id: "c1", factory_id: "f1", network_id: null, full_name: "Alex Owner", linkedin_url: "https://www.linkedin.com/in/alex-owner" } as never,
     factory: { id: "f1", name: "Factory One", stage: "Contacted", network_id: null },
   });
   assert.equal(result?.factory_id, "f1");
   assert.equal(result?.contact_id, "c1");
   assert.equal(result?.detail, "Alex Owner · Factory One");
+  assert.equal(result?.title, "Contact activity · Stage Change");
+  assert.equal(result?._picName, "Alex Owner");
+  assert.equal(result?._picLinkedInUrl, "https://www.linkedin.com/in/alex-owner");
 });
 
 test("network and network-contact activities route to the network", () => {
@@ -43,7 +47,7 @@ test("network and network-contact activities route to the network", () => {
     network,
   });
   assert.equal(direct?.network_id, "n1");
-  assert.equal(direct?.title, "New network activity · Note");
+  assert.equal(direct?.title, "Network activity · Note");
   assert.equal(contact?.network_id, "n1");
   assert.equal(contact?.detail, "Network Contact · Network One");
 });

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   discordEmbedFor,
-  discordThreadContentFor,
   discordThreadTitleFor,
   discordWebhookKey,
   enrichDiscordAlert,
@@ -66,7 +65,7 @@ test("factory embed shows its source network note", () => {
   );
 });
 
-test("thread display text starts at Network/Factory alert without a configured prefix", () => {
+test("thread titles start with their entity type without a configured prefix", () => {
   assert.equal(
     discordThreadTitleFor("network", "SIHUB Sài Gòn"),
     "Network · SIHUB Sài Gòn",
@@ -75,7 +74,6 @@ test("thread display text starts at Network/Factory alert without a configured p
     discordThreadTitleFor("factory", "Đặc Sản Kinh Đô Huế"),
     "Factory · Đặc Sản Kinh Đô Huế",
   );
-  assert.equal(discordThreadContentFor("SIHUB Sài Gòn", 2), "SIHUB Sài Gòn — 2 alert(s)");
 });
 
 test("webhook identity ignores a rotated token and query parameters", () => {
@@ -113,29 +111,62 @@ test("forum pushes create once and append later alerts to the stored thread", as
 
   assert.equal(calls.length, 2);
   assert.equal(calls[0]?.body.thread_name, "Factory · Factory One");
+  assert.equal(calls[0]?.body.content, undefined);
   assert.equal(calls[1]?.body.thread_name, undefined);
+  assert.equal(calls[1]?.body.content, undefined);
   assert.equal(new URL(calls[1]!.url).searchParams.get("thread_id"), "thread-123");
 });
 
 test("manual and day-3 reminders use distinct Discord emphasis", () => {
-  const manual = discordEmbedFor({ kind: "manual_factory", title: "Decision needed", detail: "Factory One" });
-  const overdue = discordEmbedFor({ kind: "work_trigger_overdue_3d", title: "Overdue", detail: "Factory One — Task" });
-  assert.equal(manual.title.startsWith("📣 "), true);
+  const manual = discordEmbedFor({ kind: "manual_factory", title: "Decision needed", detail: "Factory One", summary: "Book a call" });
+  const overdue = discordEmbedFor({ kind: "work_trigger_overdue_3d", title: "Overdue", detail: "Factory One — Task", _ownerName: "Factory One" });
+  assert.equal(manual.title, "Factory One");
+  assert.equal(manual.description, "## **Book a call**");
   assert.equal(manual.color, 0x2d44e0);
-  assert.equal(overdue.title.startsWith("⚠️ "), true);
+  assert.equal(overdue.title, "Factory One");
+  assert.equal(overdue.description, "## **Task**");
   assert.equal(overdue.color, 0xe0607f);
 });
 
-test("activity alerts use the activity icon, colour and field label", () => {
+test("activity alerts use the factory title, large body and status update field", () => {
   const embed = discordEmbedFor({
     kind: "activity_created",
-    title: "New contact activity · Note",
+    title: "Contact activity · Note",
     detail: "Alex Owner · Factory One",
+    _ownerName: "Factory One",
     summary: "Call completed",
     _activityCreatedAt: "2026-08-01T00:00:00.000Z",
+    _picName: "Alex Owner",
+    _picLinkedInUrl: "https://www.linkedin.com/in/alex-owner",
   });
-  assert.equal(embed.title.startsWith("📝 "), true);
+  assert.equal(embed.title, "Factory One");
+  assert.equal(embed.description, "## **Call completed**");
   assert.equal(embed.color, 0x22a98b);
-  assert.equal(embed.fields[0]?.name, "Activity");
-  assert.equal(embed.fields.some((field) => field.name === "Recorded"), true);
+  assert.deepEqual(embed.fields[0], { name: "Status update", value: "Contact activity · Note", inline: true });
+  assert.deepEqual(embed.fields[1], { name: "PIC", value: "[Alex Owner](https://www.linkedin.com/in/alex-owner)", inline: true });
+  assert.equal(embed.fields.some((field) => field.name === "Recorded"), false);
+});
+
+test("work inventory alerts use their assigned contact as the linked PIC", () => {
+  const contacts = new Map([
+    ["contact-1", { id: "contact-1", full_name: "Alex Owner", linkedin_url: "https://www.linkedin.com/in/alex-owner" }],
+  ]);
+  const workItems = new Map([
+    ["work-1", { id: "work-1", pic_contact_id: "contact-1" }],
+  ]);
+  const alert = enrichDiscordAlert(
+    { kind: "work_trigger_due", factory_id: factoryId, work_item_id: "work-1", title: "Work item trigger due today", detail: "Factory One — Book a call", due_on: "2026-08-03" },
+    new Map([[factoryId, { id: factoryId, name: "Factory One" }]]),
+    networks,
+    contacts,
+    workItems,
+  );
+  const embed = discordEmbedFor(alert);
+  assert.equal(embed.title, "Factory One");
+  assert.equal(embed.description, "## **Book a call**");
+  assert.deepEqual(embed.fields, [
+    { name: "Alert", value: "Work item trigger due today", inline: true },
+    { name: "Due", value: "2026-08-03", inline: true },
+    { name: "PIC", value: "[Alex Owner](https://www.linkedin.com/in/alex-owner)", inline: true },
+  ]);
 });

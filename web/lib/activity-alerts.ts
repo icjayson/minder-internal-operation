@@ -27,35 +27,34 @@ export function activityDiscordNotification({
     if (!factoryId && !networkId) return null;
     return {
       kind: "activity_created",
-      title: `New contact activity · ${label}`,
+      title: `Contact activity · ${label}`,
       detail: `${contact.full_name}${parentName ? ` · ${parentName}` : ""}`,
       summary: body,
       contact_id: contact.id,
       factory_id: factoryId,
       network_id: networkId,
-      _activityCreatedAt: activity.created_at,
+      _picName: contact.full_name,
+      _picLinkedInUrl: contact.linkedin_url,
     };
   }
 
   if (activity.factory_id && factory) {
     return {
       kind: "activity_created",
-      title: `New factory activity · ${label}`,
+      title: `Factory activity · ${label}`,
       detail: factory.name,
       summary: body,
       factory_id: activity.factory_id,
-      _activityCreatedAt: activity.created_at,
     };
   }
 
   if (activity.network_id && network) {
     return {
       kind: "activity_created",
-      title: `New network activity · ${label}`,
+      title: `Network activity · ${label}`,
       detail: network.name,
       summary: body,
       network_id: activity.network_id,
-      _activityCreatedAt: activity.created_at,
     };
   }
 

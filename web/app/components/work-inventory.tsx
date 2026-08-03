@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Contact, FactoryWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
@@ -379,16 +380,22 @@ function WorkItemModal({
     setSaving(false);
   }
 
-  return (
-    <div className="fixed inset-0 z-[70] grid place-items-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4">
       <button onClick={onClose} aria-label="Close work item" className="absolute inset-0 bg-canvas/75 backdrop-blur-sm" />
-      <form onSubmit={submit} className="relative z-10 w-full max-w-xl rounded-xl border border-line-strong bg-surface shadow-soft">
+      <form
+        onSubmit={submit}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="work-item-modal-title"
+        className="relative z-10 w-full max-w-xl rounded-xl border border-line-strong bg-surface shadow-soft"
+      >
         <header className="flex items-center justify-between px-5 py-4 border-b border-line">
           <div>
             <div className="text-[9px] mono uppercase tracking-[0.14em] text-accent">
               {item ? "Work item" : "New work item"}
             </div>
-            <h3 className="text-lg font-display text-ink mt-0.5">
+            <h3 id="work-item-modal-title" className="text-lg font-display text-ink mt-0.5">
               {item ? "Details" : "Add to inventory"}
             </h3>
           </div>
@@ -493,6 +500,7 @@ function WorkItemModal({
           </button>
         </footer>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
