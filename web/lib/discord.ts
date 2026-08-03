@@ -94,18 +94,26 @@ export function discordEmbedFor(n: Row) {
   const manual = n.kind === "manual_factory";
   const activity = n.kind === "activity_created";
   const urgent = stale || n.kind === "work_trigger_overdue_3d";
-  const fields: { name: string; value: string; inline: boolean }[] = [
-    { name: activity ? "Status update" : "Alert", value: String(n.title ?? n.kind ?? "Alert"), inline: true },
-  ];
-  if (n.due_on) fields.push({ name: "Due", value: String(n.due_on), inline: true });
-  if (n._picName) fields.push({ name: "PIC", value: discordPicValue(n), inline: true });
+  const fields: { name: string; value: string; inline: boolean }[] = [];
   if (n._sourceNetworkName)
     fields.push({ name: "Source network", value: String(n._sourceNetworkName), inline: false });
   const ownerName = String(n._ownerName ?? n.detail ?? "Alert");
   const mainBody = discordMainBody(n, ownerName);
+  const metadataRows = activity
+    ? [
+        `**Status update:** ${String(n.title ?? "Activity")}`,
+        ...(n._picName ? [`**PIC:** ${discordPicValue(n)}`] : []),
+      ].join("\n")
+    : [
+        `**Alert:** ${String(n.title ?? n.kind ?? "Alert")}`,
+        ...(n.due_on ? [`**Due:** ${String(n.due_on)}`] : []),
+        ...(n._picName ? [`**PIC:** ${discordPicValue(n)}`] : []),
+      ].join("\n");
+  const descriptionSeparator = mainBody && metadataRows ? "\n\n" : "";
+  const mainBodyLimit = 2000 - metadataRows.length - descriptionSeparator.length;
   return {
     title: ownerName.slice(0, 256),
-    description: formatMainBody(mainBody),
+    description: `${formatMainBody(mainBody, mainBodyLimit)}${descriptionSeparator}${metadataRows}`,
     url: deepLink(n),
     color: manual ? 0x2d44e0 : activity ? 0x22a98b : urgent ? 0xe0607f : 0xf5b544,
     fields,
@@ -119,15 +127,15 @@ function discordMainBody(n: Row, ownerName: string): string {
   return detail.startsWith(ownerPrefix) ? detail.slice(ownerPrefix.length) : "";
 }
 
-function formatMainBody(value: string): string {
-  if (!value.trim()) return "";
+function formatMainBody(value: string, limit = 2000): string {
+  if (!value.trim() || limit <= 0) return "";
   const lines = value.trim().split(/\r?\n/).filter((line) => line.trim());
   const formatted: string[] = [];
   let used = 0;
   for (const line of lines) {
     const separatorLength = formatted.length ? 1 : 0;
     const wrapperLength = "## ****".length;
-    const available = 2000 - used - separatorLength - wrapperLength;
+    const available = limit - used - separatorLength - wrapperLength;
     if (available <= 0) break;
     const next = `## **${line.trim().slice(0, available)}**`;
     formatted.push(next);

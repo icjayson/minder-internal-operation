@@ -121,14 +121,14 @@ test("manual and day-3 reminders use distinct Discord emphasis", () => {
   const manual = discordEmbedFor({ kind: "manual_factory", title: "Decision needed", detail: "Factory One", summary: "Book a call" });
   const overdue = discordEmbedFor({ kind: "work_trigger_overdue_3d", title: "Overdue", detail: "Factory One — Task", _ownerName: "Factory One" });
   assert.equal(manual.title, "Factory One");
-  assert.equal(manual.description, "## **Book a call**");
+  assert.equal(manual.description, "## **Book a call**\n\n**Alert:** Decision needed");
   assert.equal(manual.color, 0x2d44e0);
   assert.equal(overdue.title, "Factory One");
-  assert.equal(overdue.description, "## **Task**");
+  assert.equal(overdue.description, "## **Task**\n\n**Alert:** Overdue");
   assert.equal(overdue.color, 0xe0607f);
 });
 
-test("activity alerts use the factory title, large body and status update field", () => {
+test("contact activity metadata uses full-width rows below the large body", () => {
   const embed = discordEmbedFor({
     kind: "activity_created",
     title: "Contact activity · Note",
@@ -140,11 +140,26 @@ test("activity alerts use the factory title, large body and status update field"
     _picLinkedInUrl: "https://www.linkedin.com/in/alex-owner",
   });
   assert.equal(embed.title, "Factory One");
-  assert.equal(embed.description, "## **Call completed**");
+  assert.equal(
+    embed.description,
+    "## **Call completed**\n\n**Status update:** Contact activity · Note\n**PIC:** [Alex Owner](https://www.linkedin.com/in/alex-owner)",
+  );
   assert.equal(embed.color, 0x22a98b);
-  assert.deepEqual(embed.fields[0], { name: "Status update", value: "Contact activity · Note", inline: true });
-  assert.deepEqual(embed.fields[1], { name: "PIC", value: "[Alex Owner](https://www.linkedin.com/in/alex-owner)", inline: true });
-  assert.equal(embed.fields.some((field) => field.name === "Recorded"), false);
+  assert.deepEqual(embed.fields, []);
+});
+
+test("factory activity uses one full-width status update row without a PIC", () => {
+  const embed = discordEmbedFor({
+    kind: "activity_created",
+    title: "Factory activity · Stage Change",
+    detail: "Factory One",
+    summary: "Nurture → Closed Won",
+  });
+  assert.equal(
+    embed.description,
+    "## **Nurture → Closed Won**\n\n**Status update:** Factory activity · Stage Change",
+  );
+  assert.deepEqual(embed.fields, []);
 });
 
 test("work inventory alerts use their assigned contact as the linked PIC", () => {
@@ -163,10 +178,9 @@ test("work inventory alerts use their assigned contact as the linked PIC", () =>
   );
   const embed = discordEmbedFor(alert);
   assert.equal(embed.title, "Factory One");
-  assert.equal(embed.description, "## **Book a call**");
-  assert.deepEqual(embed.fields, [
-    { name: "Alert", value: "Work item trigger due today", inline: true },
-    { name: "Due", value: "2026-08-03", inline: true },
-    { name: "PIC", value: "[Alex Owner](https://www.linkedin.com/in/alex-owner)", inline: true },
-  ]);
+  assert.equal(
+    embed.description,
+    "## **Book a call**\n\n**Alert:** Work item trigger due today\n**Due:** 2026-08-03\n**PIC:** [Alex Owner](https://www.linkedin.com/in/alex-owner)",
+  );
+  assert.deepEqual(embed.fields, []);
 });
