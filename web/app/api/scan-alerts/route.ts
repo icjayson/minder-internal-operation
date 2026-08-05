@@ -17,11 +17,17 @@ export const maxDuration = 60;
 const STALE_DAYS = 3;
 const ALERT_STAGES = new Set(["Replied", "Meeting Booked", "Demo"]);
 const TERMINAL = new Set(["Closed Won", "Closed Lost", "Nurture"]);
+// Fundraising pipelines differ per track: mid-conversation stages that warrant a
+// stale nudge, and terminal stages that mute the next-touch reminder.
+const INVESTOR_ALERT_STAGES = new Set(["Contacted", "Pitched", "Diligence", "Committed"]);
+const INVESTOR_TERMINAL = new Set(["Closed", "Passed"]);
+const COMPETITION_ALERT_STAGES = new Set(["Submitted", "Pitched"]);
+const COMPETITION_TERMINAL = new Set(["Closed"]);
 const MAX_SUMMARIES = 25; // cap OpenAI calls per run
 
 type Row = Record<string, unknown>;
-const nkey = (n: { kind: string; factory_id?: unknown; contact_id?: unknown; network_id?: unknown; work_item_id?: unknown }) =>
-  `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}:${n.network_id ?? ""}:${n.work_item_id ?? ""}`;
+const nkey = (n: { kind: string; factory_id?: unknown; contact_id?: unknown; network_id?: unknown; work_item_id?: unknown; investor_id?: unknown; competition_id?: unknown }) =>
+  `${n.kind}:${n.factory_id ?? ""}:${n.contact_id ?? ""}:${n.network_id ?? ""}:${n.work_item_id ?? ""}:${n.investor_id ?? ""}:${n.competition_id ?? ""}`;
 
 export async function GET(req: Request) { return scan(req); }
 export async function POST(req: Request) { return scan(req); }
@@ -44,22 +50,28 @@ async function scan(req: Request) {
   const staleCut = new Date(now - STALE_DAYS * 86400000).toISOString();
   const today = isoDateInTimeZone(new Date(now), process.env.ALERT_TIME_ZONE ?? "Asia/Ho_Chi_Minh");
 
-  const [factories, contacts, networks, stepRows, workItems] = await Promise.all([
+  const [factories, contacts, networks, stepRows, workItems, investorsRes, competitionsRes] = await Promise.all([
     sb.from("factories").select("id,name,stage,network_id,last_activity_at,next_action,next_action_due"),
     sb.from("contacts").select("id,factory_id,network_id,full_name,linkedin_url,stage,sequence_id,sequence_step,sequence_state,last_contacted,last_activity_at,next_follow_up"),
     sb.from("networks").select("id,name,stage,last_activity_at,next_action,next_action_due"),
     sb.from("sequence_steps").select("*").order("step_index"),
     sb.from("factory_work_items").select("id,factory_id,pic_contact_id,title,status,trigger_on"),
+    sb.from("investors").select("id,name,stage,last_activity_at,next_touch"),
+    sb.from("competitions").select("id,name,stage,last_activity_at,next_touch"),
   ]);
   const fRows = (factories.data ?? []) as Row[];
   const cRows = (contacts.data ?? []) as Row[];
   const nRows = (networks.data ?? []) as Row[];
   const allSteps = (stepRows.data ?? []) as SequenceStep[];
   const wRows = (workItems.data ?? []) as Row[];
+  const invRows = (investorsRes.data ?? []) as Row[];
+  const compRows = (competitionsRes.data ?? []) as Row[];
   const fMap = new Map(fRows.map((f) => [f.id as string, f]));
   const cMap = new Map(cRows.map((c) => [c.id as string, c]));
   const nMap = new Map(nRows.map((n) => [n.id as string, n]));
   const wMap = new Map(wRows.map((w) => [w.id as string, w]));
+  const invMap = new Map(invRows.map((i) => [i.id as string, i]));
+  const compMap = new Map(compRows.map((c) => [c.id as string, c]));
   const factoriesWithOpenWorkTrigger = new Set(
     wRows
       .filter((w) => w.status !== "done" && w.factory_id && w.trigger_on)
@@ -70,7 +82,7 @@ async function scan(req: Request) {
   const [{ data: existing }, { data: workAlertHistory }] = await Promise.all([
     sb
       .from("notifications")
-      .select("id,kind,factory_id,contact_id,network_id,work_item_id,created_at")
+      .select("id,kind,factory_id,contact_id,network_id,investor_id,competition_id,work_item_id,created_at")
       .is("read_at", null),
     sb
       .from("notifications")
@@ -94,10 +106,15 @@ async function scan(req: Request) {
       n.kind === "stale_factory" ? fMap.get(n.factory_id as string)
       : n.kind === "stale_contact" ? cMap.get(n.contact_id as string)
       : n.kind === "stale_network" ? nMap.get(n.network_id as string)
+      : n.kind === "stale_investor" ? invMap.get(n.investor_id as string)
+      : n.kind === "stale_competition" ? compMap.get(n.competition_id as string)
       : null;
     if (!entity) { resolveIds.push(n.id as string); continue; } // entity deleted
     const movedOn = typeof entity.last_activity_at === "string" && entity.last_activity_at > (n.created_at as string);
-    const leftStages = !ALERT_STAGES.has(entity.stage as string);
+    const alertStages = n.kind === "stale_investor" ? INVESTOR_ALERT_STAGES
+      : n.kind === "stale_competition" ? COMPETITION_ALERT_STAGES
+      : ALERT_STAGES;
+    const leftStages = !alertStages.has(entity.stage as string);
     if (movedOn || leftStages) resolveIds.push(n.id as string);
   }
   if (resolveIds.length)
@@ -164,6 +181,20 @@ async function scan(req: Request) {
       add({ kind: "followup_due", network_id: n.id, title: "Next action due", detail: `${n.name} — ${n.next_action ?? ""}`, due_on: n.next_action_due });
   }
 
+  // Fundraising leads: stale nudge in an active stage, and next-touch reminders.
+  for (const i of invRows) {
+    if (INVESTOR_ALERT_STAGES.has(i.stage as string) && (i.last_activity_at as string) < staleCut)
+      add({ kind: "stale_investor", investor_id: i.id, title: `No update in ${STALE_DAYS}+ days`, detail: i.name });
+    if (!INVESTOR_TERMINAL.has(i.stage as string) && i.next_touch && (i.next_touch as string) <= today)
+      add({ kind: "followup_due", investor_id: i.id, title: "Next touch due", detail: i.name, due_on: i.next_touch });
+  }
+  for (const c of compRows) {
+    if (COMPETITION_ALERT_STAGES.has(c.stage as string) && (c.last_activity_at as string) < staleCut)
+      add({ kind: "stale_competition", competition_id: c.id, title: `No update in ${STALE_DAYS}+ days`, detail: c.name });
+    if (!COMPETITION_TERMINAL.has(c.stage as string) && c.next_touch && (c.next_touch as string) <= today)
+      add({ kind: "followup_due", competition_id: c.id, title: "Next touch due", detail: c.name, due_on: c.next_touch });
+  }
+
   for (const c of cRows) {
     if (ALERT_STAGES.has(c.stage as string) && (c.last_activity_at as string) < staleCut)
       add({ kind: "stale_contact", contact_id: c.id, factory_id: c.factory_id ?? null, network_id: c.network_id ?? null, title: `No update in ${STALE_DAYS}+ days`, detail: c.full_name });
@@ -186,8 +217,11 @@ async function scan(req: Request) {
 
   // ── Attach an AI recap to each new stale alert (capped) ─────────────────────
   let summaries = 0;
+  const SUMMARY_KINDS = new Set(["stale_factory", "stale_contact", "stale_network"]);
   for (const n of toInsert) {
-    if (!String(n.kind).startsWith("stale_") || summaries >= MAX_SUMMARIES) continue;
+    // buildEntitySummary only supports factory / contact / network; fundraising
+    // stale alerts fire without an AI recap.
+    if (!SUMMARY_KINDS.has(n.kind as string) || summaries >= MAX_SUMMARIES) continue;
     const target =
       n.kind === "stale_factory" ? (["factory", n.factory_id] as const)
       : n.kind === "stale_contact" ? (["contact", n.contact_id] as const)
@@ -207,7 +241,7 @@ async function scan(req: Request) {
     // Every Factory and Network owns one durable Discord thread. Contact alerts
     // inherit their parent entity's thread.
     const enriched = (unpushed as Row[]).map((n) =>
-      enrichDiscordAlert(n, fMap, nMap, cMap, wMap),
+      enrichDiscordAlert(n, fMap, nMap, cMap, wMap, invMap, compMap),
     );
     const results = await Promise.all([
       pushDiscordEmbeds(enriched),

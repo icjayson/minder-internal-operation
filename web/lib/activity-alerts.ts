@@ -1,4 +1,4 @@
-import type { Activity, Contact, Factory, Network } from "@/lib/types";
+import type { Activity, Contact, Factory, FundraisingLead, Network } from "@/lib/types";
 
 type ActivityWithNetwork = Activity & { network_id: string | null };
 
@@ -11,11 +11,15 @@ export function activityDiscordNotification({
   contact,
   factory,
   network,
+  investor,
+  competition,
 }: {
   activity: ActivityWithNetwork;
   contact?: Contact;
   factory?: Pick<Factory, "id" | "name" | "stage" | "network_id">;
   network?: Pick<Network, "id" | "name">;
+  investor?: Pick<FundraisingLead, "id" | "name">;
+  competition?: Pick<FundraisingLead, "id" | "name">;
 }): Record<string, unknown> | null {
   const label = activityTypeLabel(activity.type);
   const body = activity.body?.trim() || "Activity recorded.";
@@ -55,6 +59,26 @@ export function activityDiscordNotification({
       detail: network.name,
       summary: body,
       network_id: activity.network_id,
+    };
+  }
+
+  if (activity.investor_id && investor) {
+    return {
+      kind: "activity_created",
+      title: `Investor activity · ${label}`,
+      detail: investor.name,
+      summary: body,
+      investor_id: activity.investor_id,
+    };
+  }
+
+  if (activity.competition_id && competition) {
+    return {
+      kind: "activity_created",
+      title: `Programme activity · ${label}`,
+      detail: competition.name,
+      summary: body,
+      competition_id: activity.competition_id,
     };
   }
 

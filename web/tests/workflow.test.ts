@@ -59,6 +59,8 @@ test("legacy factory-stage fan-out is hidden without hiding a single contact cha
   const base = {
     factory_id: "factory-1",
     network_id: null,
+    investor_id: null,
+    competition_id: null,
     type: "stage_change",
     body: "New → Contacted",
     evidence_level: null,
@@ -82,6 +84,8 @@ test("factory activity keeps forward milestones only up to the current stage", (
   const base = {
     factory_id: "factory-1",
     network_id: null,
+    investor_id: null,
+    competition_id: null,
     contact_id: null,
     type: "stage_change",
     evidence_level: null,

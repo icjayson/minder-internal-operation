@@ -13,16 +13,6 @@ const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
     icon: <path d="M4 6h16M4 12h12M4 18h8" strokeWidth="1.6" strokeLinecap="round" />,
   },
   {
-    href: "/fundraising",
-    label: "Fundraising",
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="8.5" strokeWidth="1.5" />
-        <path d="M14.8 8.8c-.6-.5-1.5-.8-2.6-.8-1.5 0-2.7.7-2.7 1.9 0 1.1.9 1.6 2.7 2 1.7.4 2.5.9 2.5 2.1 0 1.3-1.1 2.1-2.8 2.1-1.2 0-2.3-.4-3-1.1M12 6.5v11" strokeWidth="1.4" strokeLinecap="round" />
-      </>
-    ),
-  },
-  {
     href: "/import",
     label: "Import CSV",
     icon: (
@@ -115,6 +105,29 @@ const PARTNER_NAV: { href: string; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
+const FUNDRAISING_NAV: { href: string; label: string; icon: React.ReactNode }[] = [
+  {
+    href: "/fundraising/investors",
+    label: "Investors",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="8.5" strokeWidth="1.5" />
+        <path d="M14.8 8.8c-.6-.5-1.5-.8-2.6-.8-1.5 0-2.7.7-2.7 1.9 0 1.1.9 1.6 2.7 2 1.7.4 2.5.9 2.5 2.1 0 1.3-1.1 2.1-2.8 2.1-1.2 0-2.3-.4-3-1.1M12 6.5v11" strokeWidth="1.4" strokeLinecap="round" />
+      </>
+    ),
+  },
+  {
+    href: "/fundraising/competitions",
+    label: "Competitions & Programmes",
+    icon: (
+      <>
+        <path d="M7 4h10v3a5 5 0 0 1-10 0V4Z" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M7 5H4v1.5A3 3 0 0 0 7 9M17 5h3v1.5A3 3 0 0 1 17 9M9.5 13.5h5l-.8 3.5h-3.4l-.8-3.5ZM8 20h8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  },
+];
+
 // Keep these routes available while temporarily removing them from navigation.
 const HIDDEN_NAV_HREFS = new Set(["/", "/sequences", "/messages", "/settings"]);
 
@@ -174,25 +187,29 @@ export function Sidebar() {
         {!collapsed && <div className="min-w-0 max-lg:hidden"><div className="truncate text-[13px] font-semibold text-ink">Minder Leads</div><div className="text-[9px] uppercase tracking-[0.12em] text-muted">Design partners</div></div>}
       </div>
 
-      {NAV.slice(0, 1).filter((item) => !HIDDEN_NAV_HREFS.has(item.href)).map((item) => (
-        <NavIcon key={item.href} href={item.href} label={item.label} active={isActive(pathname, item.href)} collapsed={collapsed}>
-          {item.icon}
+      <div className="flex flex-col gap-1.5">
+        {NAV.slice(0, 1).filter((item) => !HIDDEN_NAV_HREFS.has(item.href)).map((item) => (
+          <NavIcon key={item.href} href={item.href} label={item.label} active={isActive(pathname, item.href)} collapsed={collapsed}>
+            {item.icon}
+          </NavIcon>
+        ))}
+
+        <PartnerNav pathname={pathname} collapsed={collapsed} />
+
+        <FundraisingNav pathname={pathname} collapsed={collapsed} />
+
+        {NAV.slice(1).filter((item) => !HIDDEN_NAV_HREFS.has(item.href)).map((item) => (
+          <NavIcon key={item.href} href={item.href} label={item.label} active={isActive(pathname, item.href)} collapsed={collapsed}>
+            {item.icon}
+          </NavIcon>
+        ))}
+
+        {/* Alerts with unread badge */}
+        <NavIcon href="/alerts" label="Alerts" active={isActive(pathname, "/alerts")} collapsed={collapsed} badge={unread}>
+          <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13.7 21a2 2 0 0 1-3.4 0" strokeWidth="1.5" strokeLinecap="round" />
         </NavIcon>
-      ))}
-
-      <PartnerNav pathname={pathname} collapsed={collapsed} />
-
-      {NAV.slice(1).filter((item) => !HIDDEN_NAV_HREFS.has(item.href)).map((item) => (
-        <NavIcon key={item.href} href={item.href} label={item.label} active={isActive(pathname, item.href)} collapsed={collapsed}>
-          {item.icon}
-        </NavIcon>
-      ))}
-
-      {/* Alerts with unread badge */}
-      <NavIcon href="/alerts" label="Alerts" active={isActive(pathname, "/alerts")} collapsed={collapsed} badge={unread}>
-        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M13.7 21a2 2 0 0 1-3.4 0" strokeWidth="1.5" strokeLinecap="round" />
-      </NavIcon>
+      </div>
       <div className="flex-1" />
 
       <div className={`flex items-center px-3 ${collapsed ? "justify-center" : "justify-between max-lg:justify-center"}`}>
@@ -258,6 +275,60 @@ function PartnerNav({ pathname, collapsed }: { pathname: string; collapsed: bool
       {open && (
         <div className={`relative py-1.5 ${collapsed ? "" : "before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-line max-lg:before:hidden"}`}>
           {PARTNER_NAV.map((item) => (
+            <PartnerNavIcon
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              active={isActive(pathname, item.href)}
+              collapsed={collapsed}
+            >
+              {item.icon}
+            </PartnerNavIcon>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FundraisingNav({ pathname, collapsed }: { pathname: string; collapsed: boolean }) {
+  const active = FUNDRAISING_NAV.some((item) => isActive(pathname, item.href));
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    if (active) setOpen(true);
+  }, [active]);
+
+  return (
+    <div className={`mx-2 rounded-md transition-colors ${open ? "border border-line bg-surface/70" : ""}`}>
+      <button
+        type="button"
+        title="Fundraising"
+        aria-label="Fundraising"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className={`group relative flex h-9 w-full items-center transition-colors duration-150 ${open ? "rounded-t-md border-b border-line" : "rounded-md"} ${collapsed ? "justify-center px-0 max-lg:justify-center" : "gap-3 px-3 max-lg:justify-center max-lg:px-0"} ${
+          active ? "bg-accent-dim text-accent" : open ? "bg-surface-2 text-ink-soft" : "text-muted hover:bg-surface-2 hover:text-ink-soft"
+        }`}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="8.5" strokeWidth="1.5" />
+          <path d="M14.8 8.8c-.6-.5-1.5-.8-2.6-.8-1.5 0-2.7.7-2.7 1.9 0 1.1.9 1.6 2.7 2 1.7.4 2.5.9 2.5 2.1 0 1.3-1.1 2.1-2.8 2.1-1.2 0-2.3-.4-3-1.1M12 6.5v11" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+        {!collapsed && <span className="min-w-0 flex-1 truncate text-left text-[12px] font-medium max-lg:hidden">Fundraising</span>}
+        {!collapsed && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform max-lg:hidden ${open ? "rotate-90" : ""}`}>
+            <path d="m9 5 7 7-7 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+        <span className={`absolute left-[52px] z-50 whitespace-nowrap rounded-md border border-line-strong bg-surface-3 px-2 py-1 text-[10px] uppercase tracking-wider text-ink opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 ${collapsed ? "" : "hidden max-lg:block"}`}>
+          Fundraising
+        </span>
+      </button>
+
+      {open && (
+        <div className={`relative py-1.5 ${collapsed ? "" : "before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-line max-lg:before:hidden"}`}>
+          {FUNDRAISING_NAV.map((item) => (
             <PartnerNavIcon
               key={item.href}
               href={item.href}

@@ -14,7 +14,11 @@ type QueueRow = {
   attempts: number;
 };
 
-type ActivityWithNetwork = Activity & { network_id: string | null };
+type ActivityWithNetwork = Activity & {
+  network_id: string | null;
+  investor_id: string | null;
+  competition_id: string | null;
+};
 
 export async function GET(req: Request) { return processQueue(req); }
 export async function POST(req: Request) { return processQueue(req); }
@@ -46,7 +50,7 @@ async function processQueue(req: Request) {
   const activityIds = jobs.map((job) => job.activity_id);
   const { data: activityRows, error: activitiesError } = await sb
     .from("activities")
-    .select("id,factory_id,network_id,contact_id,type,body,evidence_level,taxonomy_tags,created_at")
+    .select("id,factory_id,network_id,contact_id,investor_id,competition_id,type,body,evidence_level,taxonomy_tags,created_at")
     .in("id", activityIds);
   if (activitiesError) {
     await releaseJobs(sb, jobs, activitiesError.message);
@@ -83,6 +87,20 @@ async function processQueue(req: Request) {
   const networks = (networkRows ?? []) as Pick<Network, "id" | "name">[];
   const networkMap = new Map<string, Record<string, unknown>>(networks.map((network) => [network.id, network]));
 
+  const investorIds = [...new Set(activities.map((a) => a.investor_id).filter(Boolean))] as string[];
+  const { data: investorRows } = investorIds.length
+    ? await sb.from("investors").select("id,name").in("id", investorIds)
+    : { data: [] };
+  const investors = (investorRows ?? []) as { id: string; name: string }[];
+  const investorMap = new Map<string, Record<string, unknown>>(investors.map((i) => [i.id, i]));
+
+  const competitionIds = [...new Set(activities.map((a) => a.competition_id).filter(Boolean))] as string[];
+  const { data: competitionRows } = competitionIds.length
+    ? await sb.from("competitions").select("id,name").in("id", competitionIds)
+    : { data: [] };
+  const competitions = (competitionRows ?? []) as { id: string; name: string }[];
+  const competitionMap = new Map<string, Record<string, unknown>>(competitions.map((c) => [c.id, c]));
+
   let sent = 0;
   let cancelled = 0;
   let retrying = 0;
@@ -108,14 +126,16 @@ async function processQueue(req: Request) {
     const networkId = factoryId ? null : activity.network_id ?? contact?.network_id ?? null;
     const factory = factoryId ? factoryMap.get(factoryId) as Pick<Factory, "id" | "name" | "stage" | "network_id"> | undefined : undefined;
     const network = networkId ? networkMap.get(networkId) as Pick<Network, "id" | "name"> | undefined : undefined;
-    const rawNotification = activityDiscordNotification({ activity, contact, factory, network });
+    const investor = activity.investor_id ? investorMap.get(activity.investor_id) as { id: string; name: string } | undefined : undefined;
+    const competition = activity.competition_id ? competitionMap.get(activity.competition_id) as { id: string; name: string } | undefined : undefined;
+    const rawNotification = activityDiscordNotification({ activity, contact, factory, network, investor, competition });
     if (!rawNotification) {
-      await retryJob(sb, job.id, "Activity has no routable Network, Factory or Contact parent", 15);
+      await retryJob(sb, job.id, "Activity has no routable parent", 15);
       retrying++;
       continue;
     }
 
-    const enriched = enrichDiscordAlert(rawNotification, factoryMap, networkMap);
+    const enriched = enrichDiscordAlert(rawNotification, factoryMap, networkMap, new Map(), new Map(), investorMap, competitionMap);
     const pushed = await pushDiscordEmbeds([enriched]);
     if (pushed === true) {
       await sb.from("activity_alert_outbox").update({

@@ -11,11 +11,14 @@ import type {
   Activity,
   Contact,
   Factory,
+  FundraisingLead,
+  FundraisingTrack,
   Network,
   Notification,
   Stage,
   Vertical,
 } from "@/lib/types";
+import { FUNDRAISING_TRACKS } from "@/lib/types";
 import { highestStage } from "@/lib/stage";
 import { visibleFactoryActivities } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +30,7 @@ type Ctx = {
   contacts: Contact[] | null;
   activities: Activity[] | null;
   notifications: Notification[] | null;
+  fundraisingLeads: FundraisingLead[] | null;
   error: string | null;
 
   factory: (id: string | null) => Factory | null;
@@ -56,6 +60,21 @@ type Ctx = {
   deleteActivity: (id: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
 
+  // Fundraising tracker (two isolated tracks: investors + competitions).
+  fundraisingLead: (id: string | null) => FundraisingLead | null;
+  activitiesOfFundraising: (track: FundraisingTrack, id: string) => Activity[];
+  addFundraisingActivity: (track: FundraisingTrack, id: string, patch: Partial<Activity>) => Promise<void>;
+  createFundraisingLead: (
+    track: FundraisingTrack,
+    patch: Partial<FundraisingLead>,
+  ) => Promise<FundraisingLead | null>;
+  updateFundraisingLead: (
+    track: FundraisingTrack,
+    id: string,
+    patch: Partial<FundraisingLead>,
+  ) => Promise<void>;
+  deleteFundraisingLead: (track: FundraisingTrack, id: string) => Promise<void>;
+
   selectedFactoryId: string | null;
   selectedContactId: string | null;
   selectedNetworkId: string | null;
@@ -71,6 +90,13 @@ type Ctx = {
   newNetworkOpen: boolean;
   openNewNetwork: () => void;
   closeNewNetwork: () => void;
+
+  selectedFundraisingId: string | null;
+  openFundraising: (id: string) => void;
+  closeFundraising: () => void;
+  newFundraisingTrack: FundraisingTrack | null;
+  openNewFundraising: (track: FundraisingTrack) => void;
+  closeNewFundraising: () => void;
 
   reload: () => Promise<void>;
 };
@@ -100,22 +126,27 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   const [contacts, setContacts] = useState<Contact[] | null>(null);
   const [activities, setActivities] = useState<Activity[] | null>(null);
   const [notifications, setNotifications] = useState<Notification[] | null>(null);
+  const [fundraisingLeads, setFundraisingLeads] = useState<FundraisingLead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const [newFactoryOpen, setNewFactoryOpen] = useState(false);
   const [newNetworkOpen, setNewNetworkOpen] = useState(false);
+  const [selectedFundraisingId, setSelectedFundraisingId] = useState<string | null>(null);
+  const [newFundraisingTrack, setNewFundraisingTrack] = useState<FundraisingTrack | null>(null);
 
   const reload = useCallback(async () => {
     const sb = supabase();
-    const [v, nw, f, c, a, n] = await Promise.all([
+    const [v, nw, f, c, a, n, inv, comp] = await Promise.all([
       sb.from("verticals").select("*").order("sort"),
       sb.from("networks").select("*").order("created_at", { ascending: false }),
       sb.from("factories").select("*").order("created_at", { ascending: false }),
       sb.from("contacts").select("*").order("created_at", { ascending: false }),
       sb.from("activities").select("*").order("created_at", { ascending: false }).limit(1000),
       sb.from("notifications").select("*").order("created_at", { ascending: false }),
+      sb.from("investors").select("*").order("created_at", { ascending: false }),
+      sb.from("competitions").select("*").order("created_at", { ascending: false }),
     ]);
     if (v.data) setVerticals(v.data as Vertical[]);
     setNetworks((nw.data ?? []) as Network[]);
@@ -124,6 +155,12 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     setContacts((c.data ?? []) as Contact[]);
     setActivities((a.data ?? []) as Activity[]);
     setNotifications((n.data ?? []) as Notification[]);
+    // Tolerate a missing fundraising migration: fall back to empty lists so the
+    // rest of the app still loads. Each row is tagged with its track discriminator.
+    setFundraisingLeads([
+      ...(inv.error ? [] : (inv.data ?? [])).map((r) => ({ ...r, track: "investor" as FundraisingTrack })),
+      ...(comp.error ? [] : (comp.data ?? [])).map((r) => ({ ...r, track: "competition" as FundraisingTrack })),
+    ] as FundraisingLead[]);
   }, []);
 
   useEffect(() => {
@@ -156,6 +193,29 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
         });
       };
 
+    // Fundraising realtime: the source table isn't a row column, so re-tag the
+    // `track` discriminator onto each incoming payload before merging.
+    const applyFundraisingRealtime =
+      (track: FundraisingTrack) =>
+      (payload: {
+        eventType: string;
+        new: Record<string, unknown>;
+        old: Record<string, unknown>;
+      }) => {
+        if (!mounted) return;
+        setFundraisingLeads((prev) => {
+          if (!prev) return prev;
+          const row = { ...(payload.new ?? payload.old), track } as FundraisingLead;
+          if (payload.eventType === "INSERT")
+            return prev.some((r) => r.id === row.id) ? prev : [row, ...prev];
+          if (payload.eventType === "UPDATE")
+            return prev.map((r) => (r.id === row.id ? { ...r, ...row } : r));
+          if (payload.eventType === "DELETE")
+            return prev.filter((r) => r.id !== row.id);
+          return prev;
+        });
+      };
+
     const channel = sb
       .channel("dp-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "networks" }, applyRealtime<Network>(setNetworks))
@@ -163,6 +223,8 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "contacts" }, applyRealtime<Contact>(setContacts))
       .on("postgres_changes", { event: "*", schema: "public", table: "activities" }, applyRealtime<Activity>(setActivities))
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, applyRealtime<Notification>(setNotifications))
+      .on("postgres_changes", { event: "*", schema: "public", table: "investors" }, applyFundraisingRealtime("investor"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "competitions" }, applyFundraisingRealtime("competition"))
       .subscribe();
 
     return () => {
@@ -348,6 +410,62 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     await supabase().from("notifications").update({ read_at: readAt }).eq("id", id);
   }, []);
 
+  // ── Fundraising CRUD (dispatches to investors / competitions by track) ──────
+  const createFundraisingLead = useCallback(
+    async (track: FundraisingTrack, patch: Partial<FundraisingLead>) => {
+      const table = FUNDRAISING_TRACKS.find((t) => t.key === track)!.table;
+      // `track` is a client-side discriminator, never a DB column.
+      const { track: _omit, ...row } = { track, ...patch };
+      const { data, error } = await supabase().from(table).insert(row).select().single();
+      if (error) {
+        setError(error.message);
+        return null;
+      }
+      const saved = { ...(data as FundraisingLead), track };
+      setFundraisingLeads((prev) => (prev ? [saved, ...prev.filter((l) => l.id !== saved.id)] : [saved]));
+      return saved;
+    },
+    [],
+  );
+
+  const updateFundraisingLead = useCallback(
+    async (track: FundraisingTrack, id: string, patch: Partial<FundraisingLead>) => {
+      const table = FUNDRAISING_TRACKS.find((t) => t.key === track)!.table;
+      setFundraisingLeads((prev) => (prev ? prev.map((l) => (l.id === id ? { ...l, ...patch } : l)) : prev));
+      const { track: _omit, ...dbPatch } = patch;
+      const { error } = await supabase().from(table).update(dbPatch).eq("id", id);
+      if (error) {
+        setError(error.message);
+        await reload();
+      }
+    },
+    [reload],
+  );
+
+  const addFundraisingActivity = useCallback(
+    async (track: FundraisingTrack, id: string, patch: Partial<Activity>) => {
+      const column = track === "investor" ? "investor_id" : "competition_id";
+      const { error } = await supabase()
+        .from("activities")
+        .insert({ [column]: id, type: "note", ...patch });
+      if (error) setError(error.message);
+      // Logging activity keeps the lead's stale timer fresh.
+      await updateFundraisingLead(track, id, { last_activity_at: new Date().toISOString() });
+    },
+    [updateFundraisingLead],
+  );
+
+  const deleteFundraisingLead = useCallback(async (track: FundraisingTrack, id: string) => {
+    const table = FUNDRAISING_TRACKS.find((t) => t.key === track)!.table;
+    setFundraisingLeads((prev) => (prev ? prev.filter((l) => l.id !== id) : prev));
+    setSelectedFundraisingId((cur) => (cur === id ? null : cur));
+    const { error } = await supabase().from(table).delete().eq("id", id);
+    if (error) {
+      setError(error.message);
+      await reload();
+    }
+  }, [reload]);
+
   const value: Ctx = {
     verticals,
     networks,
@@ -355,6 +473,7 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     contacts,
     activities,
     notifications,
+    fundraisingLeads,
     error,
     factory: (id) => factories?.find((f) => f.id === id) ?? null,
     network: (id) => networks?.find((n) => n.id === id) ?? null,
@@ -385,6 +504,15 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     addNetworkActivity,
     deleteActivity,
     markNotificationRead,
+    fundraisingLead: (id) => fundraisingLeads?.find((l) => l.id === id) ?? null,
+    activitiesOfFundraising: (track, id) => {
+      const column = track === "investor" ? "investor_id" : "competition_id";
+      return (activities ?? []).filter((a) => (a as Activity)[column as "investor_id" | "competition_id"] === id);
+    },
+    addFundraisingActivity,
+    createFundraisingLead,
+    updateFundraisingLead,
+    deleteFundraisingLead,
     selectedFactoryId,
     selectedContactId,
     selectedNetworkId,
@@ -422,6 +550,12 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     newNetworkOpen,
     openNewNetwork: () => setNewNetworkOpen(true),
     closeNewNetwork: () => setNewNetworkOpen(false),
+    selectedFundraisingId,
+    openFundraising: (id) => setSelectedFundraisingId(id),
+    closeFundraising: () => setSelectedFundraisingId(null),
+    newFundraisingTrack,
+    openNewFundraising: (track) => setNewFundraisingTrack(track),
+    closeNewFundraising: () => setNewFundraisingTrack(null),
     reload,
   };
 

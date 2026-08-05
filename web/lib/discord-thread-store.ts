@@ -1,7 +1,9 @@
 import { supabase } from "./supabase.ts";
 
+export type DiscordOwnerType = "factory" | "network" | "investor" | "competition";
+
 export type DiscordThreadOwner = {
-  ownerType: "factory" | "network";
+  ownerType: DiscordOwnerType;
   ownerId: string;
   webhookKey: string;
 };

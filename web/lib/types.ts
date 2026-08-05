@@ -129,6 +129,111 @@ export const NETWORK_TYPES = [
 ] as const;
 export type NetworkType = (typeof NETWORK_TYPES)[number]["key"];
 
+// ── Fundraising tracker ─────────────────────────────────────────────────────
+// Two isolated tracks, each backed by its own table (public.investors,
+// public.competitions). `track` is a client-side discriminator derived from the
+// source table — it is NOT a database column.
+export const FUNDRAISING_TRACKS = [
+  { key: "investor", label: "Investors", table: "investors", noun: "investor" },
+  { key: "competition", label: "Competitions & Programmes", table: "competitions", noun: "programme" },
+] as const;
+export type FundraisingTrack = (typeof FUNDRAISING_TRACKS)[number]["key"];
+
+export const INVESTOR_TYPES = [
+  { key: "angel", label: "Angel" },
+  { key: "vc", label: "VC" },
+  { key: "accelerator", label: "Accelerator" },
+  { key: "family_office", label: "Family Office" },
+  { key: "other", label: "Other" },
+] as const;
+export type InvestorType = (typeof INVESTOR_TYPES)[number]["key"];
+
+export const COMPETITION_TYPES = [
+  { key: "grant", label: "Grant" },
+  { key: "competition", label: "Competition" },
+  { key: "award", label: "Award" },
+  { key: "credit_programme", label: "Credit Programme" },
+  { key: "government_programme", label: "Government Programme" },
+  { key: "corporate_programme", label: "Corporate Programme" },
+  { key: "accelerator_incubator", label: "Accelerator / Incubator" },
+  { key: "ecosystem_network", label: "Ecosystem Network" },
+] as const;
+export type CompetitionType = (typeof COMPETITION_TYPES)[number]["key"];
+
+// Types available for a given track (used by filters + the create/edit drawers).
+export function fundraisingTypes(track: FundraisingTrack): readonly { key: string; label: string }[] {
+  return track === "investor" ? INVESTOR_TYPES : COMPETITION_TYPES;
+}
+export function fundraisingTypeLabel(track: FundraisingTrack, key: string | null): string {
+  return fundraisingTypes(track).find((t) => t.key === key)?.label ?? "—";
+}
+
+// Fundraising stages differ per track (distinct from the sales Stage union).
+// FUNDRAISING_STAGES is the full value set — used only for pill colours.
+export const FUNDRAISING_STAGES = [
+  "Researching",
+  "Contacted",
+  "Submitted",
+  "Pitched",
+  "Diligence",
+  "Committed",
+  "Closed",
+  "Passed",
+] as const;
+export type FundraisingStage = (typeof FUNDRAISING_STAGES)[number];
+
+// Investors: Researching → … → Closed, with Passed as the off-ramp.
+export const INVESTOR_STAGES: FundraisingStage[] = [
+  "Researching", "Contacted", "Pitched", "Diligence", "Committed", "Closed", "Passed",
+];
+export const INVESTOR_PIPELINE_STAGES: FundraisingStage[] = [
+  "Researching", "Contacted", "Pitched", "Diligence", "Committed", "Closed",
+];
+export const INVESTOR_OFF_RAMP: FundraisingStage[] = ["Passed"];
+
+// Competitions & programmes: Researching → Submitted → Pitched → Closed, with a
+// Win/Lose result off-ramp (a separate field, not a stage).
+export const COMPETITION_STAGES: FundraisingStage[] = [
+  "Researching", "Submitted", "Pitched", "Closed",
+];
+export const COMPETITION_PIPELINE_STAGES: FundraisingStage[] = [
+  "Researching", "Submitted", "Pitched", "Closed",
+];
+
+export const COMPETITION_RESULTS = ["Win", "Lose"] as const;
+export type CompetitionResult = (typeof COMPETITION_RESULTS)[number];
+
+export function fundraisingStages(track: FundraisingTrack): FundraisingStage[] {
+  return track === "investor" ? INVESTOR_STAGES : COMPETITION_STAGES;
+}
+export function fundraisingPipelineStages(track: FundraisingTrack): FundraisingStage[] {
+  return track === "investor" ? INVESTOR_PIPELINE_STAGES : COMPETITION_PIPELINE_STAGES;
+}
+
+export interface FundraisingLead {
+  id: string;
+  track: FundraisingTrack; // derived from the source table (not a DB column)
+
+  name: string;
+  type: string | null;
+  stage: FundraisingStage;
+  // Competitions only: Win/Lose off-ramp outcome (undefined on investor rows).
+  result: CompetitionResult | null;
+
+  contact_person: string | null;
+  amount_target_or_offered: number | null;
+
+  next_touch: string | null;
+  last_activity_at: string;
+
+  priority: number | null;
+  notes: string | null;
+  source: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
 // ── Relationship ladder (PDF 1 §1.4) — optional strategic depth ─────────────
 export const LADDER = [
   "Researched account",
@@ -286,11 +391,25 @@ export interface Activity {
   factory_id: string | null;
   network_id: string | null;
   contact_id: string | null;
+  investor_id: string | null;
+  competition_id: string | null;
   type: string;
   body: string | null;
   evidence_level: number | null;
   taxonomy_tags: string[] | null;
   created_at: string;
+}
+
+export interface FundraisingWorkItem {
+  id: string;
+  investor_id: string | null;
+  competition_id: string | null;
+  title: string;
+  body: string | null;
+  status: WorkStatus;
+  trigger_on: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export type WorkStatus = "not_started" | "doing" | "done";
@@ -382,6 +501,8 @@ export interface Notification {
   factory_id: string | null;
   contact_id: string | null;
   network_id: string | null;
+  investor_id: string | null;
+  competition_id: string | null;
   work_item_id: string | null;
   title: string;
   detail: string | null;

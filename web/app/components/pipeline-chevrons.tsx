@@ -1,19 +1,19 @@
 "use client";
 
-import type { Stage } from "@/lib/types";
-
-// Chevron status bar — the stage pipeline shown at the top of Factories &
-// Contacts. Clicking a chevron filters by that stage (click again to clear).
-export function PipelineChevrons({
+// Chevron status bar — the stage pipeline shown at the top of Factories,
+// Contacts, Networks & Fundraising. Clicking a chevron filters by that stage
+// (click again to clear). Generic over the stage string union so it works for
+// both the sales pipeline (Stage) and the fundraising pipeline.
+export function PipelineChevrons<S extends string>({
   stages,
   counts,
   activeStage,
   onSelect,
 }: {
-  stages: Stage[];
-  counts: Map<Stage, number>;
-  activeStage: Stage | null;
-  onSelect: (s: Stage) => void;
+  stages: S[];
+  counts: Map<S, number>;
+  activeStage: S | null;
+  onSelect: (s: S) => void;
 }) {
   return (
     <div className="flex items-stretch w-full overflow-x-auto pb-1">

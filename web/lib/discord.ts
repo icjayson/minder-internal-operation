@@ -4,6 +4,7 @@
 //     alert is appended to that entity's existing thread.
 
 import type {
+  DiscordOwnerType,
   DiscordThreadOwner,
   DiscordThreadStore,
 } from "./discord-thread-store.ts";
@@ -20,6 +21,8 @@ export function enrichDiscordAlert(
   networks: EntityMap,
   contacts: EntityMap = new Map(),
   workItems: EntityMap = new Map(),
+  investors: EntityMap = new Map(),
+  competitions: EntityMap = new Map(),
 ): Row {
   const contactId =
     typeof notification.contact_id === "string"
@@ -65,6 +68,30 @@ export function enrichDiscordAlert(
     };
   }
 
+  const investorId = typeof notification.investor_id === "string" ? notification.investor_id : null;
+  if (investorId) {
+    const investor = investors.get(investorId);
+    return {
+      ...notification,
+      ...pic,
+      _ownerType: "investor",
+      _ownerId: investorId,
+      _ownerName: investor?.name ?? notification.detail,
+    };
+  }
+
+  const competitionId = typeof notification.competition_id === "string" ? notification.competition_id : null;
+  if (competitionId) {
+    const competition = competitions.get(competitionId);
+    return {
+      ...notification,
+      ...pic,
+      _ownerType: "competition",
+      _ownerId: competitionId,
+      _ownerName: competition?.name ?? notification.detail,
+    };
+  }
+
   return { ...notification, ...pic };
 }
 
@@ -76,16 +103,25 @@ export function deepLink(n: Row): string {
   const base = appUrl();
   if (n.network_id) return `${base}/networks?network=${n.network_id}`;
   if (n.factory_id) return `${base}/factories?factory=${n.factory_id}`;
+  if (n.investor_id) return `${base}/fundraising/investors?investor=${n.investor_id}`;
+  if (n.competition_id) return `${base}/fundraising/competitions?competition=${n.competition_id}`;
   return base;
+}
+
+const OWNER_TYPES: readonly DiscordOwnerType[] = ["factory", "network", "investor", "competition"];
+function toOwnerType(value: unknown): DiscordOwnerType {
+  return OWNER_TYPES.includes(value as DiscordOwnerType) ? (value as DiscordOwnerType) : "factory";
 }
 
 // Which entity's thread does this alert belong to? Prefer explicit _owner fields
 // (set by the scanner so contact alerts inherit the parent's name); else derive.
-function ownerOf(n: Row): { key: string; id: string | null; name: string; kind: "factory" | "network" } {
+function ownerOf(n: Row): { key: string; id: string | null; name: string; kind: DiscordOwnerType } {
   if (n._ownerType && n._ownerId)
-    return { key: `${n._ownerType}:${n._ownerId}`, id: String(n._ownerId), name: String(n._ownerName ?? n.detail ?? "Alerts"), kind: n._ownerType === "network" ? "network" : "factory" };
+    return { key: `${n._ownerType}:${n._ownerId}`, id: String(n._ownerId), name: String(n._ownerName ?? n.detail ?? "Alerts"), kind: toOwnerType(n._ownerType) };
   if (n.factory_id) return { key: `factory:${n.factory_id}`, id: String(n.factory_id), name: String(n.detail ?? "Factory"), kind: "factory" };
   if (n.network_id) return { key: `network:${n.network_id}`, id: String(n.network_id), name: String(n.detail ?? "Network"), kind: "network" };
+  if (n.investor_id) return { key: `investor:${n.investor_id}`, id: String(n.investor_id), name: String(n.detail ?? "Investor"), kind: "investor" };
+  if (n.competition_id) return { key: `competition:${n.competition_id}`, id: String(n.competition_id), name: String(n.detail ?? "Programme"), kind: "competition" };
   return { key: "misc", id: null, name: String(n.detail ?? "Alerts"), kind: "factory" };
 }
 
@@ -151,12 +187,18 @@ function discordPicValue(n: Row): string {
   return `[${name.replace(/[\[\]]/g, "")}](${url})`;
 }
 
+const OWNER_LABELS: Record<DiscordOwnerType, string> = {
+  factory: "Factory",
+  network: "Network",
+  investor: "Investor",
+  competition: "Programme",
+};
+
 export function discordThreadTitleFor(
-  kind: "factory" | "network",
+  kind: DiscordOwnerType,
   name: string,
 ): string {
-  const kindLabel = kind === "network" ? "Network" : "Factory";
-  return `${kindLabel} · ${name}`.slice(0, 100);
+  return `${OWNER_LABELS[kind] ?? "Factory"} · ${name}`.slice(0, 100);
 }
 
 // Returns true if any message posted, null if no webhook configured, false on error.
@@ -181,7 +223,7 @@ export async function pushDiscordEmbeds(
   const webhookKey = discordWebhookKey(url);
 
   // Group alerts by owning entity.
-  const groups = new Map<string, { id: string | null; name: string; kind: "factory" | "network"; rows: Row[] }>();
+  const groups = new Map<string, { id: string | null; name: string; kind: DiscordOwnerType; rows: Row[] }>();
   for (const n of notifications) {
     const o = ownerOf(n);
     const g = groups.get(o.key) ?? { id: o.id, name: o.name, kind: o.kind, rows: [] };
