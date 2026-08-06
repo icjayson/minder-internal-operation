@@ -9,9 +9,24 @@ const BUCKET = "context-files";
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 const MAX_CHARS = 200_000; // cap stored text so prompts stay bounded
 
+function withCors(response: NextResponse): NextResponse {
+	response.headers.set("Access-Control-Allow-Origin", "*");
+	response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+	response.headers.set("Access-Control-Allow-Headers", "Content-Type, apikey, Authorization");
+	return response;
+}
+
 // POST { itemId, shared? } → downloads the file, extracts text by MIME type,
 // and stores it in the corresponding context table.
+export function OPTIONS() {
+	return withCors(new NextResponse(null, { status: 204 }));
+}
+
 export async function POST(req: Request) {
+	return withCors(await processPost(req));
+}
+
+async function processPost(req: Request) {
   try {
     const { itemId, shared = false } = (await req.json()) as { itemId?: string; shared?: boolean };
     if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });

@@ -117,6 +117,7 @@ export function ContextPanel({
   }
 
   async function removeItem(item: ContextItem) {
+    if (item.source === "fde-kit") return;
     if (!confirm(`Remove “${item.title ?? item.file_name ?? "this item"}” from context?`)) return;
     setItems((prev) => prev?.filter((i) => i.id !== item.id) ?? prev);
     const sb = supabase();
@@ -128,6 +129,7 @@ export function ContextPanel({
 
   const fileCount = items?.filter((i) => i.kind === "file").length ?? 0;
   const textCount = items?.filter((i) => i.kind === "text").length ?? 0;
+  const linkCount = items?.filter((i) => i.kind === "link").length ?? 0;
 
   return (
     <section>
@@ -151,7 +153,7 @@ export function ContextPanel({
       </div>
 
       <p className="text-[11px] text-muted mb-2.5">
-        Files &amp; notes for <span className="text-ink-soft">this {entityType}</span> only — feeds its AI scoring &amp; recommendations (from Phase 3). {fileCount} file{fileCount === 1 ? "" : "s"} · {textCount} note{textCount === 1 ? "" : "s"}.
+        Files, links &amp; notes for <span className="text-ink-soft">this {entityType}</span> only — feeds its AI scoring &amp; recommendations (from Phase 3). {fileCount} file{fileCount === 1 ? "" : "s"} · {linkCount} link{linkCount === 1 ? "" : "s"} · {textCount} note{textCount === 1 ? "" : "s"}.
       </p>
 
       {error && (
@@ -190,10 +192,12 @@ export function ContextPanel({
                 <TextForm key={item.id} initial={item} onCancel={() => setEditId(null)}
                   onSave={(title, body) => updateText(item.id, { title: title.trim() || null, body: body.trim() || null })} />
               ) : (
-                <TextCard key={item.id} item={item} onEdit={() => { setEditId(item.id); setAddingText(false); }} onDelete={() => removeItem(item)} />
+                <TextCard key={item.id} item={item} readOnly={item.source === "fde-kit"} onEdit={() => { setEditId(item.id); setAddingText(false); }} onDelete={() => removeItem(item)} />
               )
+            ) : item.kind === "link" ? (
+              <LinkCard key={item.id} item={item} onDelete={() => removeItem(item)} />
             ) : (
-              <FileCard key={item.id} item={item} onRetry={() => extract(item.id)} onDelete={() => removeItem(item)} />
+              <FileCard key={item.id} item={item} readOnly={item.source === "fde-kit"} onRetry={() => extract(item.id)} onDelete={() => removeItem(item)} />
             ),
           )}
         </div>
@@ -225,23 +229,23 @@ function TextForm({
   );
 }
 
-function TextCard({ item, onEdit, onDelete }: { item: ContextItem; onEdit: () => void; onDelete: () => void }) {
+function TextCard({ item, readOnly, onEdit, onDelete }: { item: ContextItem; readOnly?: boolean; onEdit: () => void; onDelete: () => void }) {
   return (
     <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
       <div className="flex items-center gap-2">
         <IconText />
-        <button onClick={onEdit} className="min-w-0 flex-1 text-left cursor-pointer">
+        <button onClick={readOnly ? undefined : onEdit} className="min-w-0 flex-1 text-left cursor-pointer">
           <span className="text-[12.5px] font-medium text-ink truncate block">{item.title || "Note"}</span>
         </button>
         <span className="text-[10px] mono text-muted shrink-0">{relTime(item.created_at)}</span>
-        <RowDelete onDelete={onDelete} />
+        {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
       {item.body && <p className="mt-1 text-[12px] text-ink-soft leading-relaxed line-clamp-3 whitespace-pre-wrap">{item.body}</p>}
     </div>
   );
 }
 
-function FileCard({ item, onRetry, onDelete }: { item: ContextItem; onRetry: () => void; onDelete: () => void }) {
+function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; readOnly?: boolean; onRetry: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const isImg = (item.mime_type ?? "").startsWith("image/");
   return (
@@ -252,14 +256,14 @@ function FileCard({ item, onRetry, onDelete }: { item: ContextItem; onRetry: () 
           <span className="text-[12.5px] font-medium text-ink truncate block">{item.file_name ?? item.title ?? "File"}</span>
           <span className="text-[10px] mono text-muted">{formatBytes(item.byte_size)}{item.byte_size ? " · " : ""}{relTime(item.created_at)}</span>
         </div>
-        <StatusBadge status={item.extraction_status} onRetry={onRetry} />
+        <StatusBadge status={item.extraction_status} onRetry={onRetry} readOnly={readOnly} />
         {item.extraction_status === "done" && item.body && (
           <button onClick={() => setOpen((o) => !o)} title={open ? "Hide text" : "Show extracted text"}
             className="w-6 h-6 rounded-md grid place-items-center text-muted hover:text-ink hover:bg-surface-3 cursor-pointer">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-90" : ""}`}><path d="M9 6l6 6-6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         )}
-        <RowDelete onDelete={onDelete} />
+        {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
       {open && item.body && (
         <pre className="mt-2 max-h-48 overflow-auto rounded bg-canvas border border-line px-2 py-1.5 text-[11px] text-ink-soft leading-relaxed whitespace-pre-wrap font-sans">{item.body.slice(0, 4000)}{item.body.length > 4000 ? "\n…" : ""}</pre>
@@ -268,11 +272,27 @@ function FileCard({ item, onRetry, onDelete }: { item: ContextItem; onRetry: () 
   );
 }
 
-function StatusBadge({ status, onRetry }: { status: ContextItem["extraction_status"]; onRetry: () => void }) {
+function LinkCard({ item, onDelete }: { item: ContextItem; onDelete: () => void }) {
+  const href = item.url ?? item.body ?? "";
+  return (
+    <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
+      <div className="flex items-center gap-2">
+        <span className="text-muted" aria-hidden="true">↗</span>
+        <a href={href} target="_blank" rel="noreferrer" className="min-w-0 flex-1 text-[12.5px] font-medium text-accent underline underline-offset-2 truncate">{item.title || href}</a>
+        {item.source === "fde-kit" ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
+      </div>
+      {item.url && item.title && <p className="mt-1 text-[11px] text-muted truncate">{item.url}</p>}
+    </div>
+  );
+}
+
+function StatusBadge({ status, onRetry, readOnly }: { status: ContextItem["extraction_status"]; onRetry: () => void; readOnly?: boolean }) {
   if (status === "pending")
     return <span className="text-[9.5px] mono uppercase tracking-wider text-[color:var(--color-warn)] animate-pulse shrink-0">extracting…</span>;
   if (status === "done")
     return <span className="text-[9.5px] mono uppercase tracking-wider text-accent shrink-0" title="Text extracted — feeds the AI">text ✓</span>;
+  if (status === "failed" && readOnly)
+    return <span className="text-[9.5px] mono uppercase tracking-wider text-[color:var(--color-danger)] shrink-0">failed</span>;
   if (status === "failed")
     return (
       <button onClick={onRetry} title="Extraction failed — click to retry"

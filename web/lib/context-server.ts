@@ -36,7 +36,8 @@ export async function loadContextText(
   let text = "";
   for (const r of withText) {
     const label = r.title || r.file_name || (r.kind === "file" ? "uploaded file" : "note");
-    const block = `## ${label}${r.kind === "file" ? " (uploaded file)" : ""}\n${(r.body ?? "").trim()}`;
+    const suffix = r.kind === "file" ? " (uploaded file)" : r.kind === "link" ? " (link)" : "";
+    const block = `## ${label}${suffix}\n${(r.body ?? "").trim()}`;
     if (text.length + block.length > maxChars) {
       text += "\n\n[…additional context truncated]";
       break;

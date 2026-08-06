@@ -296,6 +296,7 @@ export interface Factory {
   network_id: string | null;
 
   name: string;
+  is_customer: boolean;
   website_url: string | null;
   company_url: string | null;
   hq_location: string | null;
@@ -453,11 +454,53 @@ export interface ContextDoc {
 export type ContextEntityType = "factory" | "network" | "contact";
 export type ExtractionStatus = "none" | "pending" | "done" | "failed" | "unsupported";
 
+export interface FdeDeployment {
+  id: string;
+  factory_id: string | null;
+  name: string;
+  customer_name: string;
+  fde: string;
+  status: "pre" | "during" | "after";
+  started_at: string;
+  updated_at: string;
+}
+
+export interface FdeDeploymentTask {
+  id: string;
+  deployment_id: string;
+  group_key: string;
+  task_key: string;
+  phase: "pre" | "during" | "after";
+  title: string;
+  note: string;
+  status: "todo" | "done";
+  subtasks: unknown;
+  updated_at: string;
+}
+
+export interface FdeTaskLink {
+  id: string;
+  task_id: string;
+  label: string | null;
+  url: string;
+  created_at: string;
+}
+
+export interface FdeTaskAttachment {
+  id: string;
+  task_id: string;
+  file_name: string;
+  mime_type: string | null;
+  byte_size: number | null;
+  storage_path: string;
+  created_at: string;
+}
+
 export interface ContextItem {
   id: string;
   entity_type: ContextEntityType;
   entity_id: string;
-  kind: "file" | "text";
+  kind: "file" | "text" | "link";
   title: string | null;
   body: string | null;
   storage_path: string | null;
@@ -465,6 +508,9 @@ export interface ContextItem {
   mime_type: string | null;
   byte_size: number | null;
   extraction_status: ExtractionStatus;
+  source: string | null;
+  external_id: string | null;
+  url: string | null;
   created_at: string;
   updated_at: string;
 }

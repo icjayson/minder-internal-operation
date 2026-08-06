@@ -18,6 +18,7 @@ import { AssessmentScoreBadge, ScoreChip, ScoreBreakdownBars } from "./score-bar
 import { PriorityStars } from "./priority-stars";
 import { ContactTree } from "./contact-tree";
 import { ContextPanel } from "./context-panel";
+import { FdeDeploymentProgress } from "./fde-deployment-progress";
 import { WorkInventory } from "./work-inventory";
 import { JourneyOverview } from "./journey-overview";
 import { FactoryNotificationModal } from "./factory-notification-modal";
@@ -350,6 +351,7 @@ export function FactoryDrawer({
             <span title="Factory stage"><StagePill stage={f.stage} /></span>
             <Divider />
             <PriorityStars value={f.priority} onChange={(p) => set({ priority: p === f.priority ? 0 : p })} size={14} />
+            <button type="button" onClick={() => { void set({ is_customer: !f.is_customer }); }} className={`h-7 rounded-full border px-2.5 text-[10.5px] font-medium ${f.is_customer ? "border-accent bg-accent-dim text-accent" : "border-line-strong bg-surface-2 text-muted hover:text-ink"}`} title="Customer status">{f.is_customer ? "Customer · FDE KIT" : "Mark as customer"}</button>
           </div>
         </header>
 
@@ -574,6 +576,11 @@ export function FactoryDrawer({
               <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
                 <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
               </div>
+              {f.is_customer && (
+                <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+                  <FdeDeploymentProgress factoryId={factoryId} />
+                </div>
+              )}
               {variant === "page" && (
                 <div ref={workInventoryRef} className="scroll-mt-4">
                   <WorkInventory

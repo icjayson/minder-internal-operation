@@ -20,6 +20,7 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
     website_url: "",
     description: "",
     notes: "",
+    is_customer: false,
   });
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
         description: form.description.trim() || null,
         notes: form.notes.trim() || null,
         source: "manual",
+        is_customer: form.is_customer,
       };
       const { data, error: insErr } = await supabase().from("factories").insert(payload).select().single();
       if (insErr) throw new Error(insErr.message);
@@ -113,6 +115,10 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
           </div>
           <Field label="Company description"><textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
           <Field label="How to approach / Note"><textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
+          <label className="flex items-start gap-2 rounded-md border border-line bg-surface-2/50 px-3 py-2.5 text-[12px] text-ink-soft">
+            <input type="checkbox" checked={form.is_customer} onChange={(e) => setForm((current) => ({ ...current, is_customer: e.target.checked }))} className="mt-0.5 accent-[var(--color-accent)]" />
+            <span><strong className="font-medium text-ink">Customer / design partner</strong><br /><span className="text-[11px] text-muted">Create the FDE KIT deployment and checklist automatically after saving.</span></span>
+          </label>
         </form>
 
         <footer className="px-6 py-3 border-t border-line flex items-center gap-2 bg-surface-2/50">
