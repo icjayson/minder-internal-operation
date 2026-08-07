@@ -332,6 +332,12 @@ export interface Factory {
   source: string;
   context_summary: string | null;
   context_summary_at: string | null;
+
+  // Customer tracker: a factory promoted to a customer surfaces in the Customer
+  // tracker, and leaves the Partner tracker once its stage reaches Closed Won.
+  is_customer: boolean;
+  customer_marked_at: string | null;
+
   created_at: string;
   updated_at: string;
 }

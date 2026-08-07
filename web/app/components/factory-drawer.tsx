@@ -28,11 +28,17 @@ export function FactoryDrawer({
   contactId,
   onClose,
   variant = "drawer",
+  basePath = "/factories",
+  showNotifications = true,
 }: {
   factoryId: string;
   contactId?: string | null;
   onClose: () => void;
   variant?: "drawer" | "page";
+  // Where the header expand / work-item links point ("/factories" or "/customers").
+  basePath?: string;
+  // Discord notifications are skipped in the Customer tracker.
+  showNotifications?: boolean;
 }) {
   const {
     factory,
@@ -43,6 +49,8 @@ export function FactoryDrawer({
     activitiesOf,
     updateFactory,
     deleteFactory,
+    markFactoryAsCustomer,
+    unmarkFactoryAsCustomer,
     updateContact,
     deleteContact,
     setContactStage,
@@ -51,6 +59,8 @@ export function FactoryDrawer({
     addActivity,
     deleteActivity,
   } = useStore();
+  // Customer context = viewing this record inside the Customer tracker.
+  const isCustomerContext = basePath === "/customers";
 
   const f = factory(factoryId);
   const contacts = contactsOf(factoryId);
@@ -260,7 +270,7 @@ export function FactoryDrawer({
 
   return (
     <>
-      {notificationOpen && (
+      {showNotifications && notificationOpen && (
         <FactoryNotificationModal
           factoryId={factoryId}
           factoryName={f.name}
@@ -282,7 +292,7 @@ export function FactoryDrawer({
           <div className="flex items-center gap-3">
             {variant === "drawer" ? (
               <Link
-                href={`/factories/${factoryId}`}
+                href={`${basePath}/${factoryId}`}
                 onClick={onClose}
                 title="Open full page"
                 aria-label="Open factory full page"
@@ -316,13 +326,60 @@ export function FactoryDrawer({
               )}
             </div>
             <div className="hidden items-center gap-2 sm:flex">
-              <button
-                type="button"
-                onClick={() => setNotificationOpen(true)}
-                className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
-              >
-                Create notification
-              </button>
+              {isCustomerContext && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm(`Move ${f.name} back to the Factory tracker? It will be removed from Customers.`)) return;
+                    await unmarkFactoryAsCustomer(factoryId);
+                    onClose();
+                  }}
+                  title="Undo customer — return this account to the Factory tracker"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
+                >
+                  <UndoIcon /> Move to Factories
+                </button>
+              )}
+              {!isCustomerContext && (
+                f.is_customer ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Link
+                      href={`/customers/${factoryId}`}
+                      title="This account is tracked as a customer — open in the Customer tracker"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#0fa79b]/40 bg-[#e6f8f5] px-3 text-[11.5px] font-medium text-[#0b8375]"
+                    >
+                      <CustomerIcon /> Customer
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => { void unmarkFactoryAsCustomer(factoryId); }}
+                      title="Undo — remove from the Customer tracker"
+                      aria-label="Undo mark as customer"
+                      className="grid h-8 w-8 place-items-center rounded-full border border-line-strong bg-surface-2 text-muted hover:text-[color:var(--color-danger)]"
+                    >
+                      <UndoIcon />
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { void markFactoryAsCustomer(factoryId); }}
+                    title="Promote this factory to the Customer tracker"
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
+                  >
+                    <CustomerIcon /> Mark as Customer
+                  </button>
+                )
+              )}
+              {showNotifications && (
+                <button
+                  type="button"
+                  onClick={() => setNotificationOpen(true)}
+                  className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
+                >
+                  Create notification
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setEditingProfile((value) => !value)}
@@ -565,7 +622,7 @@ export function FactoryDrawer({
                     if (workInventoryRef.current) {
                       workInventoryRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
                     } else {
-                      window.location.assign(`/factories/${factoryId}`);
+                      window.location.assign(`${basePath}/${factoryId}`);
                     }
                   }}
                 />
@@ -841,6 +898,23 @@ function DeleteIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function CustomerIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+      <circle cx="9" cy="8" r="3" strokeWidth="1.6" />
+      <path d="M3 20c0-3.3 2.7-6 6-6 1.4 0 2.7.5 3.7 1.3" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="m15 18 2 2 4-4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function UndoIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+      <path d="M9 14 4 9l5-5" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 9h11a5 5 0 0 1 0 10h-3" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -6,8 +6,8 @@ import { useStore } from "@/lib/factories-store";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 
-export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
-  const { verticals, networks, openFactory } = useStore();
+export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () => void; asCustomer?: boolean }) {
+  const { verticals, networks, openFactory, openCustomer } = useStore();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -51,6 +51,7 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
         description: form.description.trim() || null,
         notes: form.notes.trim() || null,
         source: "manual",
+        ...(asCustomer ? { is_customer: true, customer_marked_at: new Date().toISOString() } : {}),
       };
       const { data, error: insErr } = await supabase().from("factories").insert(payload).select().single();
       if (insErr) throw new Error(insErr.message);
@@ -60,7 +61,8 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ factoryId: data.id }),
         }).catch(() => {});
-        openFactory(data.id);
+        if (asCustomer) openCustomer(data.id);
+        else openFactory(data.id);
       }
       onClose();
     } catch (e) {
@@ -76,8 +78,8 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
       <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[520px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
         <header className="relative px-6 pt-5 pb-4 border-b border-line">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-          <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">New factory</div>
-          <h2 className="text-[22px] font-display text-ink">Add a factory</h2>
+          <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">{asCustomer ? "New customer" : "New factory"}</div>
+          <h2 className="text-[22px] font-display text-ink">{asCustomer ? "Add a customer" : "Add a factory"}</h2>
           <p className="text-[12px] text-ink-soft mt-1">AI will score it against the design-partner rubric after save.</p>
         </header>
 
@@ -119,7 +121,7 @@ export function NewFactoryDrawer({ onClose }: { onClose: () => void }) {
           <button type="button" onClick={() => !saving && onClose()} className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[12.5px] font-medium text-ink-soft cursor-pointer">Cancel</button>
           <div className="flex-1" />
           <button type="submit" form="new-factory" disabled={saving} className="h-9 px-5 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[12.5px] font-medium cursor-pointer">
-            {saving ? "Saving…" : "Save factory"}
+            {saving ? "Saving…" : asCustomer ? "Save customer" : "Save factory"}
           </button>
         </footer>
       </aside>
