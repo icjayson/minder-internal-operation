@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Stage } from "@/lib/types";
@@ -13,17 +12,16 @@ import { FactoryTable } from "@/app/components/factory-table";
 import { FactoryTree } from "@/app/components/factory-tree";
 import { SearchInput, SelectControl } from "@/app/components/controls";
 
-type SavedView = "all" | "needs_action" | "high_potential" | "stalled" | "converted";
+type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
 
-function FactoriesInner() {
+function CustomersInner() {
   const {
     factories: allFactories, verticals, verticalName, contactsOf,
-    setFactoryStage, deleteFactory, openFactory, openNewFactory,
+    setFactoryStage, deleteFactory, openCustomer, openNewCustomer,
   } = useStore();
-  // A factory promoted to a customer stays in the Partner tracker until it
-  // reaches Closed Won, then graduates out (living only under Customers).
+  // The Customer tracker is the set of factories promoted to customers.
   const factories = useMemo(
-    () => allFactories?.filter((f) => !(f.is_customer && f.stage === "Closed Won")) ?? null,
+    () => allFactories?.filter((f) => f.is_customer) ?? null,
     [allFactories],
   );
   const params = useSearchParams();
@@ -35,7 +33,7 @@ function FactoriesInner() {
   const [view, setView] = useState<"table" | "tree">("table");
   const focusParam = params.get("focus");
   const [savedView, setSavedView] = useState<SavedView>(
-    focusParam === "needs_action" || focusParam === "high_potential" || focusParam === "stalled" || focusParam === "converted" ? focusParam : "all",
+    focusParam === "needs_action" || focusParam === "high_potential" || focusParam === "stalled" ? focusParam : "all",
   );
 
   const stats = useMemo(() => {
@@ -55,16 +53,11 @@ function FactoriesInner() {
   }, [factories]);
 
   const rows = useMemo(() => {
-    if (!factories || !allFactories) return null;
+    if (!factories) return null;
     const q = search.trim().toLowerCase();
     const today = new Date().toISOString().slice(0, 10);
     const staleBefore = Date.now() - 7 * 86400000;
-    // "Converted to customers" reveals every factory promoted to the Customer
-    // tracker — including those already graduated out (Closed Won) of Partners.
-    const base = savedView === "converted"
-      ? allFactories.filter((f) => f.is_customer)
-      : factories;
-    return base
+    return factories
       .filter((f) => {
         if (vertical !== "All" && f.vertical_id !== vertical) return false;
         if (grade !== "All" && f.grade !== grade) return false;
@@ -81,7 +74,7 @@ function FactoriesInner() {
         return f.name.toLowerCase().includes(q) || (f.hq_location ?? "").toLowerCase().includes(q);
       })
       .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
-  }, [factories, allFactories, search, vertical, grade, geoTier, stage, savedView]);
+  }, [factories, search, vertical, grade, geoTier, stage, savedView]);
 
   const savedViewCounts = useMemo(() => {
     const all = factories ?? [];
@@ -92,17 +85,16 @@ function FactoriesInner() {
       needs_action: all.filter((f) => f.next_action_due && f.next_action_due <= today).length,
       high_potential: all.filter((f) => f.grade === "A" || (f.score ?? 0) >= 75).length,
       stalled: all.filter((f) => f.stage !== "Closed Won" && f.stage !== "Closed Lost" && (!f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore)).length,
-      converted: (allFactories ?? []).filter((f) => f.is_customer).length,
     };
-  }, [factories, allFactories]);
+  }, [factories]);
 
   return (
     <>
       <PageHeader
-        eyebrow="Factories · live"
-        title="Factory tracker"
-        subtitle="Every account, scored & routed by the 100-pt IDP rubric"
-        right={<><span>{stats ? `${stats.total}` : "—"}</span><span className="opacity-50">factories</span></>}
+        eyebrow="Customers · live"
+        title="Customer tracker"
+        subtitle="Design partners promoted to customers — same 100-pt rubric, own pipeline"
+        right={<><span>{stats ? `${stats.total}` : "—"}</span><span className="opacity-50">customers</span></>}
       >
         <PipelineChevrons
           stages={PIPELINE_STAGES}
@@ -112,7 +104,7 @@ function FactoriesInner() {
         />
         {stats && (
           <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <StatCard label="Total factories" value={stats.total} />
+            <StatCard label="Total customers" value={stats.total} />
             <StatCard label="A-grade" value={stats.aGrade} tone="accent" />
             <StatCard label="Avg score" value={stats.avg || "—"} />
             <StatCard label="Actions due" value={stats.due} tone="warn" />
@@ -121,14 +113,12 @@ function FactoriesInner() {
       </PageHeader>
 
       <div className="px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved factory views">
+        <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved customer views">
           <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
-          <SavedViewButton label="All accounts" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
+          <SavedViewButton label="All customers" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
           <SavedViewButton label="Needs action" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
           <SavedViewButton label="High potential" count={savedViewCounts.high_potential} active={savedView === "high_potential"} onClick={() => setSavedView("high_potential")} />
           <SavedViewButton label="Stalled" count={savedViewCounts.stalled} active={savedView === "stalled"} tone="danger" onClick={() => setSavedView("stalled")} />
-          <div className="flex-1" />
-          <SavedViewButton label="Converted to customers" count={savedViewCounts.converted} active={savedView === "converted"} tone="customer" onClick={() => setSavedView("converted")} />
         </div>
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Table / Tree view toggle */}
@@ -142,7 +132,7 @@ function FactoriesInner() {
           </div>
 
           <div className="flex-1 min-w-[200px] max-w-sm">
-            <SearchInput value={search} onChange={setSearch} placeholder="Search factory or location…" />
+            <SearchInput value={search} onChange={setSearch} placeholder="Search customer or location…" />
           </div>
           <SelectControl value={vertical} onChange={setVertical}
             options={[{ value: "All", label: "All verticals" }, ...verticals.map((v) => ({ value: v.id, label: v.name }))]} />
@@ -151,15 +141,10 @@ function FactoriesInner() {
           <SelectControl value={geoTier} onChange={setGeoTier}
             options={[{ value: "All", label: "All geos" }, ...GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))]} />
           <div className="flex-1" />
-          <Link href="/import"
-            className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[13px] font-medium text-ink-soft hover:text-ink cursor-pointer inline-flex items-center gap-1.5">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15V3m0 0 4 4m-4-4L8 7M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            Import CSV
-          </Link>
-          <button onClick={openNewFactory}
+          <button onClick={openNewCustomer}
             className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
-            New factory
+            New customer
           </button>
         </div>
 
@@ -167,22 +152,22 @@ function FactoriesInner() {
           <FactoryTableSkeleton />
         ) : rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
-            <div className="text-lg font-display mb-2">No factories match</div>
-            <p className="text-sm text-ink-soft max-w-md mx-auto">Add a factory, import a CSV, or clear the filters.</p>
+            <div className="text-lg font-display mb-2">No customers yet</div>
+            <p className="text-sm text-ink-soft max-w-md mx-auto">Mark a factory as a customer from its page, or add one directly.</p>
           </div>
         ) : view === "tree" ? (
           <FactoryTree
             verticals={verticals}
             factories={rows}
             contactsOf={contactsOf}
-            onOpenFactory={openFactory}
+            onOpenFactory={openCustomer}
           />
         ) : (
           <FactoryTable
             factories={rows}
             verticalName={verticalName}
             contactCount={(id) => contactsOf(id).length}
-            onSelect={(f) => openFactory(f.id)}
+            onSelect={(f) => openCustomer(f.id)}
             onStageChange={(id, s) => setFactoryStage(id, s)}
             onDelete={deleteFactory}
           />
@@ -192,20 +177,15 @@ function FactoriesInner() {
   );
 }
 
-function SavedViewButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn" | "danger" | "customer"; onClick: () => void }) {
+function SavedViewButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn" | "danger"; onClick: () => void }) {
   const activeTone = tone === "warn"
     ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]"
     : tone === "danger"
       ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
-      : tone === "customer"
-        ? "border-[#0fa79b]/45 bg-[#e6f8f5] text-[#0b8375]"
-        : "border-accent/40 bg-accent-dim text-accent";
-  const idleClass = tone === "customer"
-    ? "border-[#0fa79b]/35 bg-surface text-[#0b8375] hover:border-[#0fa79b]/55"
-    : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink";
+      : "border-accent/40 bg-accent-dim text-accent";
   return (
     <button type="button" onClick={onClick} aria-pressed={active}
-      className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : idleClass}`}>
+      className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink"}`}>
       {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span>
     </button>
   );
@@ -213,7 +193,7 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
 
 function FactoryTableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface" aria-label="Loading factories">
+    <div className="overflow-hidden rounded-lg border border-line bg-surface" aria-label="Loading customers">
       <div className="h-10 animate-pulse border-b border-line bg-surface-2/60" />
       {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-line-soft px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-surface-3" /><span className="h-3 w-20 animate-pulse rounded bg-surface-3" /><span className="h-3 w-32 animate-pulse rounded bg-surface-3" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-surface-3" /></div>)}
     </div>
@@ -234,10 +214,10 @@ function ViewBtn({ active, onClick, label, children }: {
   );
 }
 
-export default function FactoriesPage() {
+export default function CustomersPage() {
   return (
     <Suspense fallback={null}>
-      <FactoriesInner />
+      <CustomersInner />
     </Suspense>
   );
 }

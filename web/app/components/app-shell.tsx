@@ -41,10 +41,15 @@ function GlobalDrawers() {
     closeFundraising,
     newFundraisingTrack,
     closeNewFundraising,
+    selectedCustomerId,
+    closeCustomer,
+    newCustomerOpen,
+    closeNewCustomer,
   } = useStore();
   return (
     <>
       {newFactoryOpen && <NewFactoryDrawer onClose={closeNewFactory} />}
+      {newCustomerOpen && <NewFactoryDrawer asCustomer onClose={closeNewCustomer} />}
       {newNetworkOpen && <NewNetworkDrawer onClose={closeNewNetwork} />}
       {newFundraisingTrack && (
         <NewFundraisingDrawer track={newFundraisingTrack} onClose={closeNewFundraising} />
@@ -54,6 +59,14 @@ function GlobalDrawers() {
           factoryId={selectedFactoryId}
           contactId={selectedContactId}
           onClose={closeFactory}
+        />
+      )}
+      {selectedCustomerId && (
+        <FactoryDrawer
+          factoryId={selectedCustomerId}
+          basePath="/customers"
+          showNotifications={false}
+          onClose={closeCustomer}
         />
       )}
       {selectedNetworkId && (

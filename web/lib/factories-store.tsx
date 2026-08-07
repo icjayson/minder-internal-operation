@@ -45,6 +45,9 @@ type Ctx = {
 
   updateFactory: (id: string, patch: Partial<Factory>) => Promise<void>;
   deleteFactory: (id: string) => Promise<void>;
+  // Customer tracker: promote / demote a factory to a customer.
+  markFactoryAsCustomer: (id: string) => Promise<void>;
+  unmarkFactoryAsCustomer: (id: string) => Promise<void>;
   updateNetwork: (id: string, patch: Partial<Network>) => Promise<void>;
   deleteNetwork: (id: string) => Promise<void>;
   updateContact: (id: string, patch: Partial<Contact>) => Promise<void>;
@@ -84,9 +87,17 @@ type Ctx = {
   closeFactory: () => void;
   closeNetwork: () => void;
 
+  // Customer drawer (same factory record, customer-scoped presentation).
+  selectedCustomerId: string | null;
+  openCustomer: (id: string) => void;
+  closeCustomer: () => void;
+
   newFactoryOpen: boolean;
   openNewFactory: () => void;
   closeNewFactory: () => void;
+  newCustomerOpen: boolean;
+  openNewCustomer: () => void;
+  closeNewCustomer: () => void;
   newNetworkOpen: boolean;
   openNewNetwork: () => void;
   closeNewNetwork: () => void;
@@ -131,7 +142,9 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [newFactoryOpen, setNewFactoryOpen] = useState(false);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
   const [newNetworkOpen, setNewNetworkOpen] = useState(false);
   const [selectedFundraisingId, setSelectedFundraisingId] = useState<string | null>(null);
   const [newFundraisingTrack, setNewFundraisingTrack] = useState<FundraisingTrack | null>(null);
@@ -261,6 +274,16 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase().from("factories").delete().eq("id", id);
     if (error) setError(error.message);
   }, []);
+
+  // Promote a factory to the Customer tracker. It stays in the Partner tracker
+  // until its stage reaches Closed Won (enforced by the factory-list filter).
+  const markFactoryAsCustomer = useCallback(async (id: string) => {
+    await updateFactory(id, { is_customer: true, customer_marked_at: new Date().toISOString() });
+  }, [updateFactory]);
+
+  const unmarkFactoryAsCustomer = useCallback(async (id: string) => {
+    await updateFactory(id, { is_customer: false, customer_marked_at: null });
+  }, [updateFactory]);
 
   const updateNetwork = useCallback(async (id: string, patch: Partial<Network>) => {
     setNetworks((prev) => (prev ? prev.map((n) => (n.id === id ? { ...n, ...patch } : n)) : prev));
@@ -492,6 +515,8 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     networkName: (id) => networks?.find((n) => n.id === id)?.name ?? "—",
     updateFactory,
     deleteFactory,
+    markFactoryAsCustomer,
+    unmarkFactoryAsCustomer,
     updateNetwork,
     deleteNetwork,
     updateContact,
@@ -517,6 +542,7 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
     selectedContactId,
     selectedNetworkId,
     openFactory: (id) => {
+      setSelectedCustomerId(null);
       setSelectedNetworkId(null);
       setSelectedContactId(null);
       setSelectedFactoryId(id);
@@ -544,9 +570,20 @@ export function FactoriesProvider({ children }: { children: React.ReactNode }) {
       setSelectedContactId(null);
     },
     closeNetwork: () => setSelectedNetworkId(null),
+    selectedCustomerId,
+    openCustomer: (id) => {
+      setSelectedFactoryId(null);
+      setSelectedNetworkId(null);
+      setSelectedContactId(null);
+      setSelectedCustomerId(id);
+    },
+    closeCustomer: () => setSelectedCustomerId(null),
     newFactoryOpen,
     openNewFactory: () => setNewFactoryOpen(true),
     closeNewFactory: () => setNewFactoryOpen(false),
+    newCustomerOpen,
+    openNewCustomer: () => setNewCustomerOpen(true),
+    closeNewCustomer: () => setNewCustomerOpen(false),
     newNetworkOpen,
     openNewNetwork: () => setNewNetworkOpen(true),
     closeNewNetwork: () => setNewNetworkOpen(false),

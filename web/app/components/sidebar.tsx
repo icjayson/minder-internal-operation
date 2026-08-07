@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { useStore } from "@/lib/factories-store";
+import { STAGE_RANK } from "@/lib/stage";
 
 const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
   {
@@ -152,8 +153,21 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Sidebar() {
   const pathname = usePathname() ?? "/";
-  const { notifications } = useStore();
+  const { notifications, factories, networks, fundraisingLeads } = useStore();
   const unread = (notifications ?? []).filter((n) => !n.read_at).length;
+
+  // Right-aligned nav counts.
+  const repliedOnwards = STAGE_RANK["Replied"];
+  const customerCount = (factories ?? []).filter((f) => f.is_customer).length;
+  // Partners = factories (still in the partner tracker) + networks that have
+  // progressed to Replied or beyond.
+  const partnerCount =
+    (factories ?? []).filter(
+      (f) => !(f.is_customer && f.stage === "Closed Won") && STAGE_RANK[f.stage] >= repliedOnwards,
+    ).length +
+    (networks ?? []).filter((n) => STAGE_RANK[n.stage] >= repliedOnwards).length;
+  const fundraisingCount = (fundraisingLeads ?? []).length;
+
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -194,9 +208,15 @@ export function Sidebar() {
           </NavIcon>
         ))}
 
-        <PartnerNav pathname={pathname} collapsed={collapsed} />
+        <NavIcon href="/customers" label="Customers" active={isActive(pathname, "/customers")} collapsed={collapsed} count={customerCount}>
+          <circle cx="9" cy="8" r="3" strokeWidth="1.5" />
+          <path d="M3 20c0-3.3 2.7-6 6-6 1.4 0 2.7.5 3.7 1.3" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="m15 18 2 2 4-4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </NavIcon>
 
-        <FundraisingNav pathname={pathname} collapsed={collapsed} />
+        <PartnerNav pathname={pathname} collapsed={collapsed} count={partnerCount} />
+
+        <FundraisingNav pathname={pathname} collapsed={collapsed} count={fundraisingCount} />
 
         {NAV.slice(1).filter((item) => !HIDDEN_NAV_HREFS.has(item.href)).map((item) => (
           <NavIcon key={item.href} href={item.href} label={item.label} active={isActive(pathname, item.href)} collapsed={collapsed}>
@@ -236,7 +256,7 @@ export function Sidebar() {
   );
 }
 
-function PartnerNav({ pathname, collapsed }: { pathname: string; collapsed: boolean }) {
+function PartnerNav({ pathname, collapsed, count = 0 }: { pathname: string; collapsed: boolean; count?: number }) {
   const active = PARTNER_NAV.some((item) => isActive(pathname, item.href));
   const [open, setOpen] = useState(true);
 
@@ -262,6 +282,7 @@ function PartnerNav({ pathname, collapsed }: { pathname: string; collapsed: bool
           <path d="M2.5 20c0-3.5 2.4-6 5.5-6s5.5 2.5 5.5 6M13.5 15.2c1-.8 2.1-1.2 3.5-1.2 2.6 0 4.5 2 4.5 5" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         {!collapsed && <span className="min-w-0 flex-1 truncate text-left text-[12px] font-medium max-lg:hidden">Partners</span>}
+        {!collapsed && count > 0 && <NavCount value={count} />}
         {!collapsed && (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform max-lg:hidden ${open ? "rotate-90" : ""}`}>
             <path d="m9 5 7 7-7 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -291,7 +312,7 @@ function PartnerNav({ pathname, collapsed }: { pathname: string; collapsed: bool
   );
 }
 
-function FundraisingNav({ pathname, collapsed }: { pathname: string; collapsed: boolean }) {
+function FundraisingNav({ pathname, collapsed, count = 0 }: { pathname: string; collapsed: boolean; count?: number }) {
   const active = FUNDRAISING_NAV.some((item) => isActive(pathname, item.href));
   const [open, setOpen] = useState(true);
 
@@ -316,6 +337,7 @@ function FundraisingNav({ pathname, collapsed }: { pathname: string; collapsed: 
           <path d="M14.8 8.8c-.6-.5-1.5-.8-2.6-.8-1.5 0-2.7.7-2.7 1.9 0 1.1.9 1.6 2.7 2 1.7.4 2.5.9 2.5 2.1 0 1.3-1.1 2.1-2.8 2.1-1.2 0-2.3-.4-3-1.1M12 6.5v11" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         {!collapsed && <span className="min-w-0 flex-1 truncate text-left text-[12px] font-medium max-lg:hidden">Fundraising</span>}
+        {!collapsed && count > 0 && <NavCount value={count} />}
         {!collapsed && (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform max-lg:hidden ${open ? "rotate-90" : ""}`}>
             <path d="m9 5 7 7-7 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -379,6 +401,14 @@ function PartnerNavIcon({
   );
 }
 
+function NavCount({ value }: { value: number }) {
+  return (
+    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1.5 text-[9px] font-semibold text-muted max-lg:hidden">
+      {value}
+    </span>
+  );
+}
+
 function NavIcon({
   children,
   href,
@@ -386,6 +416,7 @@ function NavIcon({
   active = false,
   collapsed,
   badge = 0,
+  count = 0,
 }: {
   children: React.ReactNode;
   href: string;
@@ -393,6 +424,7 @@ function NavIcon({
   active?: boolean;
   collapsed: boolean;
   badge?: number;
+  count?: number;
 }) {
   return (
     <Link
@@ -408,6 +440,7 @@ function NavIcon({
         {children}
       </svg>
       {!collapsed && <span className="min-w-0 flex-1 truncate text-[12px] font-medium max-lg:hidden">{label}</span>}
+      {!collapsed && badge === 0 && count > 0 && <NavCount value={count} />}
       {badge > 0 && <span className={`grid min-w-4 h-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-semibold text-white ${collapsed ? "absolute right-0 top-0" : "max-lg:absolute max-lg:right-0 max-lg:top-0"}`}>{badge}</span>}
       <span className={`absolute left-[52px] z-50 whitespace-nowrap rounded-md border border-line-strong bg-surface-3 px-2 py-1 text-[10px] uppercase tracking-wider text-ink opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 ${collapsed ? "" : "hidden max-lg:block"}`}>
         {label}
