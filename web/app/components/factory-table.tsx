@@ -1,7 +1,9 @@
 "use client";
 
-import type { Factory, Stage } from "@/lib/types";
+import type { Contact, Factory, Stage } from "@/lib/types";
 import { LADDER, STAGES } from "@/lib/types";
+import { customerContactNames, customerLocation } from "@/lib/customer-table";
+import type { FdeProgressSummary } from "@/lib/fde-progress";
 import { StagePill } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
 import { DataTable, type Column } from "./data-table";
@@ -9,7 +11,10 @@ import { DataTable, type Column } from "./data-table";
 type Props = {
   factories: Factory[];
   verticalName: (id: string | null) => string;
-  contactCount: (factoryId: string) => number;
+  contactCount?: (factoryId: string) => number;
+  contactsOf?: (factoryId: string) => Contact[];
+  customerMode?: boolean;
+  deploymentProgress?: ReadonlyMap<string, FdeProgressSummary>;
   onSelect: (f: Factory) => void;
   onStageChange: (id: string, s: Stage) => void;
   onDelete: (id: string) => void;
@@ -21,12 +26,16 @@ export function FactoryTable({
   factories,
   verticalName,
   contactCount,
+  contactsOf,
+  customerMode = false,
+  deploymentProgress = new Map(),
   onSelect,
   onStageChange,
   onDelete,
 }: Props) {
-  const columns: Column<Factory>[] = [
-    {
+  const contactsFor = (factoryId: string): Contact[] => contactsOf?.(factoryId) ?? [];
+  const contactCountFor = (factoryId: string): number => contactCount?.(factoryId) ?? contactsFor(factoryId).length;
+  const accountColumn: Column<Factory> = {
       key: "name",
       header: "Account",
       width: 300,
@@ -63,64 +72,55 @@ export function FactoryTable({
               )}
               <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted">
                 <span className="truncate">{verticalName(f.vertical_id)}</span>
-                {(f.geo_tier || f.hq_location) && <span aria-hidden>·</span>}
-                <span className="truncate">{f.geo_tier ?? f.hq_location}</span>
+                {!customerMode && (f.geo_tier || f.hq_location) && <span aria-hidden>·</span>}
+                {!customerMode && <span className="truncate">{f.geo_tier ?? f.hq_location}</span>}
               </div>
             </div>
           </div>
         );
       },
-    },
-    {
+    };
+  const scoreColumn: Column<Factory> = {
       key: "score",
       header: "Score",
       width: 110,
       sortable: true,
       sortValue: (f) => f.score ?? -1,
       render: (f) => <ScoreChip score={f.score} grade={f.grade} />,
-    },
-    {
+    };
+  const stageColumn: Column<Factory> = {
       key: "stage",
       header: "Pipeline",
       width: 160,
       sortable: true,
       sortValue: (f) => STAGES.indexOf(f.stage),
       render: (f) => <StageSelect stage={f.stage} onChange={(s) => onStageChange(f.id, s)} />,
-    },
-    {
+    };
+  const relationshipColumn: Column<Factory> = {
       key: "relationship",
       header: "Relationship",
       width: 210,
       sortable: true,
       sortValue: (f) => f.ladder_level ?? 0,
       render: (f) => <RelationshipMini level={f.ladder_level ?? 0} />,
-    },
-    {
+    };
+  const dueColumn: Column<Factory> = {
       key: "due",
       header: "Next action",
       width: 140,
       sortable: true,
       sortValue: (f) => f.next_action_due ?? "9999-12-31",
       render: (f) => <DueDate value={f.next_action_due} />,
-    },
-    {
-      key: "contacts",
-      header: "Contacts",
-      width: 90,
-      align: "center",
-      sortable: true,
-      sortValue: (f) => contactCount(f.id),
-      render: (f) => <span className="text-ink-soft mono">{contactCount(f.id)}</span>,
-    },
-    {
+    };
+  const lastActivityColumn: Column<Factory> = {
       key: "last",
       header: "Last activity",
       width: 120,
       sortable: true,
       sortValue: (f) => (f.last_activity_at ? new Date(f.last_activity_at).getTime() : 0),
       render: (f) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(f.last_activity_at)}</span>,
-    },
-    {
+    };
+  const actionsColumn: Column<Factory> = {
       key: "actions",
       header: "",
       width: 52,
@@ -139,10 +139,81 @@ export function FactoryTable({
           </svg>
         </button>
       ),
+    };
+
+  const columns: Column<Factory>[] = customerMode ? [
+    accountColumn,
+    {
+      key: "location",
+      header: "Location",
+      width: 170,
+      sortable: true,
+      sortValue: (f) => customerLocation(f).toLowerCase(),
+      render: (f) => <span className="block truncate text-[11.5px] text-ink-soft" title={customerLocation(f)}>{customerLocation(f)}</span>,
     },
+    stageColumn,
+    {
+      key: "contacts",
+      header: "Contacts",
+      width: 220,
+      sortable: true,
+      sortValue: (f) => customerContactNames(contactsFor(f.id)).toLowerCase(),
+      render: (f) => {
+        const names = customerContactNames(contactsFor(f.id));
+        return <span className="line-clamp-2 text-[11.5px] text-ink-soft" title={names}>{names}</span>;
+      },
+    },
+    lastActivityColumn,
+    {
+      key: "fde-progress",
+      header: "FDE progress",
+      width: 300,
+      sortable: true,
+      sortValue: (f) => deploymentProgress.get(f.id)?.percent,
+      render: (f) => <FdeProgressCell progress={deploymentProgress.get(f.id)} />,
+    },
+    dueColumn,
+    actionsColumn,
+  ] : [
+    accountColumn,
+    scoreColumn,
+    stageColumn,
+    relationshipColumn,
+    dueColumn,
+    {
+      key: "contacts",
+      header: "Contacts",
+      width: 90,
+      align: "center",
+      sortable: true,
+      sortValue: (f) => contactCountFor(f.id),
+      render: (f) => <span className="text-ink-soft mono">{contactCountFor(f.id)}</span>,
+    },
+    lastActivityColumn,
+    actionsColumn,
   ];
 
-  return <DataTable columns={columns} rows={factories} onRowClick={onSelect} storageKey="factories" />;
+  return <DataTable columns={columns} rows={factories} onRowClick={onSelect} storageKey={customerMode ? "customers" : "factories"} />;
+}
+
+function FdeProgressCell({ progress }: { progress?: FdeProgressSummary }) {
+  if (!progress) return <span className="text-[11px] text-muted">Not started</span>;
+  return (
+    <div title={progress.deploymentName}>
+      <div className="flex items-center gap-2">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
+          <div className="h-full rounded-full bg-accent" style={{ width: `${progress.percent}%` }} />
+        </div>
+        <span className="shrink-0 text-[10.5px] mono text-ink-soft">{progress.done}/{progress.total}</span>
+      </div>
+      <div className="mt-1 flex items-center gap-2 truncate text-[9.5px] text-muted">
+        <span className="rounded-full border border-line-strong px-1.5 py-0.5 mono uppercase">{progress.status}</span>
+        {progress.phases.filter((phase) => phase.total > 0).map((phase) => (
+          <span key={phase.phase}>{phase.phase}: {phase.done}/{phase.total}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function RelationshipMini({ level }: { level: number }) {

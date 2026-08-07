@@ -1,6 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  contextFileFormat,
+  contextFileLabels,
+  contextLinkLabels,
+  filterAndSortContextItems,
+  sortContextItemsLatestFirst,
+  type ContextSortOrder,
+  type ContextTypeFilter,
+} from "@/lib/context-item";
 import type { ContextEntityType, ContextItem } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
@@ -24,6 +33,8 @@ export function ContextPanel({
   const [editId, setEditId] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
   const [summaryOverride, setSummaryOverride] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<ContextTypeFilter>("all");
+  const [sortOrder, setSortOrder] = useState<ContextSortOrder>("latest");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -32,9 +43,9 @@ export function ContextPanel({
       .select("*")
       .eq("entity_type", entityType)
       .eq("entity_id", entityId)
-      .order("created_at", { ascending: false });
+      .order("updated_at", { ascending: false });
     if (error) setError(error.message);
-    const rows = (data ?? []) as ContextItem[];
+    const rows = sortContextItemsLatestFirst((data ?? []) as ContextItem[]);
     setItems(rows);
     const latestAt = rows.reduce<string | null>((acc, r) => (acc && acc > r.updated_at ? acc : r.updated_at), null);
     onStats?.({ count: rows.length, latestAt });
@@ -130,6 +141,7 @@ export function ContextPanel({
   const fileCount = items?.filter((i) => i.kind === "file").length ?? 0;
   const textCount = items?.filter((i) => i.kind === "text").length ?? 0;
   const linkCount = items?.filter((i) => i.kind === "link").length ?? 0;
+  const visibleItems = filterAndSortContextItems(items ?? [], typeFilter, sortOrder);
 
   return (
     <section>
@@ -176,6 +188,35 @@ export function ContextPanel({
         )}
       </div>
 
+      <div className="mb-2.5 flex flex-wrap items-center justify-end gap-2">
+        <label className="flex items-center gap-1.5 text-[10px] mono uppercase tracking-wider text-muted">
+          Type
+          <select
+            aria-label="Filter context by type"
+            value={typeFilter}
+            onChange={(event) => setTypeFilter(event.target.value as ContextTypeFilter)}
+            className="h-8 rounded-md border border-line bg-surface px-2.5 text-[11.5px] normal-case tracking-normal text-ink focus:border-line-strong focus:outline-none"
+          >
+            <option value="all">All</option>
+            <option value="file">Files</option>
+            <option value="link">Links</option>
+            <option value="text">Notes</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-1.5 text-[10px] mono uppercase tracking-wider text-muted">
+          Sort
+          <select
+            aria-label="Sort context items"
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value as ContextSortOrder)}
+            className="h-8 rounded-md border border-line bg-surface px-2.5 text-[11.5px] normal-case tracking-normal text-ink focus:border-line-strong focus:outline-none"
+          >
+            <option value="latest">Latest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+        </label>
+      </div>
+
       {/* Add-text form */}
       {addingText && <TextForm onCancel={() => setAddingText(false)} onSave={addText} />}
 
@@ -184,9 +225,11 @@ export function ContextPanel({
         <p className="text-[12px] text-muted">Loading…</p>
       ) : items.length === 0 && !addingText ? (
         <p className="text-[12px] text-muted">No context yet. Upload research, call notes or screenshots, or add a text note.</p>
+      ) : visibleItems.length === 0 && !addingText ? (
+        <p className="text-[12px] text-muted">No context items match this filter.</p>
       ) : (
         <div className="space-y-1.5">
-          {items.map((item) =>
+          {visibleItems.map((item) =>
             item.kind === "text" ? (
               editId === item.id ? (
                 <TextForm key={item.id} initial={item} onCancel={() => setEditId(null)}
@@ -237,7 +280,7 @@ function TextCard({ item, readOnly, onEdit, onDelete }: { item: ContextItem; rea
         <button onClick={readOnly ? undefined : onEdit} className="min-w-0 flex-1 text-left cursor-pointer">
           <span className="text-[12.5px] font-medium text-ink truncate block">{item.title || "Note"}</span>
         </button>
-        <span className="text-[10px] mono text-muted shrink-0">{relTime(item.created_at)}</span>
+        <span className="text-[10px] mono text-muted shrink-0">{relTime(item.updated_at)}</span>
         {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
       {item.body && <p className="mt-1 text-[12px] text-ink-soft leading-relaxed line-clamp-3 whitespace-pre-wrap">{item.body}</p>}
@@ -248,13 +291,17 @@ function TextCard({ item, readOnly, onEdit, onDelete }: { item: ContextItem; rea
 function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; readOnly?: boolean; onRetry: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const isImg = (item.mime_type ?? "").startsWith("image/");
+  const labels = contextFileLabels(item);
+  const fileFormat = contextFileFormat(item);
+  const fileSize = formatBytes(item.byte_size);
   return (
     <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
       <div className="flex items-center gap-2">
         {isImg ? <IconImage /> : <IconFile />}
         <div className="min-w-0 flex-1">
-          <span className="text-[12.5px] font-medium text-ink truncate block">{item.file_name ?? item.title ?? "File"}</span>
-          <span className="text-[10px] mono text-muted">{formatBytes(item.byte_size)}{item.byte_size ? " · " : ""}{relTime(item.created_at)}</span>
+          {labels.heading && <span className="text-[12.5px] font-medium text-ink truncate block">{labels.heading}</span>}
+          <span className={`${labels.heading ? "text-[11.5px] text-ink-soft" : "text-[12.5px] font-medium text-ink"} truncate block`}>{labels.fileName}</span>
+          <span className="text-[10px] mono text-muted">{fileSize}{fileSize ? " - " : ""}{fileFormat}</span>
         </div>
         <StatusBadge status={item.extraction_status} onRetry={onRetry} readOnly={readOnly} />
         {item.extraction_status === "done" && item.body && (
@@ -263,6 +310,7 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-90" : ""}`}><path d="M9 6l6 6-6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         )}
+        <span className="text-[10px] mono text-muted shrink-0">{relTime(item.updated_at)}</span>
         {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
       {open && item.body && (
@@ -273,15 +321,19 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
 }
 
 function LinkCard({ item, onDelete }: { item: ContextItem; onDelete: () => void }) {
-  const href = item.url ?? item.body ?? "";
+  const labels = contextLinkLabels(item);
   return (
     <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
       <div className="flex items-center gap-2">
         <span className="text-muted" aria-hidden="true">↗</span>
-        <a href={href} target="_blank" rel="noreferrer" className="min-w-0 flex-1 text-[12.5px] font-medium text-accent underline underline-offset-2 truncate">{item.title || href}</a>
+        <div className="min-w-0 flex-1">
+          {labels.heading && <span className="text-[12.5px] font-medium text-ink truncate block">{labels.heading}</span>}
+          <a href={labels.href} target="_blank" rel="noreferrer" className="text-[12px] font-medium text-accent underline underline-offset-2 truncate block">{labels.label}</a>
+          {!labels.heading && item.url && item.title && <p className="mt-1 text-[11px] text-muted truncate">{item.url}</p>}
+        </div>
+        <span className="text-[10px] mono text-muted shrink-0">{relTime(item.updated_at)}</span>
         {item.source === "fde-kit" ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
-      {item.url && item.title && <p className="mt-1 text-[11px] text-muted truncate">{item.url}</p>}
     </div>
   );
 }

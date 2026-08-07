@@ -1,8 +1,64 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildFdeProgressByFactory, type FdeProgressSummary } from "@/lib/fde-progress";
 import type { FdeDeployment, FdeDeploymentTask } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
+
+export function useFdeDeploymentProgressByFactory(
+  factoryIds: ReadonlyArray<string>,
+): Map<string, FdeProgressSummary> {
+  const factoryIdsKey = [...new Set(factoryIds)].sort().join(",");
+  const ids = useMemo(
+    () => factoryIdsKey.split(",").filter(Boolean),
+    [factoryIdsKey],
+  );
+  const [progress, setProgress] = useState<Map<string, FdeProgressSummary>>(
+    new Map(),
+  );
+
+  const load = useCallback(async () => {
+    if (ids.length === 0) {
+      setProgress(new Map());
+      return;
+    }
+
+    const sb = supabase();
+    const { data: deploymentRows } = await sb
+      .from("fde_deployments")
+      .select("*")
+      .in("factory_id", ids)
+      .order("started_at", { ascending: false });
+    const deployments = (deploymentRows ?? []) as FdeDeployment[];
+    const deploymentIds = deployments.map((deployment) => deployment.id);
+    if (deploymentIds.length === 0) {
+      setProgress(new Map());
+      return;
+    }
+
+    const { data: taskRows } = await sb
+      .from("fde_deployment_tasks")
+      .select("*")
+      .in("deployment_id", deploymentIds);
+    setProgress(buildFdeProgressByFactory(
+      deployments,
+      (taskRows ?? []) as FdeDeploymentTask[],
+    ));
+  }, [ids]);
+
+  useEffect(() => {
+    void load();
+    const sb = supabase();
+    const channel = sb
+      .channel("fde-progress-customer-table")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fde_deployments" }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "fde_deployment_tasks" }, () => { void load(); })
+      .subscribe();
+    return () => { void sb.removeChannel(channel); };
+  }, [load]);
+
+  return progress;
+}
 
 export function FdeDeploymentProgress({ factoryId }: { factoryId: string }) {
   const [deployment, setDeployment] = useState<FdeDeployment | null>(null);

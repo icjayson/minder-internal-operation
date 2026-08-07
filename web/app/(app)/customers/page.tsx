@@ -10,6 +10,7 @@ import { PipelineChevrons } from "@/app/components/pipeline-chevrons";
 import { StatCard } from "@/app/components/stat-card";
 import { FactoryTable } from "@/app/components/factory-table";
 import { FactoryTree } from "@/app/components/factory-tree";
+import { useFdeDeploymentProgressByFactory } from "@/app/components/fde-deployment-progress";
 import { SearchInput, SelectControl } from "@/app/components/controls";
 
 type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
@@ -87,6 +88,9 @@ function CustomersInner() {
       stalled: all.filter((f) => f.stage !== "Closed Won" && f.stage !== "Closed Lost" && (!f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore)).length,
     };
   }, [factories]);
+  const deploymentProgress = useFdeDeploymentProgressByFactory(
+    rows?.map((factory) => factory.id) ?? [],
+  );
 
   return (
     <>
@@ -164,9 +168,11 @@ function CustomersInner() {
           />
         ) : (
           <FactoryTable
+            customerMode
             factories={rows}
             verticalName={verticalName}
-            contactCount={(id) => contactsOf(id).length}
+            contactsOf={contactsOf}
+            deploymentProgress={deploymentProgress}
             onSelect={(f) => openCustomer(f.id)}
             onStageChange={(id, s) => setFactoryStage(id, s)}
             onDelete={deleteFactory}
