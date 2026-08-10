@@ -112,7 +112,7 @@ test("factory activity keeps forward milestones only up to the current stage", (
 test("executive owner titles always resolve to the highest contact level", () => {
   assert.equal(effectiveContactRoleLevel("CEO & Co-founder", null), "high");
   assert.equal(effectiveContactRoleLevel("Founder", null), "high");
-  assert.equal(effectiveContactRoleLevel("Company Owner", "expert"), "high");
+  assert.equal(effectiveContactRoleLevel("Company Owner", "specialist"), "high");
   assert.equal(effectiveContactRoleLevel("Chief Executive Officer", "mid"), "high");
   assert.equal(effectiveContactRoleLevel("Commercial Director", "mid"), "mid");
 });

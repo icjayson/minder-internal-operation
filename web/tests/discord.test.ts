@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  discordAlertLogRow,
   discordEmbedFor,
   discordThreadTitleFor,
   discordWebhookKey,
@@ -14,6 +15,52 @@ const networkId = "network-1";
 const networks = new Map([
   [networkId, { id: networkId, name: "Source Network" }],
 ]);
+
+test("Discord log snapshots actionable notification fields", () => {
+  const row = discordAlertLogRow({
+    notification: {
+      id: "00000000-0000-4000-8000-000000000001",
+      kind: "stale_factory",
+      title: "No update in 3+ days",
+      detail: "Factory One",
+      summary: "AI recap text",
+      due_on: "2026-08-09",
+      read_at: null,
+      factory_id: factoryId,
+      _ownerType: "factory",
+      _ownerId: factoryId,
+      _ownerName: "Factory One",
+    },
+    messageId: "message-1",
+    threadId: "thread-1",
+    webhookKey: "webhook:123",
+  }, "scan");
+
+  assert.equal(row.notification_id, "00000000-0000-4000-8000-000000000001");
+  assert.equal(row.summary, "AI recap text");
+  assert.equal(row.due_on, "2026-08-09");
+  assert.equal(row.task_done_at, null);
+  assert.equal(row.owner_id, factoryId);
+});
+
+test("activity deliveries keep their recap but never impersonate a notification", () => {
+  const row = discordAlertLogRow({
+    notification: {
+      id: "00000000-0000-4000-8000-000000000002",
+      kind: "activity_created",
+      title: "Factory activity · Note",
+      detail: "Factory One",
+      summary: "Status update body",
+      factory_id: factoryId,
+    },
+    messageId: "message-2",
+    threadId: null,
+    webhookKey: "webhook:123",
+  }, "activity");
+
+  assert.equal(row.notification_id, null);
+  assert.equal(row.summary, "Status update body");
+});
 
 test("every sourced factory owns its own thread regardless of stage", () => {
   for (const stage of ["New", "Contacted"]) {
@@ -51,7 +98,7 @@ test("a sourced factory owns its thread from Replied onward", () => {
   assert.equal(alert._sourceNetworkName, "Source Network");
 });
 
-test("factory embed shows its source network note", () => {
+test("factory embed shows its source network as a single description row", () => {
   const embed = discordEmbedFor({
     kind: "stale_factory",
     title: "No update in 3+ days",
@@ -59,10 +106,8 @@ test("factory embed shows its source network note", () => {
     _sourceNetworkName: "Source Network",
   });
 
-  assert.deepEqual(
-    embed.fields.find((field) => field.name === "Source network"),
-    { name: "Source network", value: "Source Network", inline: false },
-  );
+  assert.match(embed.description, /\*\*Source network:\*\* Source Network/);
+  assert.deepEqual(embed.fields, []);
 });
 
 test("thread titles start with their entity type without a configured prefix", () => {
@@ -115,6 +160,77 @@ test("forum pushes create once and append later alerts to the stored thread", as
   assert.equal(calls[1]?.body.thread_name, undefined);
   assert.equal(calls[1]?.body.content, undefined);
   assert.equal(new URL(calls[1]!.url).searchParams.get("thread_id"), "thread-123");
+});
+
+test("text-channel pushes keep one deletable Discord message per alert", async () => {
+  const calls: { url: string; body: Record<string, unknown> }[] = [];
+  const delivered: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
+    calls.push({ url: String(input), body });
+    return new Response(JSON.stringify({ id: `message-${calls.length}` }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const owner = { _ownerType: "factory", _ownerId: factoryId, _ownerName: "Factory One", factory_id: factoryId };
+    const pushed = await pushDiscordEmbeds([
+      { ...owner, kind: "followup_due", title: "First alert" },
+      { ...owner, kind: "stale_factory", title: "Second alert" },
+    ], {
+      webhookUrl: "https://discord.com/api/webhooks/123/token",
+      forum: false,
+      onDelivered: (delivery) => delivered.push(delivery.messageId),
+    });
+    assert.equal(pushed, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 2);
+  assert.deepEqual(delivered, ["message-1", "message-2"]);
+  for (const call of calls) {
+    assert.equal(new URL(call.url).searchParams.get("wait"), "true");
+    assert.equal((call.body.embeds as unknown[]).length, 1);
+  }
+});
+
+test("Discord pushes retry a rate-limited request", async () => {
+  let attempts = 0;
+  const delivered: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    attempts++;
+    if (attempts === 1) {
+      return new Response(JSON.stringify({ retry_after: 0 }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ id: "message-after-retry" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const pushed = await pushDiscordEmbeds([
+      { kind: "followup_due", factory_id: factoryId, title: "Retry me" },
+    ], {
+      webhookUrl: "https://discord.com/api/webhooks/123/token",
+      forum: false,
+      onDelivered: (delivery) => delivered.push(delivery.messageId),
+    });
+    assert.equal(pushed, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(attempts, 2);
+  assert.deepEqual(delivered, ["message-after-retry"]);
 });
 
 test("manual and day-3 reminders use distinct Discord emphasis", () => {
@@ -170,7 +286,7 @@ test("work inventory alerts use their assigned contact as the linked PIC", () =>
     ["work-1", { id: "work-1", pic_contact_id: "contact-1" }],
   ]);
   const alert = enrichDiscordAlert(
-    { kind: "work_trigger_due", factory_id: factoryId, work_item_id: "work-1", title: "Work item trigger due today", detail: "Factory One — Book a call", due_on: "2026-08-03" },
+    { kind: "work_trigger_due_soon", factory_id: factoryId, work_item_id: "work-1", title: "Work item due in 1 day", detail: "Factory One — Book a call", due_on: "2026-08-03" },
     new Map([[factoryId, { id: factoryId, name: "Factory One" }]]),
     networks,
     contacts,
@@ -180,7 +296,7 @@ test("work inventory alerts use their assigned contact as the linked PIC", () =>
   assert.equal(embed.title, "Factory One");
   assert.equal(
     embed.description,
-    "## **Book a call**\n\n**Alert:** Work item trigger due today\n**Due:** 2026-08-03\n**PIC:** [Alex Owner](https://www.linkedin.com/in/alex-owner)",
+    "## **Book a call**\n\n**Alert:** Work item due in 1 day\n**Due:** 2026-08-03\n**PIC:** [Alex Owner](https://www.linkedin.com/in/alex-owner)",
   );
   assert.deepEqual(embed.fields, []);
 });

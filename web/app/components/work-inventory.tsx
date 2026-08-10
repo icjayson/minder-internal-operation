@@ -20,8 +20,9 @@ type WorkItemPatch = {
 };
 
 // Describes a work item's trigger date relative to today — used to label and
-// colour the card's deadline pill (overdue / due today / upcoming).
-function describeTrigger(triggerOn: string | null): {
+// colour the card's deadline pill (overdue / due today / upcoming). A completed
+// card is never flagged overdue or due-soon: it just shows its date, if any.
+function describeTrigger(triggerOn: string | null, status?: WorkStatus): {
   label: string;
   tone: "overdue" | "today" | "soon" | "later";
 } | null {
@@ -32,10 +33,10 @@ function describeTrigger(triggerOn: string | null): {
   today.setHours(0, 0, 0, 0);
   const days = Math.round((due.getTime() - today.getTime()) / 86_400_000);
   const date = due.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (status === "done") return { label: date, tone: "later" };
   if (days < 0) return { label: `${date} · ${Math.abs(days)}d overdue`, tone: "overdue" };
   if (days === 0) return { label: `${date} · today`, tone: "today" };
   if (days === 1) return { label: `${date} · tomorrow`, tone: "soon" };
-  if (days <= 3) return { label: `${date} · in ${days}d`, tone: "soon" };
   return { label: date, tone: "later" };
 }
 
@@ -265,7 +266,7 @@ export function WorkInventory({
                 {columnItems.map((item) => (
                   (() => {
                     const pic = contacts.find((contact) => contact.id === item.pic_contact_id);
-                    const trigger = describeTrigger(item.trigger_on);
+                    const trigger = describeTrigger(item.trigger_on, item.status);
                     return (
                       <article
                         key={item.id}

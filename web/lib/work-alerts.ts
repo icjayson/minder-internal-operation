@@ -1,8 +1,8 @@
 const DAY_MS = 86_400_000;
 
 export const WORK_TRIGGER_KINDS = {
+  dueSoon: "work_trigger_due_soon",
   due: "work_trigger_due",
-  overdue1: "work_trigger_overdue_1d",
   overdue3: "work_trigger_overdue_3d",
 } as const;
 
@@ -31,9 +31,10 @@ export function daysPastTrigger(triggerOn: string, today: string): number {
   return Math.floor((isoDateMs(today) - isoDateMs(triggerOn)) / DAY_MS);
 }
 
-// One reminder per milestone: due date, 1+ day overdue, then 3+ days overdue.
-// If a daily scan was missed, the next scan emits only the latest eligible
-// milestone instead of flooding Discord with every missed reminder at once.
+// Three milestones: a heads-up one day before the trigger date, a nudge on the
+// due date itself, then a single overdue nudge once the card is 3+ days past it.
+// Done cards never fire. Days 1 and 2 overdue are intentionally silent so
+// Discord stays quiet between the due-date nudge and the overdue escalation.
 export function workTriggerReminderFor({
   triggerOn,
   today,
@@ -45,7 +46,7 @@ export function workTriggerReminderFor({
 }): WorkTriggerReminder | null {
   if (status === "done" || !triggerOn) return null;
   const overdueDays = daysPastTrigger(triggerOn, today);
-  if (!Number.isFinite(overdueDays) || overdueDays < 0) return null;
+  if (!Number.isFinite(overdueDays)) return null;
   if (overdueDays >= 3) {
     return {
       kind: WORK_TRIGGER_KINDS.overdue3,
@@ -53,18 +54,21 @@ export function workTriggerReminderFor({
       overdueDays,
     };
   }
-  if (overdueDays >= 1) {
+  if (overdueDays === 0) {
     return {
-      kind: WORK_TRIGGER_KINDS.overdue1,
-      title: "Work item overdue by 1+ day",
+      kind: WORK_TRIGGER_KINDS.due,
+      title: "Work item trigger due today",
       overdueDays,
     };
   }
-  return {
-    kind: WORK_TRIGGER_KINDS.due,
-    title: "Work item trigger due today",
-    overdueDays: 0,
-  };
+  if (overdueDays === -1) {
+    return {
+      kind: WORK_TRIGGER_KINDS.dueSoon,
+      title: "Work item due in 1 day",
+      overdueDays,
+    };
+  }
+  return null;
 }
 
 export function isWorkTriggerNotificationKind(kind: unknown): boolean {

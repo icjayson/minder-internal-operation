@@ -114,7 +114,14 @@ export function FdeDeploymentProgress({ factoryId }: { factoryId: string }) {
           <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-accent">FDE KIT deployment</div>
           <h3 className="mt-1 truncate text-[13px] font-medium text-ink">{deployment.name}</h3>
         </div>
-        <span className="shrink-0 rounded-full border border-line-strong px-2 py-1 text-[10px] mono uppercase text-muted">{deployment.status}</span>
+        <a
+          href={`${process.env.NEXT_PUBLIC_FDE_KIT_URL ?? "https://fde-kit-web.vercel.app"}/deployments/${deployment.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 rounded-full border border-line-strong px-2.5 py-1 text-[10px] mono uppercase tracking-wide text-muted hover:border-accent hover:text-accent transition-colors"
+        >
+          More details
+        </a>
       </div>
       <div className="mt-3 flex items-center gap-2">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"><div className="h-full rounded-full bg-accent transition-all" style={{ width: `${percent}%` }} /></div>

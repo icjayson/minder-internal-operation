@@ -1,16 +1,28 @@
 "use client";
 
-import type { Contact, Stage } from "@/lib/types";
-import { ROLE_LEVELS, STAGES } from "@/lib/types";
-import { effectiveContactRoleLevel, isTopLevelContactTitle } from "@/lib/contact-role";
+import type { Contact, RoleLevel, Stage } from "@/lib/types";
+import { ROLE_CATEGORIES, ROLE_LEVELS, STAGES } from "@/lib/types";
+import { isTopLevelContactTitle } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { StagePill } from "./stage-pill";
 
 const LEVEL_LABEL: Record<string, string> = {
   high: "High-level",
   mid: "Mid-level",
-  expert: "Expert / Specialist",
+  low: "Low-level",
+  specialist: "Specialist & Executive",
 };
+
+// Rank a contact by its role category (Direction/Manager/Lead/rest). A founder/owner-style
+// title always outranks to high; contacts with no category fall back to any stored level.
+function contactLevel(c: Contact): RoleLevel | null {
+  if (isTopLevelContactTitle(c.role_title)) return "high";
+  const cat = ROLE_CATEGORIES.find((r) => r.key === c.role_category);
+  if (cat) return cat.level as RoleLevel;
+  // Fall back to a stored level; map the retired "expert" tier onto specialist.
+  const stored = (c.role_level as string | null) === "expert" ? "specialist" : c.role_level;
+  return (stored as RoleLevel) ?? null;
+}
 
 type Props = {
   factoryName: string;
@@ -33,12 +45,10 @@ export function ContactTree({
 }: Props) {
   const grouped = ROLE_LEVELS.map((lvl) => ({
     level: lvl,
-    rows: contacts.filter((c) => effectiveContactRoleLevel(c.role_title, c.role_level) === lvl),
+    rows: contacts.filter((c) => contactLevel(c) === lvl),
   })).filter((g) => g.rows.length > 0);
 
-  const ungrouped = contacts.filter(
-    (c) => !effectiveContactRoleLevel(c.role_title, c.role_level),
-  );
+  const ungrouped = contacts.filter((c) => !contactLevel(c));
 
   return (
     <div>
@@ -98,7 +108,7 @@ function ContactRow({
   onDelete: (id: string) => void;
   onEdit?: (c: Contact) => void;
 }) {
-  const isHighLevel = effectiveContactRoleLevel(c.role_title, c.role_level) === "high";
+  const isHighLevel = contactLevel(c) === "high";
   const isTopLevelTitle = isTopLevelContactTitle(c.role_title);
 
   return (

@@ -28,7 +28,7 @@ TARGET SCHEMA
 Factory fields: name (required), website_url, hq_location, frontline_workers, description, notes
 Contact fields: full_name, role_title, email, linkedin_url, phone, role_category, role_level, notes
 role_category must be one of: ${ROLE_CATEGORIES.map((r) => r.key).join(", ")}
-role_level must be one of: high, mid, expert
+role_level must be one of: high, mid, low, specialist
 Vertical keys: ${VERTICALS.map((v) => `${v.key} (${v.name})`).join("; ")}
 Geo choices: ${GEO_OPTIONS.map((g) => g.key).join(", ")}
 Frontline worker choices: ${WORKER_BANDS.join(", ")}

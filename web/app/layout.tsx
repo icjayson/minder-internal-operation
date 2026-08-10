@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Minder Design Partners",
-  description: "Factory and contact design-partner pipeline for Minder AI",
+  title: "Minder Ops Platform",
+  description: "Internal operations platform for Minder AI",
 };
 
 // Runs before first paint so the correct sky is set with no flash.

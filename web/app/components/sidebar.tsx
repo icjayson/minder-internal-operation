@@ -191,14 +191,14 @@ export function Sidebar() {
       <div className={`mb-3 flex h-10 items-center px-3 ${collapsed ? "justify-center" : "gap-2.5"}`}>
         <Link
           href="/"
-          aria-label="Minder Leads — home"
+          aria-label="Minder Ops Platform — home"
           className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl shadow-[0_0_24px_-4px_rgba(45,68,224,0.55)] ring-1 ring-line-strong"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/minder-lead-logo.png" alt="Minder Leads" className="h-full w-full object-cover" />
+          <img src="/minder-lead-logo.png" alt="Minder Ops Platform" className="h-full w-full object-cover" />
           <span className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-canvas" />
         </Link>
-        {!collapsed && <div className="min-w-0 max-lg:hidden"><div className="truncate text-[13px] font-semibold text-ink">Minder Leads</div><div className="text-[9px] uppercase tracking-[0.12em] text-muted">Design partners</div></div>}
+        {!collapsed && <div className="min-w-0 max-lg:hidden"><div className="truncate text-[13px] font-semibold text-ink">Minder Ops Platform</div><div className="text-[9px] uppercase tracking-[0.12em] text-muted">Internal operations</div></div>}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -224,8 +224,8 @@ export function Sidebar() {
           </NavIcon>
         ))}
 
-        {/* Alerts with unread badge */}
-        <NavIcon href="/alerts" label="Alerts" active={isActive(pathname, "/alerts")} collapsed={collapsed} badge={unread}>
+        {/* Persistent alert history with the actionable unread badge. */}
+        <NavIcon href="/alert-log" label="Alert log" active={isActive(pathname, "/alert-log")} collapsed={collapsed} badge={unread}>
           <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M13.7 21a2 2 0 0 1-3.4 0" strokeWidth="1.5" strokeLinecap="round" />
         </NavIcon>

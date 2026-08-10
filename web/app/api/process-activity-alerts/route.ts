@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { activityDiscordNotification } from "@/lib/activity-alerts";
-import { enrichDiscordAlert, pushDiscordEmbeds } from "@/lib/discord";
+import { enrichDiscordAlert, pushDiscordEmbeds, type DiscordDelivery } from "@/lib/discord";
+import { logDiscordDeliveries } from "@/lib/discord-alert-log";
 import { supabase } from "@/lib/supabase";
 import type { Activity, Contact, Factory, Network } from "@/lib/types";
 
@@ -136,7 +137,8 @@ async function processQueue(req: Request) {
     }
 
     const enriched = enrichDiscordAlert(rawNotification, factoryMap, networkMap, new Map(), new Map(), investorMap, competitionMap);
-    const pushed = await pushDiscordEmbeds([enriched]);
+    const delivered: DiscordDelivery[] = [];
+    const pushed = await pushDiscordEmbeds([enriched], { onDelivered: (d) => delivered.push(d) });
     if (pushed === true) {
       await sb.from("activity_alert_outbox").update({
         status: "sent",
@@ -144,6 +146,7 @@ async function processQueue(req: Request) {
         locked_at: null,
         last_error: null,
       }).eq("id", job.id);
+      await logDiscordDeliveries(sb, delivered, "activity");
       sent++;
     } else {
       await retryJob(sb, job.id, pushed === null ? "Discord webhook is not configured" : "Discord request failed", pushed === null ? 15 : 5);

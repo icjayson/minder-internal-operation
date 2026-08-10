@@ -119,7 +119,7 @@ function FactoryNode({
         </button>
         <div className="hidden sm:block"><ScoreChip score={f.score} grade={f.grade} /></div>
         <StagePill stage={f.stage} />
-        <span className="text-[11px] mono text-muted w-10 text-right shrink-0">{contacts.length} ppl</span>
+        <span className="text-[11px] mono text-muted w-20 text-right shrink-0">{contacts.length} contacts</span>
       </div>
 
       {open && has && (
