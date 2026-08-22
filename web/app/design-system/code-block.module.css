@@ -1,0 +1,110 @@
+/* The design system's code surface. Dark in both skies — code reads better on a
+   fixed dark ground, and it keeps the chart drawer and the stylesheet block
+   looking like one thing. */
+
+.block {
+  --cb-bg: #0b0b0d;
+  --cb-bar: #111114;
+  --cb-line: #23232a;
+  --cb-ink: #e6e6e9;
+  --cb-muted: #7c7c88;
+
+  /* sugar-high reads these directly from its inline styles. */
+  --sh-class: #7dd3fc;
+  --sh-identifier: #e6e6e9;
+  --sh-sign: #8b8b96;
+  --sh-property: #7dd3fc;
+  --sh-entity: #c4b5fd;
+  --sh-jsxliterals: #f0abfc;
+  --sh-string: #86efac;
+  --sh-keyword: #f9a8d4;
+  --sh-comment: #6b6b76;
+  --sh-space: inherit;
+
+  overflow: hidden;
+  border: 1px solid var(--cb-line);
+  border-radius: 12px;
+  background: var(--cb-bg);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 8px 8px 11px;
+  border-bottom: 1px solid var(--cb-line);
+  background: var(--cb-bar);
+}
+
+.badge {
+  display: inline-grid;
+  min-width: 22px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: #2563eb;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.filename {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cb-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+/* The Button inside is a design-system component; only its ground changes. */
+.iconButton { color: var(--cb-muted); }
+.iconButton:hover { background: #1c1c22; color: var(--cb-ink); }
+
+.pre {
+  max-height: 460px;
+  margin: 0;
+  padding: 14px 0 34px;
+  overflow: auto;
+  color: var(--cb-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+
+/* sugar-high emits a literal newline between its block-level line spans, which
+   would render as a second, empty line box and double the leading. Zeroing the
+   leading on the container collapses those; each line restores its own. */
+.code { display: block; min-width: max-content; line-height: 0; }
+.code :global(.sh__line) { line-height: 1.55; }
+
+/* sugar-high wraps every line in .sh__line, which makes a counter gutter cheap. */
+.pre[data-numbered] .code { counter-reset: sh-line; }
+.pre[data-numbered] .code :global(.sh__line) {
+  display: block;
+  padding-right: 18px;
+  padding-left: 56px;
+  text-indent: -56px;
+}
+.pre[data-numbered] .code :global(.sh__line)::before {
+  counter-increment: sh-line;
+  content: counter(sh-line);
+  display: inline-block;
+  width: 38px;
+  margin-right: 18px;
+  color: var(--cb-muted);
+  text-align: right;
+  text-indent: 0;
+  user-select: none;
+}
+.pre[data-numbered] .code :global(.sh__line:empty)::before { content: counter(sh-line); }
+
+/* Unnumbered (terminal snippets) still need a gutter's worth of breathing room. */
+.pre:not([data-numbered]) { padding-inline: 16px; }

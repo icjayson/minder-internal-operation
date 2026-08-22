@@ -2,6 +2,9 @@
 
 import * as React from "react";
 
+import { Button } from "@/design-system/components/button";
+
+import { CodeBlock } from "../code-block";
 import { useDesignSystemTheme } from "../theme-context";
 import { DataSection } from "./sections-data";
 import { FeedbackSection } from "./sections-feedback";
@@ -25,7 +28,6 @@ const SECTIONS = [
 /** The stylesheet at the foot of the page: copy to clipboard, or save as a file. */
 function TokenStylesheet() {
   const css = React.useMemo(() => buildTokenCss(), []);
-  const [copied, setCopied] = React.useState(false);
   const [href, setHref] = React.useState<string | undefined>(undefined);
 
   React.useEffect(() => {
@@ -33,12 +35,6 @@ function TokenStylesheet() {
     setHref(url);
     return () => URL.revokeObjectURL(url);
   }, [css]);
-
-  React.useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 1600);
-    return () => window.clearTimeout(timer);
-  }, [copied]);
 
   return (
     <section id="stylesheet" className={styles.section}>
@@ -52,33 +48,18 @@ function TokenStylesheet() {
         </p>
       </header>
 
-      <div className={styles.codeCard}>
-        <div className={styles.codeBar}>
-          <span>minder-tokens.css</span>
-          <div className={styles.codeActions}>
-            <button
-              type="button"
-              data-copied={copied || undefined}
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(css);
-                  setCopied(true);
-                } catch {
-                  setCopied(false);
-                }
-              }}
-            >
-              {copied ? "Copied" : "Copy"}
-            </button>
-            <a href={href} download="minder-tokens.css" aria-disabled={!href}>
+      <CodeBlock
+        code={css}
+        filename="minder-tokens.css"
+        language="css"
+        actions={
+          <Button asChild variant="ghost" size="sm" className={styles.downloadAction}>
+            <a href={href} download="minder-tokens.css">
               Download
             </a>
-          </div>
-        </div>
-        <pre className={styles.codeBlock}>
-          <code>{css}</code>
-        </pre>
-      </div>
+          </Button>
+        }
+      />
     </section>
   );
 }

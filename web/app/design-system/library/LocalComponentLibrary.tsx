@@ -11,6 +11,7 @@ import {
   CommandList,
 } from "@/design-system/components/command";
 
+import { CodeBlock } from "../code-block";
 import { useDesignSystemTheme } from "../theme-context";
 import styles from "./library.module.css";
 import {
@@ -61,20 +62,6 @@ function CopyButton({ value, label = "Copy" }: { value: string; label?: string }
     >
       {copied ? "Copied" : label}
     </button>
-  );
-}
-
-function CodeBlock({ code, filename }: { code: string; filename?: string }) {
-  return (
-    <div className={styles.codeBlock}>
-      <div className={styles.codeBar}>
-        <span>{filename ?? "tsx"}</span>
-        <CopyButton value={code} />
-      </div>
-      <pre className={styles.pre}>
-        <code>{code}</code>
-      </pre>
-    </div>
   );
 }
 
@@ -376,12 +363,17 @@ export default function LocalComponentLibrary() {
                 </button>
               ))}
             </div>
-            <CodeBlock code={installCommand(manager, entry.dependencies)} filename="terminal" />
+            <CodeBlock
+              code={installCommand(manager, entry.dependencies)}
+              filename="terminal"
+              language="bash"
+              lineNumbers={false}
+            />
           </section>
 
           <section id="usage" className={styles.section}>
             <h2>Usage</h2>
-            <CodeBlock code={entry.usage} />
+            <CodeBlock code={entry.usage} filename={`${entry.name}.tsx`} lineNumbers={false} />
           </section>
 
           {entry.demos.length === 0 ? (

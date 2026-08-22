@@ -2,6 +2,11 @@
 
 import * as React from "react";
 
+import { XIcon } from "lucide-react";
+
+import { Button } from "@/design-system/components/button";
+
+import { CodeBlock } from "../code-block";
 import { useDesignSystemTheme } from "../theme-context";
 import styles from "./charts.module.css";
 import { CHART_CATEGORIES, type ChartCategory, type ChartEntry, chartEntries } from "./registry";
@@ -124,7 +129,6 @@ function ChartCard({
 
 function CodeDrawer({ entry, onClose }: { entry: ChartEntry; onClose: () => void }) {
   const { source, status } = useChartSource(entry.name);
-  const [copied, setCopied] = useCopy();
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -148,29 +152,24 @@ function CodeDrawer({ entry, onClose }: { entry: ChartEntry; onClose: () => void
             <p className={styles.drawerKicker}>{entry.category} chart</p>
             <h2>{entry.description || entry.name}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close code panel">
-            ×
-          </button>
+          <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close code panel">
+            <XIcon />
+          </Button>
         </header>
-        <div className={styles.drawerFileBar}>
-          <span>{entry.name}.tsx</span>
-          <button
-            type="button"
-            data-copied={copied === entry.name || undefined}
-            onClick={async () => {
-              if (!source) return;
-              await navigator.clipboard.writeText(source);
-              setCopied(entry.name);
-            }}
-          >
-            {copied === entry.name ? "Copied" : "Copy"}
-          </button>
+        <div className={styles.drawerBody}>
+          <CodeBlock
+            code={
+              status === "loading"
+                ? "// Loading source…"
+                : status === "error"
+                  ? "// Source unavailable."
+                  : (source ?? "")
+            }
+            filename={`${entry.name}.tsx`}
+            language="tsx"
+            className={styles.drawerCode}
+          />
         </div>
-        <pre className={styles.pre}>
-          <code>
-            {status === "loading" ? "Loading source…" : status === "error" ? "Source unavailable." : source}
-          </code>
-        </pre>
       </aside>
     </div>
   );

@@ -260,25 +260,6 @@
 .managerTabActive { background: var(--doc-bg); color: var(--doc-ink); font-weight: 600; }
 
 /* ── Code ────────────────────────────────────────────────────────── */
-
-.codeBlock {
-  margin-top: 12px;
-  overflow: hidden;
-  border: 1px solid var(--doc-line);
-  border-radius: 10px;
-  background: var(--doc-code-bg);
-}
-.codeBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 8px 7px 12px;
-  border-bottom: 1px solid var(--doc-line);
-  color: var(--doc-faint);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-}
 .pre, .preCollapsed {
   margin: 0;
   padding: 14px 16px;

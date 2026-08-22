@@ -38,18 +38,6 @@
   padding: 84px 24px 56px;
   text-align: center;
 }
-.notice {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 18px;
-  padding: 5px 12px;
-  border: 1px solid var(--g-line);
-  border-radius: 999px;
-  color: var(--g-muted);
-  font-size: 12px;
-}
-.notice b { color: var(--g-ink); }
 .hero h1 {
   font-size: clamp(40px, 6vw, 62px);
   font-weight: 700;
@@ -247,42 +235,10 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-.drawerFileBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px 9px 20px;
-  border-bottom: 1px solid var(--g-line);
-  color: var(--g-faint);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-}
-.drawerFileBar button {
-  height: 26px;
-  padding: 0 10px;
-  border: 1px solid var(--g-line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--g-ink);
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-}
-.drawerFileBar button[data-copied] { border-color: #16a34a; color: #16a34a; }
-.pre {
-  flex: 1;
-  min-height: 0;
-  margin: 0;
-  padding: 18px 20px 60px;
-  overflow: auto;
-  background: var(--g-code-bg);
-  color: #e6e6e9;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12.5px;
-  line-height: 1.65;
-  tab-size: 2;
-}
+.drawerBody { flex: 1; min-height: 0; padding: 16px 18px 20px; overflow: hidden; }
+/* The block owns its own scrolling, so it fills the drawer rather than the page. */
+.drawerCode { display: flex; flex-direction: column; height: 100%; }
+.drawerCode :global(pre) { flex: 1; max-height: none; }
 
 @media (max-width: 720px) {
   .hero { padding: 52px 20px 40px; }

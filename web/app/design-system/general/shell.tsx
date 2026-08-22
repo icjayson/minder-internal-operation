@@ -2,7 +2,20 @@
 
 import * as React from "react";
 
+import { Button } from "@/design-system/components/button";
+
+import { CopySourceButton, SourceDrawer } from "../source-drawer";
 import styles from "./general.module.css";
+
+/**
+ * A `source` of "components/button" names a real vendored file, so the specimen
+ * can offer Copy and View Code. "composed · …" ones have no single file behind
+ * them and get the label only.
+ */
+function vendoredName(source?: string) {
+  const match = /^components\/([a-z0-9-]+)$/.exec(source ?? "");
+  return match ? match[1] : null;
+}
 
 /** A numbered top-level section, e.g. "01 · Foundation". */
 export function Section({
@@ -66,6 +79,9 @@ export function Spec({
   tall?: boolean;
   children: React.ReactNode;
 }) {
+  const name = vendoredName(source);
+  const [open, setOpen] = React.useState(false);
+
   return (
     <article
       className={wide ? styles.specWide : styles.spec}
@@ -73,10 +89,22 @@ export function Spec({
       data-tall={tall || undefined}
     >
       <div className={styles.specBar}>
-        <span>{label}</span>
-        {source ? <code>{source}</code> : null}
+        <span className={styles.specLabel}>{label}</span>
+        {name ? (
+          <div className={styles.specActions}>
+            <CopySourceButton name={name} label={label} />
+            <Button variant="outline" size="sm" className={styles.specViewCode} onClick={() => setOpen(true)}>
+              View Code
+            </Button>
+          </div>
+        ) : source ? (
+          <code>{source}</code>
+        ) : null}
       </div>
       <div className={styles.specStage}>{children}</div>
+      {open && name ? (
+        <SourceDrawer name={name} title={label} kicker={source} onClose={() => setOpen(false)} />
+      ) : null}
     </article>
   );
 }

@@ -1,0 +1,44 @@
+/* Slide-over for "View Code", shared by the general, AI chat, and chart pages. */
+
+.overlay {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, .3);
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 96vw);
+  height: 100%;
+  background: var(--color-background, #fff);
+  color: var(--color-foreground, #09090b);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, .2);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--color-border, #e4e4e7);
+}
+.header h2 { margin-top: 5px; font-size: 19px; font-weight: 650; letter-spacing: -.02em; }
+.kicker {
+  color: var(--color-muted-foreground, #71717a);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.body { flex: 1; min-height: 0; padding: 16px 18px 20px; overflow: hidden; }
+/* The block scrolls internally, so it fills the drawer instead of the page. */
+.code { display: flex; flex-direction: column; height: 100%; }
+.code :global(pre) { flex: 1; max-height: none; }
+
+.iconAction[data-copied] { color: #16a34a; }
