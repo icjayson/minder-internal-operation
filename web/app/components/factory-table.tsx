@@ -207,7 +207,15 @@ function FdeProgressCell({ progress }: { progress?: FdeProgressSummary }) {
         <span className="shrink-0 text-[10.5px] mono text-ink-soft">{progress.done}/{progress.total}</span>
       </div>
       <div className="mt-1 flex items-center gap-2 truncate text-[9.5px] text-muted">
-        <span className="rounded-full border border-line-strong px-1.5 py-0.5 mono uppercase">{progress.status}</span>
+        <a
+          href={`${process.env.NEXT_PUBLIC_FDE_KIT_URL ?? "https://fde-kit-web.vercel.app"}/deployments/${progress.deploymentId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          className="rounded-full border border-line-strong px-1.5 py-0.5 mono uppercase hover:border-accent hover:text-accent transition-colors"
+        >
+          Details
+        </a>
         {progress.phases.filter((phase) => phase.total > 0).map((phase) => (
           <span key={phase.phase}>{phase.phase}: {phase.done}/{phase.total}</span>
         ))}

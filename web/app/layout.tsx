@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Roboto } from "next/font/google";
 import "./globals.css";
 
 // Celesnity ships entirely in Inter — one family, from calm body to display.
@@ -10,9 +10,17 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+// The Minder general design system sets its own type in Roboto; nothing else does.
+const roboto = Roboto({
+  subsets: ["latin"],
+  variable: "--font-roboto",
+  display: "swap",
+  weight: ["300", "400", "500", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Minder Design Partners",
-  description: "Factory and contact design-partner pipeline for Minder AI",
+  title: "Minder Ops Platform",
+  description: "Internal operations platform for Minder AI",
 };
 
 // Runs before first paint so the correct sky is set with no flash.
@@ -23,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={inter.variable}
+      className={`${inter.variable} ${roboto.variable}`}
       data-theme="light"
     >
       <head>

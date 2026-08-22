@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* The official shadcn/ui style layer, exactly as `new-york-v4` declares it:
+   https://ui.shadcn.com/r/styles/new-york-v4/index.json — enter/exit animations
+   plus the data-open / data-closed / data-checked / scroll-fade / shimmer
+   variants and utilities the vendored components are written against. */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
 @theme {
   /* ── Celesnity · Cosmos (dark) ──────────────────────────────────── */
   --color-canvas:      #05060F;      /* cosmic black */
@@ -179,3 +186,207 @@ h1, h2, h3, h4, .font-display {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   shadcn/ui tokens — for the local design-system library
+   -------------------------------------------------------------------
+   Values are the official `neutral` base colour, verbatim from
+   https://ui.shadcn.com/r/colors/neutral.json (cssVarsV4).
+
+   shadcn normally puts these on :root and maps them with `@theme inline`.
+   Here they live on `.shadcn-scope` instead, because two of the names
+   (`accent`, `muted`) already mean something else in the Celesnity
+   palette. The library adds that class to <body> while it is mounted,
+   which is also how portalled overlays inherit the tokens.
+
+   Both spellings are kept in sync: components use `bg-primary` (which
+   Tailwind resolves to `--color-primary`) and, in a few places, bare
+   `var(--primary)` inside a color-mix() or oklch() expression.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Only the component and chart sources carry class names. The generated
+   sources.json in the same folder is a 440KB copy of all of them — scanning it
+   doubles the work on every rebuild for no extra utilities. */
+@source "../design-system/components";
+@source "../design-system/charts";
+
+/* `dark:` becomes class-driven instead of OS-driven so the library's own
+   light/dark toggle is the single source of truth. Nothing else in the app
+   uses the `dark:` variant. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Declared so Tailwind generates the utilities; the values that matter are
+   the scoped ones below. `--color-accent` and `--color-muted` are absent on
+   purpose — the Celesnity palette already owns those names. */
+@theme {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
+  --color-primary: oklch(0.205 0 0);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-accent-foreground: oklch(0.205 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-border: oklch(0.922 0 0);
+  --color-input: oklch(0.922 0 0);
+  --color-ring: oklch(0.708 0 0);
+  --color-chart-1: var(--color-blue-300);
+  --color-chart-2: var(--color-blue-500);
+  --color-chart-3: var(--color-blue-600);
+  --color-chart-4: var(--color-blue-700);
+  --color-chart-5: var(--color-blue-800);
+  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(0.145 0 0);
+  --color-sidebar-primary: oklch(0.205 0 0);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.97 0 0);
+  --color-sidebar-accent-foreground: oklch(0.205 0 0);
+  --color-sidebar-border: oklch(0.922 0 0);
+  --color-sidebar-ring: oklch(0.708 0 0);
+}
+
+.shadcn-scope {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  /* The `neutral` base ships a grayscale chart ramp; ui.shadcn.com overrides it
+     with Tailwind's blue scale (`.theme-default`), which is what the /charts
+     gallery actually renders. Same override here, referencing Tailwind's own
+     tokens so the two stay in step. */
+  --chart-1: var(--color-blue-300);
+  --chart-2: var(--color-blue-500);
+  --chart-3: var(--color-blue-600);
+  --chart-4: var(--color-blue-700);
+  --chart-5: var(--color-blue-800);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.shadcn-scope.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Point the Tailwind colour utilities at the raw tokens above — shadcn does
+   this with `@theme inline`, which is not an option here because the mapping
+   has to stay inside the scope. Same effect, same single source. */
+.shadcn-scope {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* The Minder general design system is the same library re-tokenised to the brand
+   blue. Applied on <body> alongside .shadcn-scope so portalled dialogs and menus
+   pick it up too. */
+.shadcn-scope.minder-brand {
+  --primary: #0075de;
+  --primary-foreground: #ffffff;
+  --ring: #0075de;
+  --sidebar-primary: #0075de;
+  --sidebar-primary-foreground: #ffffff;
+}
+.shadcn-scope.minder-brand.dark {
+  --primary: #62aef0;
+  --primary-foreground: #06254a;
+  --ring: #62aef0;
+}
+
+/* shadcn's base layer, scoped. Upstream this is `* { @apply border-border
+   outline-ring/50 }` on every element in the document. */
+.shadcn-scope [data-slot], .shadcn-scope [data-slot]::before, .shadcn-scope [data-slot]::after,
+.shadcn-scope [data-slot] *, .shadcn-scope [data-slot] *::before, .shadcn-scope [data-slot] *::after {
+  border-color: var(--border);
+}
+/* The app-wide `*:focus-visible { outline: 2px solid … }` above would paint a
+   second ring on top of the one every shadcn component already draws for
+   itself (`focus-visible:border-ring` + `focus-visible:ring-ring/50`). Upstream
+   only sets an outline *colour* on `*`, never an outline, so suppress it here
+   and let the components own their focus treatment. */
+.shadcn-scope [data-slot]:focus-visible, .shadcn-scope [data-slot] *:focus-visible {
+  outline: none;
+}
+.shadcn-scope ::selection { background: var(--foreground); color: var(--background); }

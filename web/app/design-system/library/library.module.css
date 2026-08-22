@@ -1,0 +1,467 @@
+/* Chrome for the local component library: a three-column docs shell.
+   Deliberately written in plain CSS (not Tailwind) so it never competes with the
+   utility classes the vendored shadcn components rely on inside the previews. */
+
+.docs {
+  --doc-bg: #ffffff;
+  --doc-subtle: #fafafa;
+  --doc-ink: #09090b;
+  --doc-muted: #71717a;
+  --doc-faint: #a1a1aa;
+  --doc-line: #e4e4e7;
+  --doc-line-soft: #f1f1f3;
+  --doc-accent: #09090b;
+  --doc-code-bg: #fafafa;
+  /* Inherited from .designSystem, which owns the nav bar this sits under. */
+  --doc-shell-height: calc(100vh - var(--mo-nav-height, 60px));
+
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr) 214px;
+  height: var(--doc-shell-height);
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font-size: 14px;
+}
+
+:global(.dark) .docs {
+  --doc-bg: #0b0b0d;
+  --doc-subtle: #0f0f11;
+  --doc-ink: #fafafa;
+  --doc-muted: #a1a1aa;
+  --doc-faint: #71717a;
+  --doc-line: #26262a;
+  --doc-line-soft: #1b1b1e;
+  --doc-accent: #fafafa;
+  --doc-code-bg: #101013;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--doc-line);
+  background: var(--doc-subtle);
+}
+
+.sidebarTop {
+  display: grid;
+  gap: 8px;
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid var(--doc-line-soft);
+}
+
+.search {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--doc-line);
+  border-radius: 7px;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font: inherit;
+  font-size: 13px;
+  outline: 0;
+}
+.search::placeholder { color: var(--doc-faint); }
+.search:focus-visible { border-color: var(--doc-accent); }
+
+.paletteButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 10px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--doc-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.paletteButton:hover { border-color: var(--doc-faint); color: var(--doc-ink); }
+.paletteButton kbd {
+  padding: 2px 5px;
+  border: 1px solid var(--doc-line);
+  border-radius: 4px;
+  background: var(--doc-bg);
+  font-size: 10px;
+}
+
+.sidebarNav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 10px 40px;
+}
+.sidebarNav ul { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; }
+
+.navGroup + .navGroup { margin-top: 18px; }
+.navGroupLabel {
+  margin: 0 0 6px;
+  padding: 0 8px;
+  color: var(--doc-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.navLink, .navLinkActive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--doc-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.navLink:hover { background: var(--doc-line-soft); color: var(--doc-ink); }
+.navLinkActive {
+  background: var(--doc-line-soft);
+  color: var(--doc-ink);
+  font-weight: 600;
+}
+
+.navHint {
+  color: var(--doc-faint);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.navEmpty { padding: 8px; color: var(--doc-faint); font-size: 12px; }
+
+/* ── Main column ─────────────────────────────────────────────────── */
+
+.main {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.mainInner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 34px 40px 120px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--doc-faint);
+  font-size: 12px;
+}
+.breadcrumbCurrent { color: var(--doc-muted); }
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 14px;
+}
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1.15;
+}
+.header p { margin-top: 8px; color: var(--doc-muted); font-size: 15px; }
+
+.headerActions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+
+.iconButton {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--doc-line);
+  border-radius: 7px;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.iconButton:hover:not(:disabled) { background: var(--doc-line-soft); }
+.iconButton:disabled { color: var(--doc-faint); cursor: not-allowed; }
+
+.copyButton {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--doc-line);
+  border-radius: 7px;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.copyButton:hover { background: var(--doc-line-soft); }
+.copyButton[data-copied] { border-color: #16a34a; color: #16a34a; }
+
+.metaRow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.metaPill {
+  padding: 3px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 999px;
+  color: var(--doc-muted);
+  font-size: 11px;
+}
+
+.section { margin-top: 44px; scroll-margin-top: 16px; }
+.section h2 {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  scroll-margin-top: 16px;
+}
+.sectionCopy { margin-top: 8px; color: var(--doc-muted); font-size: 14px; line-height: 1.6; }
+.sectionCopy code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--doc-line-soft);
+  color: var(--doc-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+/* ── Package manager tabs ────────────────────────────────────────── */
+
+.managerTabs {
+  display: flex;
+  gap: 2px;
+  margin-top: 14px;
+  padding: 3px;
+  width: fit-content;
+  border: 1px solid var(--doc-line);
+  border-radius: 8px;
+  background: var(--doc-subtle);
+}
+.managerTab, .managerTabActive {
+  padding: 4px 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--doc-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.managerTabActive { background: var(--doc-bg); color: var(--doc-ink); font-weight: 600; }
+
+/* ── Code ────────────────────────────────────────────────────────── */
+
+.codeBlock {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--doc-line);
+  border-radius: 10px;
+  background: var(--doc-code-bg);
+}
+.codeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px 7px 12px;
+  border-bottom: 1px solid var(--doc-line);
+  color: var(--doc-faint);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+.pre, .preCollapsed {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  max-height: 460px;
+  overflow-y: auto;
+  color: var(--doc-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+/* ── Demo block ──────────────────────────────────────────────────── */
+
+.demo { margin-top: 14px; }
+
+.previewSurface {
+  border: 1px solid var(--doc-line);
+  border-radius: 10px;
+  background: var(--color-background, #fff);
+  color: var(--color-foreground, #09090b);
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--doc-line) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+.previewCanvas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 190px;
+  padding: 34px 24px;
+}
+/* shadcn components ship their own focus rings; the page-wide cobalt outline
+   would sit on top of them inside the preview. */
+.previewCanvas *:focus-visible { outline-color: transparent; }
+
+.codeShell { position: relative; margin-top: 10px; }
+.preCollapsed {
+  max-height: 108px;
+  overflow: hidden;
+  border: 1px solid var(--doc-line);
+  border-radius: 10px;
+  background: var(--doc-code-bg);
+  color: var(--doc-muted);
+}
+.codeShell[data-open] .preCollapsed {
+  max-height: 520px;
+  overflow: auto;
+  color: var(--doc-ink);
+}
+
+.codeShellActions {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  padding: 26px 0 10px;
+  background: linear-gradient(to bottom, transparent, var(--doc-code-bg) 62%);
+  pointer-events: none;
+}
+.codeShellActions > * { pointer-events: auto; }
+.codeShell[data-open] .codeShellActions {
+  position: static;
+  padding: 10px 0 0;
+  background: none;
+}
+
+.viewCode {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--doc-line);
+  border-radius: 7px;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.viewCode:hover { background: var(--doc-line-soft); }
+
+/* ── Source panel ────────────────────────────────────────────────── */
+
+.sourcePanel { margin-top: 6px; }
+.sourceNote { margin-top: 12px; color: var(--doc-faint); font-size: 13px; }
+.fileTabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+.fileTab, .fileTabActive {
+  padding: 4px 9px;
+  border: 1px solid var(--doc-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--doc-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
+.fileTabActive { background: var(--doc-line-soft); color: var(--doc-ink); }
+
+/* ── Pager and footer ────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 56px;
+  padding-top: 22px;
+  border-top: 1px solid var(--doc-line);
+}
+.pager button {
+  padding: 8px 12px;
+  border: 1px solid var(--doc-line);
+  border-radius: 8px;
+  background: var(--doc-bg);
+  color: var(--doc-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pager button:hover { background: var(--doc-line-soft); }
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 26px;
+  color: var(--doc-faint);
+  font-size: 11px;
+}
+
+/* ── On this page ────────────────────────────────────────────────── */
+
+.toc {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 34px 18px 60px;
+  border-left: 1px solid var(--doc-line);
+}
+.tocLabel {
+  margin-bottom: 10px;
+  color: var(--doc-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.toc ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.tocLink, .tocLinkActive {
+  display: block;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: var(--doc-muted);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.tocLink:hover { color: var(--doc-ink); }
+.tocLinkActive { color: var(--doc-ink); font-weight: 600; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 1180px) {
+  .docs { grid-template-columns: 220px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+
+@media (max-width: 860px) {
+  .docs { grid-template-columns: 1fr; height: auto; }
+  .sidebar {
+    height: auto;
+    max-height: 240px;
+    border-right: 0;
+    border-bottom: 1px solid var(--doc-line);
+  }
+  .main { overflow: visible; }
+  .mainInner { padding: 24px 18px 80px; }
+  .header { flex-direction: column; }
+  .header h1 { font-size: 26px; }
+}

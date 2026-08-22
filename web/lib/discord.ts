@@ -1,5 +1,6 @@
 // Discord push for alerts.
-//   • Text channel  → one message per entity containing its alert embeds.
+//   • Text channel  → one message per alert, so every delivery can be logged
+//     and deleted independently.
 //   • Forum channel → one durable THREAD per Factory / Network; every later
 //     alert is appended to that entity's existing thread.
 
@@ -130,20 +131,24 @@ export function discordEmbedFor(n: Row) {
   const manual = n.kind === "manual_factory";
   const activity = n.kind === "activity_created";
   const urgent = stale || n.kind === "work_trigger_overdue_3d";
-  const fields: { name: string; value: string; inline: boolean }[] = [];
-  if (n._sourceNetworkName)
-    fields.push({ name: "Source network", value: String(n._sourceNetworkName), inline: false });
+  // Source network is a single inline row in the description ("Source network:
+  // X"), not a standalone embed field (which Discord renders as two lines).
+  const sourceNetworkRow = n._sourceNetworkName
+    ? [`**Source network:** ${String(n._sourceNetworkName)}`]
+    : [];
   const ownerName = String(n._ownerName ?? n.detail ?? "Alert");
   const mainBody = discordMainBody(n, ownerName);
   const metadataRows = activity
     ? [
         `**Status update:** ${String(n.title ?? "Activity")}`,
         ...(n._picName ? [`**PIC:** ${discordPicValue(n)}`] : []),
+        ...sourceNetworkRow,
       ].join("\n")
     : [
         `**Alert:** ${String(n.title ?? n.kind ?? "Alert")}`,
         ...(n.due_on ? [`**Due:** ${String(n.due_on)}`] : []),
         ...(n._picName ? [`**PIC:** ${discordPicValue(n)}`] : []),
+        ...sourceNetworkRow,
       ].join("\n");
   const descriptionSeparator = mainBody && metadataRows ? "\n\n" : "";
   const mainBodyLimit = 2000 - metadataRows.length - descriptionSeparator.length;
@@ -152,7 +157,7 @@ export function discordEmbedFor(n: Row) {
     description: `${formatMainBody(mainBody, mainBodyLimit)}${descriptionSeparator}${metadataRows}`,
     url: deepLink(n),
     color: manual ? 0x2d44e0 : activity ? 0x22a98b : urgent ? 0xe0607f : 0xf5b544,
-    fields,
+    fields: [],
   };
 }
 
@@ -201,10 +206,58 @@ export function discordThreadTitleFor(
   return `${OWNER_LABELS[kind] ?? "Factory"} · ${name}`.slice(0, 100);
 }
 
+// A message that was successfully posted to Discord. `notification` is the same
+// (enriched) row that produced the embed, so callers can log/associate it.
+export type DiscordDelivery = {
+  notification: Row;
+  messageId: string;
+  threadId: string | null;
+  webhookKey: string;
+};
+
+// A flat, insert-ready row for the discord_alert_log table. Kept pure (no DB)
+// so lib/discord.ts stays testable; callers do the actual insert.
+export function discordAlertLogRow(delivery: DiscordDelivery, source: string): Record<string, unknown> {
+  const n = delivery.notification;
+  const owner = ownerOf(n);
+  // Only scan/manual deliveries originate from public.notifications. Activity
+  // and test payloads may gain their own `id` later, but must never be treated
+  // as a notifications foreign key.
+  const notificationId =
+    (source === "scan" || source === "manual") && typeof n.id === "string"
+      ? n.id
+      : null;
+  return {
+    notification_id: notificationId,
+    message_id: delivery.messageId,
+    thread_id: delivery.threadId,
+    webhook_key: delivery.webhookKey,
+    source,
+    kind: typeof n.kind === "string" ? n.kind : null,
+    title: typeof n.title === "string" ? n.title : null,
+    detail: typeof n.detail === "string" ? n.detail : null,
+    summary: typeof n.summary === "string" ? n.summary : null,
+    due_on: typeof n.due_on === "string" ? n.due_on : null,
+    task_done_at: typeof n.read_at === "string" ? n.read_at : null,
+    owner_type: owner.kind,
+    owner_id: owner.id,
+    owner_name: owner.name,
+    deep_link: deepLink(n),
+  };
+}
+
 // Returns true if any message posted, null if no webhook configured, false on error.
+// When opts.onDelivered is set, it is called once per successfully posted message
+// with its Discord id (requires ?wait=true, which this adds to each post).
 export async function pushDiscordEmbeds(
   notifications: Row[],
-  opts: { webhookUrl?: string; forum?: boolean; threadPrefix?: string; threadStore?: DiscordThreadStore | null } = {},
+  opts: {
+    webhookUrl?: string;
+    forum?: boolean;
+    threadPrefix?: string;
+    threadStore?: DiscordThreadStore | null;
+    onDelivered?: (delivery: DiscordDelivery) => void;
+  } = {},
 ): Promise<boolean | null> {
   const url = opts.webhookUrl ?? process.env.DISCORD_WEBHOOK_URL;
   if (!url) return null;
@@ -231,8 +284,37 @@ export async function pushDiscordEmbeds(
     groups.set(o.key, g);
   }
 
-  const post = async (endpoint: string, body: Record<string, unknown>) =>
-    fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const post = async (endpoint: string, body: Record<string, unknown>) => {
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (response.status !== 429 || attempt === 2) return response;
+
+      let retrySeconds = Number(response.headers.get("retry-after"));
+      if (!Number.isFinite(retrySeconds)) {
+        try {
+          const payload = (await response.clone().json()) as { retry_after?: number };
+          retrySeconds = Number(payload.retry_after);
+        } catch { retrySeconds = 1; }
+      }
+      const retryMs = Math.min(5000, Math.max(0, retrySeconds * 1000));
+      await new Promise((resolve) => setTimeout(resolve, retryMs));
+    }
+    return response!;
+  };
+
+  // Report a posted message's id to the caller (needs ?wait=true on the post).
+  const capture = async (response: Response, notification: Row, tId: string | null): Promise<void> => {
+    if (!opts.onDelivered || !response.ok) return;
+    try {
+      const json = (await response.clone().json()) as { id?: string };
+      if (json.id) opts.onDelivered({ notification, messageId: String(json.id), threadId: tId, webhookKey });
+    } catch { /* wait not honored / no body — nothing to capture */ }
+  };
 
   try {
     let ok = false;
@@ -261,11 +343,12 @@ export async function pushDiscordEmbeds(
 
         if (threadId) {
           for (let i = 0; i < embeds.length; i++) {
-            const r = await post(webhookEndpoint(url, { thread_id: threadId }), {
+            const r = await post(webhookEndpoint(url, { thread_id: threadId, wait: "true" }), {
               embeds: [embeds[i]],
             });
             if (!r.ok) return false;
             ok = true;
+            await capture(r, rows[i], threadId);
           }
           continue;
         }
@@ -279,9 +362,11 @@ export async function pushDiscordEmbeds(
           if (threadStore && owner) await threadStore.release(owner);
           return false;
         }
+        let firstMessageId: string | null = null;
         try {
-          const json = (await res.json()) as { channel_id?: string };
+          const json = (await res.json()) as { channel_id?: string; id?: string };
           threadId = json.channel_id ?? null;
+          firstMessageId = json.id ?? null;
         } catch { threadId = null; }
         if (!threadId) {
           if (threadStore && owner) await threadStore.release(owner);
@@ -289,15 +374,21 @@ export async function pushDiscordEmbeds(
         }
         if (threadStore && owner) await threadStore.complete({ ...owner, threadId, threadName: title });
         ok = true;
+        if (opts.onDelivered && firstMessageId)
+          opts.onDelivered({ notification: rows[0], messageId: firstMessageId, threadId, webhookKey });
         for (let i = 1; i < embeds.length; i++) {
-          const r = await post(webhookEndpoint(url, { thread_id: threadId }), { embeds: [embeds[i]] });
+          const r = await post(webhookEndpoint(url, { thread_id: threadId, wait: "true" }), { embeds: [embeds[i]] });
           if (!r.ok) return false;
+          await capture(r, rows[i], threadId);
         }
       } else {
-        // Text channel: one message per entity (batch embeds, ≤10 per message).
-        for (let i = 0; i < embeds.length; i += 10) {
-          const r = await post(url, { embeds: embeds.slice(i, i + 10) });
-          ok = ok || r.ok;
+        // Keep a 1:1 alert-to-message mapping so Alert Log always receives a
+        // Discord message id and can delete one alert without deleting others.
+        for (let i = 0; i < embeds.length; i++) {
+          const r = await post(webhookEndpoint(url, { wait: "true" }), { embeds: [embeds[i]] });
+          if (!r.ok) return false;
+          ok = true;
+          await capture(r, rows[i], null);
         }
       }
     }

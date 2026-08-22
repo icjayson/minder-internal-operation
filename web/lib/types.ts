@@ -62,20 +62,25 @@ export const GEO_OPTIONS = [
 export const WORKER_BANDS = ["50 - 200", "200 - 500", "500 - 1000"] as const;
 
 // ── Contact role model (PDF 1 §1.2.2) ───────────────────────────────────────
-export const ROLE_LEVELS = ["high", "mid", "expert"] as const;
+// Rank tiers (ordered high → low): Direction, Manager, Lead, then everyone else.
+export const ROLE_LEVELS = ["high", "mid", "low", "specialist"] as const;
 export type RoleLevel = (typeof ROLE_LEVELS)[number];
 
 export const ROLE_CATEGORIES = [
+  // Direction → high-level
   { key: "owner_md_coo", label: "Owner / MD / COO / Ops Director", level: "high" },
   { key: "plant_director", label: "Plant / Factory Director", level: "high" },
-  { key: "ops_manager", label: "Production / Operations Manager", level: "high" },
-  { key: "ci_opex", label: "CI / OPEX / Lean Lead", level: "mid" },
+  // Manager → mid-level
+  { key: "ops_manager", label: "Production / Operations Manager", level: "mid" },
   { key: "materials_mgr", label: "Materials / Warehouse / Logistics Manager", level: "mid" },
-  { key: "shift_lead", label: "Shift Supervisor / Team Leader", level: "mid" },
-  { key: "operator", label: "Operator / Technician", level: "expert" },
-  { key: "it_ot", label: "IT / OT & Cybersecurity", level: "mid" },
-  { key: "hr_dpo", label: "HR / DPO / Works Council / HSE", level: "mid" },
-  { key: "procurement", label: "Procurement / Finance", level: "mid" },
+  // Lead → low-level
+  { key: "ci_opex", label: "CI / OPEX / Lean Lead", level: "low" },
+  { key: "shift_lead", label: "Shift Supervisor / Team Leader", level: "low" },
+  // Everyone else → specialist & executive
+  { key: "operator", label: "Operator / Technician", level: "specialist" },
+  { key: "it_ot", label: "IT / OT & Cybersecurity", level: "specialist" },
+  { key: "hr_dpo", label: "HR / DPO / Works Council / HSE", level: "specialist" },
+  { key: "procurement", label: "Procurement / Finance", level: "specialist" },
 ] as const;
 export type RoleCategory = (typeof ROLE_CATEGORIES)[number]["key"];
 

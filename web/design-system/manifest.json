@@ -1,0 +1,1543 @@
+{
+  "source": "https://ui.shadcn.com/r/styles/new-york-v4/registry.json",
+  "style": "new-york-v4",
+  "generatedAt": "2026-08-22T15:49:27.355Z",
+  "componentCount": 61,
+  "chartCount": 68,
+  "dependencies": [
+    "@base-ui/react",
+    "@hookform/resolvers",
+    "@shadcn/react",
+    "class-variance-authority",
+    "clsx",
+    "cmdk",
+    "date-fns",
+    "embla-carousel-react",
+    "input-otp",
+    "lucide-react",
+    "next-themes",
+    "radix-ui",
+    "react-day-picker@latest",
+    "react-hook-form",
+    "react-resizable-panels@^4",
+    "recharts@3.8.0",
+    "sonner",
+    "tailwind-merge",
+    "vaul",
+    "zod"
+  ],
+  "components": [
+    {
+      "name": "accordion",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/accordion.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/alert.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "alert-dialog",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/alert-dialog.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "aspect-ratio",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/aspect-ratio.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/avatar.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/badge.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "breadcrumb",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/breadcrumb.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/button.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "button-group",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/button-group.tsx"
+      ],
+      "registryDependencies": [
+        "button",
+        "separator"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "calendar",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/calendar.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "react-day-picker@latest",
+        "date-fns"
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/card.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "carousel",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/carousel.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "embla-carousel-react"
+      ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/chart.tsx"
+      ],
+      "registryDependencies": [
+        "card"
+      ],
+      "dependencies": [
+        "recharts@3.8.0",
+        "lucide-react"
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/checkbox.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "collapsible",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/collapsible.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/combobox.tsx"
+      ],
+      "registryDependencies": [
+        "button",
+        "input-group"
+      ],
+      "dependencies": [
+        "@base-ui/react"
+      ]
+    },
+    {
+      "name": "command",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/command.tsx"
+      ],
+      "registryDependencies": [
+        "dialog"
+      ],
+      "dependencies": [
+        "cmdk"
+      ]
+    },
+    {
+      "name": "context-menu",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/context-menu.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/dialog.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "drawer",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/drawer.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "vaul"
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/dropdown-menu.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "empty",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/empty.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "field",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/field.tsx"
+      ],
+      "registryDependencies": [
+        "label",
+        "separator"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "form",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/form.tsx"
+      ],
+      "registryDependencies": [
+        "button",
+        "label"
+      ],
+      "dependencies": [
+        "radix-ui",
+        "@hookform/resolvers",
+        "zod",
+        "react-hook-form"
+      ]
+    },
+    {
+      "name": "hover-card",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/hover-card.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/input.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "input-group",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/input-group.tsx"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "textarea"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "input-otp",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/input-otp.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "input-otp"
+      ]
+    },
+    {
+      "name": "item",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/item.tsx"
+      ],
+      "registryDependencies": [
+        "separator"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/label.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "menubar",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/menubar.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "navigation-menu",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/navigation-menu.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "pagination",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/pagination.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "popover",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/popover.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/progress.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "radio-group",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/radio-group.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "resizable",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/resizable.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "react-resizable-panels@^4"
+      ]
+    },
+    {
+      "name": "scroll-area",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/scroll-area.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/select.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/separator.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "sheet",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/sheet.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/sidebar.tsx"
+      ],
+      "registryDependencies": [
+        "button",
+        "separator",
+        "sheet",
+        "tooltip",
+        "input",
+        "use-mobile",
+        "skeleton"
+      ],
+      "dependencies": [
+        "radix-ui",
+        "class-variance-authority",
+        "lucide-react"
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/skeleton.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "slider",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/slider.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "sonner",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/sonner.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "sonner",
+        "next-themes"
+      ]
+    },
+    {
+      "name": "spinner",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/spinner.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "class-variance-authority"
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/switch.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/table.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/tabs.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/textarea.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "toggle",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/toggle.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "toggle-group",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/toggle-group.tsx"
+      ],
+      "registryDependencies": [
+        "toggle"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/tooltip.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "kbd",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/kbd.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "native-select",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/native-select.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "direction",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/direction.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "attachment",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/attachment.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "bubble",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/bubble.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "marker",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/marker.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
+      "name": "message",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/message.tsx"
+      ],
+      "registryDependencies": [],
+      "dependencies": []
+    },
+    {
+      "name": "message-scroller",
+      "type": "registry:ui",
+      "files": [
+        "/design-system/components/message-scroller.tsx"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "@shadcn/react"
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "name": "chart-area-axes",
+      "category": "area",
+      "variant": "axes",
+      "file": "design-system/charts/chart-area-axes.tsx",
+      "description": "An area chart with axes",
+      "component": "ChartAreaAxes",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-default",
+      "category": "area",
+      "variant": "default",
+      "file": "design-system/charts/chart-area-default.tsx",
+      "description": "A simple area chart",
+      "component": "ChartAreaDefault",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-gradient",
+      "category": "area",
+      "variant": "gradient",
+      "file": "design-system/charts/chart-area-gradient.tsx",
+      "description": "An area chart with gradient fill",
+      "component": "ChartAreaGradient",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-icons",
+      "category": "area",
+      "variant": "icons",
+      "file": "design-system/charts/chart-area-icons.tsx",
+      "description": "An area chart with icons",
+      "component": "ChartAreaIcons",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-interactive",
+      "category": "area",
+      "variant": "interactive",
+      "file": "design-system/charts/chart-area-interactive.tsx",
+      "description": "An interactive area chart",
+      "component": "ChartAreaInteractive",
+      "registryDependencies": [
+        "card",
+        "chart",
+        "select"
+      ]
+    },
+    {
+      "name": "chart-area-legend",
+      "category": "area",
+      "variant": "legend",
+      "file": "design-system/charts/chart-area-legend.tsx",
+      "description": "An area chart with a legend",
+      "component": "ChartAreaLegend",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-linear",
+      "category": "area",
+      "variant": "linear",
+      "file": "design-system/charts/chart-area-linear.tsx",
+      "description": "A linear area chart",
+      "component": "ChartAreaLinear",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-stacked-expand",
+      "category": "area",
+      "variant": "stacked-expand",
+      "file": "design-system/charts/chart-area-stacked-expand.tsx",
+      "description": "A stacked area chart with expand stacking",
+      "component": "ChartAreaStackedExpand",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-stacked",
+      "category": "area",
+      "variant": "stacked",
+      "file": "design-system/charts/chart-area-stacked.tsx",
+      "description": "A stacked area chart",
+      "component": "ChartAreaStacked",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-area-step",
+      "category": "area",
+      "variant": "step",
+      "file": "design-system/charts/chart-area-step.tsx",
+      "description": "A step area chart",
+      "component": "ChartAreaStep",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-active",
+      "category": "bar",
+      "variant": "active",
+      "file": "design-system/charts/chart-bar-active.tsx",
+      "description": "A bar chart with an active bar",
+      "component": "ChartBarActive",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-default",
+      "category": "bar",
+      "variant": "default",
+      "file": "design-system/charts/chart-bar-default.tsx",
+      "description": "A bar chart",
+      "component": "ChartBarDefault",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-horizontal",
+      "category": "bar",
+      "variant": "horizontal",
+      "file": "design-system/charts/chart-bar-horizontal.tsx",
+      "description": "A horizontal bar chart",
+      "component": "ChartBarHorizontal",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-interactive",
+      "category": "bar",
+      "variant": "interactive",
+      "file": "design-system/charts/chart-bar-interactive.tsx",
+      "description": "An interactive bar chart",
+      "component": "ChartBarInteractive",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-label-custom",
+      "category": "bar",
+      "variant": "label-custom",
+      "file": "design-system/charts/chart-bar-label-custom.tsx",
+      "description": "A bar chart with a custom label",
+      "component": "ChartBarLabelCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-label",
+      "category": "bar",
+      "variant": "label",
+      "file": "design-system/charts/chart-bar-label.tsx",
+      "description": "A bar chart with a label",
+      "component": "ChartBarLabel",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-mixed",
+      "category": "bar",
+      "variant": "mixed",
+      "file": "design-system/charts/chart-bar-mixed.tsx",
+      "description": "A mixed bar chart",
+      "component": "ChartBarMixed",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-multiple",
+      "category": "bar",
+      "variant": "multiple",
+      "file": "design-system/charts/chart-bar-multiple.tsx",
+      "description": "A multiple bar chart",
+      "component": "ChartBarMultiple",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-negative",
+      "category": "bar",
+      "variant": "negative",
+      "file": "design-system/charts/chart-bar-negative.tsx",
+      "description": "A bar chart with negative values",
+      "component": "ChartBarNegative",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-bar-stacked",
+      "category": "bar",
+      "variant": "stacked",
+      "file": "design-system/charts/chart-bar-stacked.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartBarStacked",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-default",
+      "category": "line",
+      "variant": "default",
+      "file": "design-system/charts/chart-line-default.tsx",
+      "description": "A line chart",
+      "component": "ChartLineDefault",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-dots-colors",
+      "category": "line",
+      "variant": "dots-colors",
+      "file": "design-system/charts/chart-line-dots-colors.tsx",
+      "description": "A line chart with dots and colors",
+      "component": "ChartLineDotsColors",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-dots-custom",
+      "category": "line",
+      "variant": "dots-custom",
+      "file": "design-system/charts/chart-line-dots-custom.tsx",
+      "description": "A line chart with custom dots",
+      "component": "ChartLineDotsCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-dots",
+      "category": "line",
+      "variant": "dots",
+      "file": "design-system/charts/chart-line-dots.tsx",
+      "description": "A line chart with dots",
+      "component": "ChartLineDots",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-interactive",
+      "category": "line",
+      "variant": "interactive",
+      "file": "design-system/charts/chart-line-interactive.tsx",
+      "description": "An interactive line chart",
+      "component": "ChartLineInteractive",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-label-custom",
+      "category": "line",
+      "variant": "label-custom",
+      "file": "design-system/charts/chart-line-label-custom.tsx",
+      "description": "A line chart with a custom label",
+      "component": "ChartLineLabelCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-label",
+      "category": "line",
+      "variant": "label",
+      "file": "design-system/charts/chart-line-label.tsx",
+      "description": "A line chart with a label",
+      "component": "ChartLineLabel",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-linear",
+      "category": "line",
+      "variant": "linear",
+      "file": "design-system/charts/chart-line-linear.tsx",
+      "description": "A linear line chart",
+      "component": "ChartLineLinear",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-multiple",
+      "category": "line",
+      "variant": "multiple",
+      "file": "design-system/charts/chart-line-multiple.tsx",
+      "description": "A multiple line chart",
+      "component": "ChartLineMultiple",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-line-step",
+      "category": "line",
+      "variant": "step",
+      "file": "design-system/charts/chart-line-step.tsx",
+      "description": "A line chart with step",
+      "component": "ChartLineStep",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-donut-active",
+      "category": "pie",
+      "variant": "donut-active",
+      "file": "design-system/charts/chart-pie-donut-active.tsx",
+      "description": "A donut chart with an active sector",
+      "component": "ChartPieDonutActive",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-donut-text",
+      "category": "pie",
+      "variant": "donut-text",
+      "file": "design-system/charts/chart-pie-donut-text.tsx",
+      "description": "A donut chart with text",
+      "component": "ChartPieDonutText",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-donut",
+      "category": "pie",
+      "variant": "donut",
+      "file": "design-system/charts/chart-pie-donut.tsx",
+      "description": "A donut chart",
+      "component": "ChartPieDonut",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-interactive",
+      "category": "pie",
+      "variant": "interactive",
+      "file": "design-system/charts/chart-pie-interactive.tsx",
+      "description": "An interactive pie chart",
+      "component": "ChartPieInteractive",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-label-custom",
+      "category": "pie",
+      "variant": "label-custom",
+      "file": "design-system/charts/chart-pie-label-custom.tsx",
+      "description": "A pie chart with a custom label",
+      "component": "ChartPieLabelCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-label-list",
+      "category": "pie",
+      "variant": "label-list",
+      "file": "design-system/charts/chart-pie-label-list.tsx",
+      "description": "A pie chart with a label list",
+      "component": "ChartPieLabelList",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-label",
+      "category": "pie",
+      "variant": "label",
+      "file": "design-system/charts/chart-pie-label.tsx",
+      "description": "A pie chart with a label",
+      "component": "ChartPieLabel",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-legend",
+      "category": "pie",
+      "variant": "legend",
+      "file": "design-system/charts/chart-pie-legend.tsx",
+      "description": "A pie chart with a legend",
+      "component": "ChartPieLegend",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-separator-none",
+      "category": "pie",
+      "variant": "separator-none",
+      "file": "design-system/charts/chart-pie-separator-none.tsx",
+      "description": "A pie chart with no separator",
+      "component": "ChartPieSeparatorNone",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-simple",
+      "category": "pie",
+      "variant": "simple",
+      "file": "design-system/charts/chart-pie-simple.tsx",
+      "description": "A simple pie chart",
+      "component": "ChartPieSimple",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-pie-stacked",
+      "category": "pie",
+      "variant": "stacked",
+      "file": "design-system/charts/chart-pie-stacked.tsx",
+      "description": "A pie chart with stacked sections",
+      "component": "ChartPieStacked",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-default",
+      "category": "radar",
+      "variant": "default",
+      "file": "design-system/charts/chart-radar-default.tsx",
+      "description": "A radar chart",
+      "component": "ChartRadarDefault",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-dots",
+      "category": "radar",
+      "variant": "dots",
+      "file": "design-system/charts/chart-radar-dots.tsx",
+      "description": "A radar chart with dots",
+      "component": "ChartRadarDots",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-circle-fill",
+      "category": "radar",
+      "variant": "grid-circle-fill",
+      "file": "design-system/charts/chart-radar-grid-circle-fill.tsx",
+      "description": "A radar chart with a grid and circle fill",
+      "component": "ChartRadarGridCircleFill",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-circle-no-lines",
+      "category": "radar",
+      "variant": "grid-circle-no-lines",
+      "file": "design-system/charts/chart-radar-grid-circle-no-lines.tsx",
+      "description": "A radar chart with a grid and circle fill",
+      "component": "ChartRadarGridCircleNoLines",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-circle",
+      "category": "radar",
+      "variant": "grid-circle",
+      "file": "design-system/charts/chart-radar-grid-circle.tsx",
+      "description": "A radar chart with a grid and circle",
+      "component": "ChartRadarGridCircle",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-custom",
+      "category": "radar",
+      "variant": "grid-custom",
+      "file": "design-system/charts/chart-radar-grid-custom.tsx",
+      "description": "A radar chart with a custom grid",
+      "component": "ChartRadarGridCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-fill",
+      "category": "radar",
+      "variant": "grid-fill",
+      "file": "design-system/charts/chart-radar-grid-fill.tsx",
+      "description": "A radar chart with a grid filled",
+      "component": "ChartRadarGridFill",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-grid-none",
+      "category": "radar",
+      "variant": "grid-none",
+      "file": "design-system/charts/chart-radar-grid-none.tsx",
+      "description": "A radar chart with no grid",
+      "component": "ChartRadarGridNone",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-label-custom",
+      "category": "radar",
+      "variant": "label-custom",
+      "file": "design-system/charts/chart-radar-label-custom.tsx",
+      "description": "A radar chart with a custom label",
+      "component": "ChartRadarLabelCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-legend",
+      "category": "radar",
+      "variant": "legend",
+      "file": "design-system/charts/chart-radar-legend.tsx",
+      "description": "A radar chart with a legend",
+      "component": "ChartRadarLegend",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-lines-only",
+      "category": "radar",
+      "variant": "lines-only",
+      "file": "design-system/charts/chart-radar-lines-only.tsx",
+      "description": "A radar chart with lines only",
+      "component": "ChartRadarLinesOnly",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radar-multiple",
+      "category": "radar",
+      "variant": "multiple",
+      "file": "design-system/charts/chart-radar-multiple.tsx",
+      "description": "A radar chart with multiple data",
+      "component": "ChartRadarMultiple",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-grid",
+      "category": "radial",
+      "variant": "grid",
+      "file": "design-system/charts/chart-radial-grid.tsx",
+      "description": "A radial chart with a grid",
+      "component": "ChartRadialGrid",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-label",
+      "category": "radial",
+      "variant": "label",
+      "file": "design-system/charts/chart-radial-label.tsx",
+      "description": "A radial chart with a label",
+      "component": "ChartRadialLabel",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-shape",
+      "category": "radial",
+      "variant": "shape",
+      "file": "design-system/charts/chart-radial-shape.tsx",
+      "description": "A radial chart with a custom shape",
+      "component": "ChartRadialShape",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-simple",
+      "category": "radial",
+      "variant": "simple",
+      "file": "design-system/charts/chart-radial-simple.tsx",
+      "description": "A radial chart",
+      "component": "ChartRadialSimple",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-stacked",
+      "category": "radial",
+      "variant": "stacked",
+      "file": "design-system/charts/chart-radial-stacked.tsx",
+      "description": "A radial chart with stacked sections",
+      "component": "ChartRadialStacked",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-radial-text",
+      "category": "radial",
+      "variant": "text",
+      "file": "design-system/charts/chart-radial-text.tsx",
+      "description": "A radial chart with text",
+      "component": "ChartRadialText",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-default",
+      "category": "tooltip",
+      "variant": "default",
+      "file": "design-system/charts/chart-tooltip-default.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipDefault",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-indicator-line",
+      "category": "tooltip",
+      "variant": "indicator-line",
+      "file": "design-system/charts/chart-tooltip-indicator-line.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipIndicatorLine",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-indicator-none",
+      "category": "tooltip",
+      "variant": "indicator-none",
+      "file": "design-system/charts/chart-tooltip-indicator-none.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipIndicatorNone",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-label-none",
+      "category": "tooltip",
+      "variant": "label-none",
+      "file": "design-system/charts/chart-tooltip-label-none.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipLabelNone",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-label-custom",
+      "category": "tooltip",
+      "variant": "label-custom",
+      "file": "design-system/charts/chart-tooltip-label-custom.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipLabelCustom",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-label-formatter",
+      "category": "tooltip",
+      "variant": "label-formatter",
+      "file": "design-system/charts/chart-tooltip-label-formatter.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipLabelFormatter",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-formatter",
+      "category": "tooltip",
+      "variant": "formatter",
+      "file": "design-system/charts/chart-tooltip-formatter.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipFormatter",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-icons",
+      "category": "tooltip",
+      "variant": "icons",
+      "file": "design-system/charts/chart-tooltip-icons.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipIcons",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    },
+    {
+      "name": "chart-tooltip-advanced",
+      "category": "tooltip",
+      "variant": "advanced",
+      "file": "design-system/charts/chart-tooltip-advanced.tsx",
+      "description": "A stacked bar chart with a legend",
+      "component": "ChartTooltipAdvanced",
+      "registryDependencies": [
+        "card",
+        "chart"
+      ]
+    }
+  ]
+}

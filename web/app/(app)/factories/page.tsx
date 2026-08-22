@@ -57,7 +57,6 @@ function FactoriesInner() {
   const rows = useMemo(() => {
     if (!factories || !allFactories) return null;
     const q = search.trim().toLowerCase();
-    const today = new Date().toISOString().slice(0, 10);
     const staleBefore = Date.now() - 7 * 86400000;
     // "Converted to customers" reveals every factory promoted to the Customer
     // tracker — including those already graduated out (Closed Won) of Partners.
@@ -70,7 +69,10 @@ function FactoriesInner() {
         if (grade !== "All" && f.grade !== grade) return false;
         if (geoTier !== "All" && f.geo_tier !== geoTier) return false;
         if (stage !== "All" && f.stage !== stage) return false;
-        if (savedView === "needs_action" && !(f.next_action_due && f.next_action_due <= today)) return false;
+        // "Next-action needed": any factory that has a next action scheduled
+        // (upcoming or overdue), not only those already due. The "Actions due"
+        // stat card above still counts only what is due today or overdue.
+        if (savedView === "needs_action" && f.next_action_due == null) return false;
         if (savedView === "high_potential" && !(f.grade === "A" || (f.score ?? 0) >= 75)) return false;
         if (savedView === "stalled") {
           const active = f.stage !== "Closed Won" && f.stage !== "Closed Lost";
@@ -85,11 +87,10 @@ function FactoriesInner() {
 
   const savedViewCounts = useMemo(() => {
     const all = factories ?? [];
-    const today = new Date().toISOString().slice(0, 10);
     const staleBefore = Date.now() - 7 * 86400000;
     return {
       all: all.length,
-      needs_action: all.filter((f) => f.next_action_due && f.next_action_due <= today).length,
+      needs_action: all.filter((f) => f.next_action_due != null).length,
       high_potential: all.filter((f) => f.grade === "A" || (f.score ?? 0) >= 75).length,
       stalled: all.filter((f) => f.stage !== "Closed Won" && f.stage !== "Closed Lost" && (!f.last_activity_at || new Date(f.last_activity_at).getTime() < staleBefore)).length,
       converted: (allFactories ?? []).filter((f) => f.is_customer).length,
@@ -124,7 +125,7 @@ function FactoriesInner() {
         <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved factory views">
           <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
           <SavedViewButton label="All accounts" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
-          <SavedViewButton label="Needs action" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
+          <SavedViewButton label="Next-action needed" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
           <SavedViewButton label="High potential" count={savedViewCounts.high_potential} active={savedView === "high_potential"} onClick={() => setSavedView("high_potential")} />
           <SavedViewButton label="Stalled" count={savedViewCounts.stalled} active={savedView === "stalled"} tone="danger" onClick={() => setSavedView("stalled")} />
           <div className="flex-1" />

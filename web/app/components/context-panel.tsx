@@ -290,10 +290,40 @@ function TextCard({ item, readOnly, onEdit, onDelete }: { item: ContextItem; rea
 
 function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; readOnly?: boolean; onRetry: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState(false);
   const isImg = (item.mime_type ?? "").startsWith("image/");
+  async function download() {
+    if (!item.storage_path || downloading) return;
+    setDownloading(true);
+    try {
+      const { data, error } = await supabase().storage.from(BUCKET).createSignedUrl(item.storage_path, 60, { download: item.file_name ?? true });
+      if (error || !data) { alert(`Download failed: ${error?.message ?? "no URL"}`); return; }
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.download = item.file_name ?? "";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      setDownloading(false);
+    }
+  }
+  useEffect(() => {
+    if (!open || !isImg || previewUrl || previewError || !item.storage_path) return;
+    let active = true;
+    void supabase().storage.from(BUCKET).createSignedUrl(item.storage_path, 3600).then(({ data, error }) => {
+      if (!active) return;
+      if (error || !data) setPreviewError(true);
+      else setPreviewUrl(data.signedUrl);
+    });
+    return () => { active = false; };
+  }, [open, isImg, previewUrl, previewError, item.storage_path]);
   const labels = contextFileLabels(item);
   const fileFormat = contextFileFormat(item);
   const fileSize = formatBytes(item.byte_size);
+  const canToggle = (isImg && !!item.storage_path) || (item.extraction_status === "done" && !!item.body);
   return (
     <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
       <div className="flex items-center gap-2">
@@ -304,16 +334,34 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
           <span className="text-[10px] mono text-muted">{fileSize}{fileSize ? " - " : ""}{fileFormat}</span>
         </div>
         <StatusBadge status={item.extraction_status} onRetry={onRetry} readOnly={readOnly} />
-        {item.extraction_status === "done" && item.body && (
-          <button onClick={() => setOpen((o) => !o)} title={open ? "Hide text" : "Show extracted text"}
+        {item.storage_path && (
+          <button onClick={download} disabled={downloading} title="Download file" aria-label="Download file"
+            className="w-6 h-6 rounded-md grid place-items-center text-muted hover:text-ink hover:bg-surface-3 cursor-pointer disabled:opacity-50">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        )}
+        {canToggle && (
+          <button onClick={() => setOpen((o) => !o)}
+            title={open ? (isImg ? "Hide preview" : "Hide text") : (isImg ? "Show preview" : "Show extracted text")}
+            aria-label={isImg ? "Toggle image preview" : "Toggle extracted text"}
             className="w-6 h-6 rounded-md grid place-items-center text-muted hover:text-ink hover:bg-surface-3 cursor-pointer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-90" : ""}`}><path d="M9 6l6 6-6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         )}
         <span className="text-[10px] mono text-muted shrink-0">{relTime(item.updated_at)}</span>
         {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
-      {open && item.body && (
+      {open && isImg && (
+        <div className="mt-2">
+          {previewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={previewUrl} alt={item.file_name ?? "image preview"} className="max-h-72 w-auto max-w-full rounded border border-line" />
+          ) : (
+            <p className="text-[11px] text-muted px-1 py-2">{previewError ? "Preview unavailable" : "Loading preview…"}</p>
+          )}
+        </div>
+      )}
+      {open && !isImg && item.body && (
         <pre className="mt-2 max-h-48 overflow-auto rounded bg-canvas border border-line px-2 py-1.5 text-[11px] text-ink-soft leading-relaxed whitespace-pre-wrap font-sans">{item.body.slice(0, 4000)}{item.body.length > 4000 ? "\n…" : ""}</pre>
       )}
     </div>

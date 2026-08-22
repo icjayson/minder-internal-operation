@@ -3,8 +3,9 @@ import type { SequenceStep } from "@/lib/types";
 import { addDaysISO } from "@/lib/cadence";
 import { supabase } from "@/lib/supabase";
 import { buildEntitySummary } from "@/lib/summary-server";
-import { enrichDiscordAlert, pushDiscordEmbeds } from "@/lib/discord";
-import { isWorkTriggerNotificationKind, isoDateInTimeZone, workTriggerReminderFor } from "@/lib/work-alerts";
+import { enrichDiscordAlert, pushDiscordEmbeds, type DiscordDelivery } from "@/lib/discord";
+import { logDiscordDeliveries } from "@/lib/discord-alert-log";
+import { daysPastTrigger, isWorkTriggerNotificationKind, isoDateInTimeZone, workTriggerReminderFor } from "@/lib/work-alerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -151,16 +152,24 @@ async function scan(req: Request) {
   // Also auto-advance a triggered "not started" card into "doing".
   const promoteIds: string[] = [];
   for (const w of wRows) {
+    const triggerOn = (w.trigger_on as string | null) ?? null;
+    // Auto-advance a triggered "not started" card into "doing" once its trigger
+    // date has actually arrived — independent of the (now sparser) reminders,
+    // so a card still moves on its due date even though the next Discord nudge
+    // only fires at 3+ days overdue.
+    if (w.status === "not_started" && triggerOn) {
+      const overdue = daysPastTrigger(triggerOn, today);
+      if (Number.isFinite(overdue) && overdue >= 0) {
+        w.status = "doing"; // keep in-memory state consistent for this run
+        promoteIds.push(w.id as string);
+      }
+    }
     const reminder = workTriggerReminderFor({
-      triggerOn: (w.trigger_on as string | null) ?? null,
+      triggerOn,
       today,
       status: String(w.status ?? "not_started"),
     });
     if (!reminder) continue;
-    if (w.status === "not_started") {
-      w.status = "doing"; // keep in-memory state consistent for this run
-      promoteIds.push(w.id as string);
-    }
     const factoryName = (fMap.get(w.factory_id as string)?.name as string) ?? "Factory";
     add({
       kind: reminder.kind,
@@ -243,14 +252,25 @@ async function scan(req: Request) {
     const enriched = (unpushed as Row[]).map((n) =>
       enrichDiscordAlert(n, fMap, nMap, cMap, wMap, invMap, compMap),
     );
-    const results = await Promise.all([
-      pushDiscordEmbeds(enriched),
+    const delivered: DiscordDelivery[] = [];
+    const [discordResult, emailResult] = await Promise.all([
+      pushDiscordEmbeds(enriched, { onDelivered: (d) => delivered.push(d) }),
       pushEmailDigest(unpushed as Row[]),
     ]);
-    if (results.some((r) => r === true)) {
+    const deliveredIds = [...new Set(delivered
+      .map((delivery) => delivery.notification.id)
+      .filter((id): id is string => typeof id === "string"))];
+    const allDelivered = discordResult === true || (discordResult === null && emailResult === true);
+    if (allDelivered) {
       await sb.from("notifications").update({ pushed_at: nowIso }).is("pushed_at", null);
       pushed = unpushed.length;
+    } else if (deliveredIds.length) {
+      // A text-channel run can partially succeed before a later request fails.
+      // Persist the successful ids so the next cron retries only the remainder.
+      await sb.from("notifications").update({ pushed_at: nowIso }).in("id", deliveredIds);
+      pushed = deliveredIds.length;
     }
+    await logDiscordDeliveries(sb, delivered, "scan");
   }
 
   return NextResponse.json({ ok: true, created: toInsert.length, resolved: resolveIds.length, pushed });

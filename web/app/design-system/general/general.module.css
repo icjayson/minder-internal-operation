@@ -1,0 +1,373 @@
+/* Chrome for the Minder general design system.
+   Plain CSS so it never competes with the utility classes the vendored
+   components inside each specimen rely on. */
+
+.page {
+  --g-canvas: #f6f5f4;
+  --g-surface: #ffffff;
+  --g-ink: #000000;
+  --g-ink-2: #31302e;
+  --g-muted: #615d59;
+  --g-faint: #a39e98;
+  --g-line: #e6e6e6;
+  --g-line-soft: #ededec;
+  --g-brand: #0075de;
+  --g-shadow: rgba(0,0,0,.012) 0 .5px 1px, rgba(0,0,0,.02) 0 2px 5px, rgba(0,0,0,.028) 0 5px 12px, rgba(0,0,0,.038) 0 11px 26px;
+
+  min-height: calc(100vh - var(--mo-nav-height, 60px));
+  padding-bottom: 120px;
+  background: var(--g-canvas);
+  color: var(--g-ink);
+  font-family: var(--font-roboto), Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+
+.hero { max-width: 1180px; margin: 0 auto; padding: 76px max(4vw, 22px) 34px; }
+.heroEyebrow { color: var(--g-brand); font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+.hero h1 {
+  margin-top: 16px;
+  font-size: clamp(42px, 6vw, 68px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+.heroLead { max-width: 640px; margin-top: 20px; color: var(--g-muted); font-size: 17px; line-height: 1.6; }
+.heroLead code { padding: 2px 5px; border-radius: 4px; background: #ebe8e3; color: var(--g-ink); }
+.heroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 26px; }
+.themeToggle {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--g-line);
+  border-radius: 999px;
+  background: var(--g-surface);
+  color: var(--g-ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.themeToggle:hover { border-color: var(--g-ink); }
+.themeHint { color: var(--g-faint); font-size: 12px; }
+
+.heroNav { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 26px; }
+.heroNav a {
+  padding: 7px 13px;
+  border: 1px solid var(--g-line);
+  border-radius: 999px;
+  background: var(--g-surface);
+  color: var(--g-ink-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+.heroNav a:hover { border-color: var(--g-ink); }
+
+/* ── Sections ────────────────────────────────────────────────────── */
+
+.section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 62px max(4vw, 22px) 0;
+  scroll-margin-top: calc(var(--mo-nav-height, 60px) + 16px);
+}
+.sectionHead { padding-bottom: 30px; border-top: 1px solid var(--g-line); padding-top: 44px; }
+.sectionIndex { color: var(--g-faint); font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+.sectionHead h2 {
+  margin-top: 10px;
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.05;
+}
+.sectionCopy { max-width: 680px; margin-top: 14px; color: var(--g-muted); font-size: 15px; }
+.sectionCopy code { padding: 2px 5px; border-radius: 4px; background: #ebe8e3; color: var(--g-ink); }
+
+.group { margin-bottom: 34px; }
+.groupHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.groupHead h3 { font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+.groupHead code { color: var(--g-faint); }
+
+/* ── Specimens ───────────────────────────────────────────────────── */
+
+/* `dense` lets the short specimens backfill the cells a tall one leaves open,
+   instead of every card in a row inheriting the tallest one's height. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); grid-auto-rows: min-content; grid-auto-flow: row dense; gap: 16px; align-items: start; }
+/* A true two-up: three columns squeeze breadcrumbs, paginations and steppers
+   past their natural width. */
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  grid-auto-flow: row dense;
+  gap: 16px;
+  align-items: start;
+}
+.grid3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+
+.spec, .specWide {
+  overflow: hidden;
+  border: 1px solid var(--g-line);
+  border-radius: 12px;
+  background: var(--g-surface);
+}
+.specWide { grid-column: 1 / -1; }
+/* A specimen whose content opens downward needs room and no clipping. */
+.spec[data-overflow], .specWide[data-overflow] { overflow: visible; }
+.spec[data-overflow] .specStage, .specWide[data-overflow] .specStage { padding-bottom: 200px; }
+.spec[data-tall] { grid-row: span 2; }
+.specBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--g-line-soft);
+  background: #fbfaf9;
+  font-size: 12px;
+  font-weight: 600;
+}
+.specBar code { color: var(--g-faint); font-weight: 400; }
+.specStage { display: grid; gap: 14px; padding: 22px; }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.stack { display: grid; gap: 12px; }
+.inline { display: flex; align-items: center; gap: 8px; }
+.field { display: grid; gap: 6px; }
+
+/* ── Foundation ──────────────────────────────────────────────────── */
+
+.ramp { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.rampStep {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid var(--g-line);
+  border-radius: 10px;
+  background: var(--g-surface);
+}
+.rampChip { height: 46px; border: 1px solid rgba(0,0,0,.06); border-radius: 7px; }
+.rampStep strong { margin-top: 4px; font-size: 12px; }
+.rampStep small { color: var(--g-faint); font-size: 10.5px; }
+.rampStep code { color: var(--g-muted); }
+
+.semanticGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.semanticCard { padding: 14px; border: 1px solid var(--g-line); border-radius: 12px; background: var(--g-surface); }
+.semanticHead { display: grid; gap: 2px; margin-bottom: 12px; }
+.semanticHead strong { font-size: 14px; text-transform: capitalize; }
+.semanticHead span { color: var(--g-muted); font-size: 12px; }
+.semanticBar { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border-radius: 8px; }
+.semanticBar span {
+  padding: 12px 6px;
+  color: var(--g-ink-2);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+.semanticValues { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 6px; }
+.semanticValues code { color: var(--g-faint); font-size: 9.5px; text-align: center; }
+
+.tokenList { display: grid; gap: 8px; }
+.tokenRow {
+  display: grid;
+  grid-template-columns: 46px 150px 150px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid var(--g-line);
+  border-radius: 10px;
+  background: var(--g-surface);
+  font-size: 13px;
+}
+.tokenRow small { color: var(--g-faint); font-size: 12px; }
+.tokenRow code { color: var(--g-muted); }
+.tokenChip { height: 30px; border: 1px solid var(--g-line); border-radius: 6px; }
+.tokenSample {
+  display: grid;
+  height: 30px;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tokenBorder { height: 30px; border: 2px solid; border-radius: 6px; }
+
+.typeList { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--g-line); border-radius: 12px; background: var(--g-line-soft); }
+.typeRow {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 22px;
+  align-items: center;
+  padding: 20px 22px;
+  background: var(--g-surface);
+}
+.typeMeta { display: grid; gap: 3px; }
+.typeMeta strong { font-size: 12px; }
+.typeMeta span { color: var(--g-faint); font-size: 11px; }
+.typeRow p { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.spacingList { display: grid; gap: 9px; }
+.spacingRow { display: grid; grid-template-columns: 44px 1fr 52px; gap: 12px; align-items: center; font-size: 12px; }
+.spacingBar { height: 14px; border-radius: 4px; background: var(--g-brand); }
+
+.radiusRow { display: flex; flex-wrap: wrap; gap: 16px; }
+.radiusRow > div { display: grid; gap: 3px; width: 88px; }
+.radiusBox { height: 60px; border: 2px solid var(--g-ink); }
+.radiusRow strong { margin-top: 4px; font-size: 12px; }
+.radiusRow small { color: var(--g-faint); font-size: 11px; }
+
+.shadowRow { display: flex; flex-wrap: wrap; gap: 14px; }
+.shadowRow article {
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  width: 168px;
+  min-height: 92px;
+  padding: 16px;
+  border: 1px solid var(--g-line);
+  border-radius: 12px;
+  background: var(--g-surface);
+}
+.shadowRow strong { font-size: 13px; }
+.shadowRow small { color: var(--g-faint); font-size: 11.5px; }
+
+.breakpointList { display: grid; gap: 10px; }
+.breakpointList > div { display: grid; grid-template-columns: 84px 118px 1fr; gap: 12px; align-items: baseline; font-size: 12.5px; }
+.breakpointList small { color: var(--g-muted); font-size: 12px; }
+
+/* ── Section-specific frames ─────────────────────────────────────── */
+
+.navbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.navPanel { display: grid; gap: 8px; width: 340px; padding: 12px; margin: 0; list-style: none; }
+.navPanelNarrow { display: grid; gap: 8px; width: 220px; padding: 12px; margin: 0; list-style: none; }
+
+/* The sidebar is `fixed inset-y-0 h-svh`; inside a specimen it stays in frame. */
+.sidebarFrame { position: relative; overflow: hidden; height: 300px; border: 1px solid var(--g-line); border-radius: 10px; }
+.sidebarFrame :global([data-slot="sidebar-wrapper"]) { min-height: 300px; height: 300px; }
+.sidebarFrame :global([data-slot="sidebar-container"]) { position: absolute; height: 100%; }
+.sidebarFrame :global([data-slot="sidebar-inset"]) { min-height: 300px; }
+
+/* Wraps rather than stretching: four steps do not fit a half-width card, and a
+   clipped final step reads as a bug. */
+.stepper { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 8px; margin: 0; padding: 0; list-style: none; }
+.stepper li { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
+.stepperDot {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--g-line);
+  border-radius: 999px;
+  background: var(--g-surface);
+  color: var(--g-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.stepper li[data-state="done"] .stepperDot { border-color: var(--g-brand); background: var(--g-brand); color: #fff; }
+.stepper li[data-state="current"] .stepperDot { border-color: var(--g-brand); color: var(--g-brand); }
+.stepperDot svg { width: 13px; height: 13px; }
+.stepperLabel { white-space: nowrap; }
+.stepper li[data-state="todo"] .stepperLabel { color: var(--g-faint); }
+.stepperLine { width: 18px; height: 1px; background: var(--g-line); }
+
+.footerSpec { width: 100%; }
+.footerSpec strong { font-size: 15px; }
+.footerSpec p { color: var(--g-muted); font-size: 12px; }
+.footerLinks { display: flex; flex-wrap: wrap; gap: 18px; }
+.footerLinks a { color: var(--g-muted); font-size: 12.5px; }
+.footerLinks a:hover { color: var(--g-ink); }
+
+.emptyFrame { border: 1px solid var(--g-line); border-radius: 10px; }
+.kpiRow { display: grid; gap: 12px; }
+.timeline { display: grid; gap: 10px; }
+.timelineTime { color: var(--g-faint); }
+.carouselFrame { width: 100%; max-width: 230px; margin: 0 auto; }
+.commandFrame { border: 1px solid var(--g-line); border-radius: 10px; }
+.contextTarget {
+  display: grid;
+  height: 120px;
+  place-items: center;
+  border: 1px dashed var(--g-line);
+  border-radius: 10px;
+  color: var(--g-muted);
+  font-size: 13px;
+}
+
+/* ── Stylesheet block ────────────────────────────────────────────── */
+
+.codeCard { overflow: hidden; border: 1px solid var(--g-line); border-radius: 12px; background: #0b0b0d; }
+.codeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #1e1e22;
+  color: #8b8b93;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+}
+.codeActions { display: flex; gap: 6px; }
+.codeActions button, .codeActions a {
+  display: inline-grid;
+  place-items: center;
+  height: 27px;
+  padding: 0 11px;
+  border: 1px solid #2a2a30;
+  border-radius: 7px;
+  background: transparent;
+  color: #e6e6e9;
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.codeActions button:hover, .codeActions a:hover { background: #17171b; }
+.codeActions button[data-copied] { border-color: #16a34a; color: #4ade80; }
+.codeBlock {
+  max-height: 560px;
+  margin: 0;
+  padding: 18px 20px 40px;
+  overflow: auto;
+  color: #e6e6e9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .hero { padding-top: 48px; }
+  .tokenRow { grid-template-columns: 40px 1fr; row-gap: 4px; }
+  .typeRow { grid-template-columns: 1fr; gap: 10px; }
+  .breakpointList > div { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ── Dark sky ────────────────────────────────────────────────────────
+   Only the page's own chrome is redefined here. The specimens inside are
+   the library components, which follow the .shadcn-scope.dark tokens. */
+:global(.dark) .page {
+  --g-canvas: #0b0b0d;
+  --g-surface: #141417;
+  --g-ink: #fafafa;
+  --g-ink-2: #e4e4e7;
+  --g-muted: #a1a1aa;
+  --g-faint: #71717a;
+  --g-line: #26262a;
+  --g-line-soft: #1e1e22;
+  --g-brand: #62aef0;
+  --g-shadow: rgba(0,0,0,.5) 0 12px 32px -12px;
+}
+:global(.dark) .heroLead code,
+:global(.dark) .sectionCopy code { background: #202026; }
+:global(.dark) .specBar { background: #17171b; }
+:global(.dark) .rampChip { border-color: rgba(255,255,255,.08); }
+:global(.dark) .radiusBox { border-color: var(--g-ink-2); }
+:global(.dark) .codeCard { border-color: var(--g-line); }
+:global(.dark) .semanticBar span { color: #0b0b0d; }

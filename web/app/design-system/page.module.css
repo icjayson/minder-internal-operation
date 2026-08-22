@@ -1,0 +1,213 @@
+.designSystem {
+  --mo-primary: #0075de;
+  --mo-primary-active: #005bab;
+  --mo-secondary: #213183;
+  --mo-canvas: #f6f5f4;
+  --mo-surface: #ffffff;
+  --mo-ink: #000000;
+  --mo-ink-secondary: #31302e;
+  --mo-muted: #615d59;
+  --mo-faint: #a39e98;
+  --mo-hairline: #e6e6e6;
+  --mo-shadow-soft: rgba(0, 0, 0, .01) 0 .175px 1.041px, rgba(0, 0, 0, .02) 0 .8px 2.925px, rgba(0, 0, 0, .027) 0 2.025px 7.847px, rgba(0, 0, 0, .04) 0 4px 18px;
+  --mo-nav-height: 60px;
+  --mo-shadow-elevated: rgba(0, 0, 0, .012) 0 .5px 1px, rgba(0, 0, 0, .02) 0 2px 5px, rgba(0, 0, 0, .028) 0 5px 12px, rgba(0, 0, 0, .038) 0 11px 26px, rgba(0, 0, 0, .05) 0 23px 52px;
+  min-height: 100vh;
+  /* `overflow: hidden` here would make this a (never-scrolling) scroll container,
+     which strands everything below the first viewport. `clip` on one axis keeps
+     the Notion hero's stickers from causing sideways scroll without that. */
+  overflow-x: clip;
+  background: var(--mo-canvas);
+  color: var(--mo-ink);
+  font-family: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.designSystem *,
+.designSystem *::before,
+.designSystem *::after {
+  box-sizing: border-box;
+}
+
+.designSystem h1,
+.designSystem h2,
+.designSystem h3,
+.designSystem h4,
+.designSystem p {
+  margin: 0;
+}
+
+.designSystem h1,
+.designSystem h2,
+.designSystem h3,
+.designSystem h4 {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Form-control font inheritance and link resets are left to Tailwind's preflight.
+   Declaring them here too would out-specify the utility classes that the vendored
+   shadcn components rely on inside the Local component library tab. */
+.designSystem code {
+  font-family: var(--font-inter), Inter, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.designSystem *:focus-visible {
+  outline: 2px solid var(--mo-primary);
+  outline-offset: 2px;
+}
+
+/* The page's only chrome: the design-system switcher doubles as the nav bar.
+   Keep --mo-nav-height in step with the rendered height — the tab panes size
+   themselves against it. */
+/* The page's only chrome. It reads the shadcn tokens rather than the --mo-*
+   palette so it follows whichever sky the body is set to. */
+/* The nav is Minder's own chrome, not a specimen, so its brand colour is fixed
+   here rather than inherited. Without this the primary button follows the
+   route's token brand — Minder blue on the general system, shadcn's near-black
+   everywhere else — and the bar reads differently tab to tab.
+   Both spellings are set: --color-primary is resolved on .shadcn-scope, so
+   redefining only the bare name would not reach the utilities. */
+.systemNav {
+  --primary: #0075de;
+  --primary-foreground: #ffffff;
+  --ring: #0075de;
+  --color-primary: #0075de;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #0075de;
+
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  min-height: var(--mo-nav-height);
+  padding: 0 18px;
+  border-bottom: 1px solid var(--color-border, var(--mo-hairline));
+  color: var(--color-foreground, var(--mo-ink));
+  background: color-mix(in srgb, var(--color-background, #f6f5f4) 92%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: inherit;
+}
+
+.brandLogo {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: contain;
+}
+
+.systemNavMenu {
+  justify-content: center;
+}
+
+.systemNavActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.systemTab {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Minder general design system ───────────────────────────────────
+   Roboto for this tab only; the other three keep the app's Inter. The
+   library components inside inherit it, so the type scale documented in
+   the Typography section is the type the specimens actually render in. */
+
+/* Layout helpers for the specimens that now render real library components. */
+
+@keyframes codeDrawerIn {
+  from {
+    transform: translateX(32px);
+    opacity: .4;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 720px) {
+
+  .systemTab,
+  .systemTabActive {
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .designSystem *,
+  .designSystem *::before,
+  .designSystem *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .systemNav {
+    grid-template-columns: auto 1fr;
+    row-gap: 0;
+    padding: 0 12px;
+  }
+
+  .systemNavMenu {
+    justify-content: flex-end;
+  }
+
+  .systemNavActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+  }
+
+  .systemTab {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* ── Dark sky · AI chat pane ─────────────────────────────────────────
+   The other three panes carry their own dark palettes; this one was still
+   pinned to the warm-paper tokens, so the translucent nav picked up a light
+   canvas here and a dark one everywhere else. Redefining the --mo-* tokens on
+   the pane flips its whole subtree; the handful of rules that hardcode a light
+   surface are restated underneath. */
+/* These sit on the chat reference header and hardcode a white fill. */
+/* The brand lightens in the dark sky, as it does for .shadcn-scope.minder-brand. */
+:global(.dark) .systemNav {
+  --primary: #62aef0;
+  --primary-foreground: #06254a;
+  --ring: #62aef0;
+  --color-primary: #62aef0;
+  --color-primary-foreground: #06254a;
+  --color-ring: #62aef0;
+}

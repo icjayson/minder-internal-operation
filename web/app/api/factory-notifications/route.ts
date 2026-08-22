@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { enrichDiscordAlert, pushDiscordEmbeds } from "@/lib/discord";
+import { enrichDiscordAlert, pushDiscordEmbeds, type DiscordDelivery } from "@/lib/discord";
+import { logDiscordDeliveries } from "@/lib/discord-alert-log";
 import { supabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -67,10 +68,12 @@ export async function POST(req: Request) {
     network ? [[network.id, network]] : [],
   );
   const enriched = enrichDiscordAlert(notification, factoryMap, networkMap);
-  const pushed = await pushDiscordEmbeds([enriched]);
+  const delivered: DiscordDelivery[] = [];
+  const pushed = await pushDiscordEmbeds([enriched], { onDelivered: (d) => delivered.push(d) });
   const pushedAt = pushed === true ? new Date().toISOString() : null;
   if (pushedAt) {
     await sb.from("notifications").update({ pushed_at: pushedAt }).eq("id", notification.id);
+    await logDiscordDeliveries(sb, delivered, "manual");
   }
 
   return NextResponse.json({
