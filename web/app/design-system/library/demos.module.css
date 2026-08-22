@@ -1,0 +1,20 @@
+/* Containment overrides for demos whose components assume they own the viewport.
+   Scoped to the demo wrapper so the vendored source stays untouched. */
+
+.sidebarDemo {
+  position: relative;
+  overflow: hidden;
+}
+.sidebarDemo :global([data-slot="sidebar-wrapper"]) {
+  min-height: 320px;
+  height: 320px;
+}
+/* The real sidebar is `fixed inset-y-0 h-svh`; inside a docs preview it has to
+   stay inside the frame instead of pinning itself to the window. */
+.sidebarDemo :global([data-slot="sidebar-container"]) {
+  position: absolute;
+  height: 100%;
+}
+.sidebarDemo :global([data-slot="sidebar-inset"]) {
+  min-height: 320px;
+}
