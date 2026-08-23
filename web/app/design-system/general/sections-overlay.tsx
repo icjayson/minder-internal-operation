@@ -52,7 +52,17 @@ function CommandPaletteSpec() {
   const [open, setOpen] = React.useState(false);
   return (
     <div className={styles.stack}>
-      <Command className={styles.commandFrame}>
+      {/* defaultValue is a sentinel that matches no item, and it is load-bearing.
+          On mount cmdk auto-selects its first item whenever the value is empty
+          (`n.current.value || W()`) and then calls scrollIntoView on it — which
+          on a page this tall drags the reader from the top straight down to this
+          specimen. Seeding a value that matches nothing skips the auto-select,
+          so nothing is selected, so there is nothing to scroll to. Arrowing or
+          typing selects normally from there; only the pre-highlighted first row
+          is given up, which an inline specimen is better off without anyway.
+          The palette below is a dialog and unmounted while closed, so it never
+          had the problem. */}
+      <Command className={styles.commandFrame} defaultValue="__no-initial-selection__">
         <CommandInput placeholder="Type a command or search…" />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>

@@ -1,0 +1,505 @@
+/* ── Ambient light sweep ─────────────────────────────────────────────
+   A slow beam that crosses a bar of chrome left to right, then waits.
+
+   Written to sit on the real nav as much as on the specimen cards: the host
+   only has to be positioned (`relative`, `sticky`, anything but `static`) —
+   .layer brings its own clipping. Everything else is layers this
+   file paints, all of them `pointer-events: none`.
+
+   Three knobs, all inheritable, so a host can retune without new rules:
+     --sweep-cycle      how often the beam runs        (default 18s)
+     --sweep-intensity  0 → invisible, 1 → full tint   (default .5)
+     --sweep-tint       the light's colour             (defaults to --primary)
+     --sweep-radius     outline corner radius          (default 0, match the host)
+     --sweep-trace-len  length of the outline streak   (default 120px)
+
+   All three are read with fallbacks, so a host sets only what it wants to
+   change. Travel is a fixed 11% of the cycle rather than its own duration, because
+   keyframe offsets cannot read a custom property. At the default 18s that is
+   a ~2s pass; the sensible range for --sweep-cycle is 12s–24s.
+   -------------------------------------------------------------------- */
+
+.stage {
+  /* The light sky needs more of the tint to register against warm paper than
+     the dark sky does against near-black, so the same --sweep-intensity reads
+     as the same brightness in both. Not user-facing. */
+  --sweep-gain: 1.5;
+
+  /* Every default lives in a var() fallback rather than as a declaration on
+     this element. Declaring `--sweep-intensity: .5` here would out-rank the
+     value inherited from an ancestor — so the knobs would move their readouts
+     and nothing else. Reading with a fallback keeps the cascade intact. */
+  --sweep-ink: var(--sweep-tint, var(--primary, #0075de));
+  --sweep-duration: var(--sweep-cycle, 18s);
+  --sweep-alpha: min(1, var(--sweep-intensity, .5) * var(--sweep-gain));
+
+  --sweep-color: color-mix(in srgb, var(--sweep-ink) calc(var(--sweep-alpha) * 100%), transparent);
+  --sweep-bloom: color-mix(in srgb, var(--sweep-ink) calc(var(--sweep-alpha) * 42%), transparent);
+  --sweep-wash: color-mix(in srgb, var(--sweep-ink) calc(var(--sweep-alpha) * 16%), transparent);
+
+  /* Deliberately no `position` here. The real nav is `position: sticky`, and
+     since both classes are single-class selectors, a `position: relative` in
+     this file would silently win or lose on bundle order and could unstick the
+     bar. The host is already positioned — sticky on .systemNav, relative on the
+     specimen bar — which is all .layer needs to anchor to. */
+  isolation: isolate;
+}
+
+/* Only the gain changes: --primary already flips to the light brand blue in
+   the dark sky, so --sweep-ink retints itself. */
+:global(.dark) .stage {
+  --sweep-gain: 1;
+}
+
+/* The layer every variant paints into. Clipped, so a beam parked off-screen
+   between passes cannot widen the host or bleed over a neighbour. */
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* One travel: fully off the left edge to fully off the right.
+
+   The moving elements are a third of the host wide, so -100% parks the beam
+   with its right edge on the host's left edge and 300% parks its left edge on
+   the host's right edge. Only `transform` and `opacity` animate — both are
+   compositor-only, so a sweep never costs a layout or a paint.
+
+   Travel and fade are two animations rather than one set of keyframes because
+   animation-timing-function is applied *per keyframe pair*: folding the two
+   opacity stops into this list would restart the easing three times mid-travel
+   and the beam would cover most of the bar in the first half of its pass. */
+@keyframes sweepTravel {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  11% {
+    transform: translate3d(300%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(300%, 0, 0);
+  }
+}
+
+/* The wash is wider and travels further, so its centre runs ahead of the beam:
+   the glow arrives before the hairline catches it, rather than the two moving
+   as one rigid object. */
+@keyframes sweepTravelWide {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  13% {
+    transform: translate3d(180%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(180%, 0, 0);
+  }
+}
+
+/* Linear, so the ends fade without tugging on the travel's easing. */
+@keyframes sweepFade {
+  0% {
+    opacity: 0;
+  }
+
+  1.5% {
+    opacity: 1;
+  }
+
+  9% {
+    opacity: 1;
+  }
+
+  11% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Soft in, steady through the middle, soft out. A linear sweep reads as a
+   progress bar; a front-loaded one flashes and then lingers at the far edge.
+   This is near-constant speed across the bar with just the ends eased, which
+   is how a real highlight crosses a surface. */
+.beam,
+.bloom,
+.wash {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  animation:
+    sweepTravel var(--sweep-duration) cubic-bezier(.45, .05, .55, .95) infinite,
+    sweepFade var(--sweep-duration) linear infinite;
+}
+
+/* ── A · Horizon line ──────────────────────────────────────────────
+   The bar's own bottom hairline becomes the light source. A 1px beam runs
+   along it, with a soft bloom above so the light has falloff instead of
+   looking like a bare gradient sitting on the edge. */
+
+.beam {
+  bottom: 0;
+  width: 33.333%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sweep-color) 50%, transparent);
+}
+
+.bloom {
+  bottom: 0;
+  width: 33.333%;
+  height: 24px;
+  background: radial-gradient(58% 100% at 50% 100%, var(--sweep-bloom), transparent 70%);
+  filter: blur(5px);
+}
+
+/* ── A · Outline trace ─────────────────────────────────────────────
+   The light rides the bar's whole outline — across the top, down the right,
+   back along the bottom, up the left — instead of only the bottom hairline.
+
+   `offset-path` is what makes this honest. A conic gradient is the usual
+   trick for a glowing border, but it sweeps by *angle* from the centre: on a
+   bar this wide (roughly 18:1) the light would tear across the long edges and
+   crawl at the corners. A motion path distributes by arc length, so the speed
+   is constant the whole way round.
+
+   The path is inset half a pixel so the 1px line lands fully inside the box
+   rather than straddling the edge and losing half its brightness to the clip.
+   The streak stays a rigid rectangle, so at each corner its tail overhangs and
+   .traceLayer clips it — that clipped tail is the dim end of the gradient, and
+   it reads as the light wrapping the corner. */
+
+.traceLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.trace,
+.traceBloom {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sweep-trace-len, 200px);
+  opacity: 0;
+  offset-path: inset(.5px round var(--sweep-radius, 0px));
+  /* Rotate to the path tangent, so the streak turns the corner instead of
+     sliding down the sides still lying flat. It also keeps "inward" pointing
+     inward in the element's own frame the whole way round, which is what lets
+     the bloom glow into the bar rather than out of it. */
+  offset-rotate: auto;
+  animation:
+    traceLap var(--sweep-duration) linear infinite,
+    traceFade var(--sweep-duration) linear infinite;
+}
+
+.trace {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sweep-color) 50%, transparent);
+}
+
+.traceBloom {
+  height: 20px;
+  background: radial-gradient(56% 100% at 50% 50%, var(--sweep-bloom), transparent 70%);
+  filter: blur(5px);
+}
+
+/* One lap is 17% of the cycle rather than the beam's 11%: the outline is
+   roughly twice the distance of a single crossing, so this keeps the light
+   moving at about the same speed. Linear — a lap that eases in and out looks
+   like it is labouring. */
+@keyframes traceLap {
+  0% {
+    offset-distance: 0%;
+  }
+
+  17% {
+    offset-distance: 100%;
+  }
+
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes traceFade {
+  0% {
+    opacity: 0;
+  }
+
+  2% {
+    opacity: 1;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  17% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Without motion path there is no honest way to run the outline, so the bar
+   simply keeps its ordinary border — same call as prefers-reduced-motion. */
+@supports not (offset-path: inset(0px)) {
+  .traceLayer {
+    display: none;
+  }
+}
+
+/* ── B · Aurora wash ───────────────────────────────────────────────
+   Adds a wide, very soft body of light drifting behind the bar's content.
+   Raycast's warm-glow move, retinted to the brand. */
+
+.wash {
+  top: 0;
+  width: 62%;
+  height: 100%;
+  background: radial-gradient(46% 130% at 50% 55%, var(--sweep-wash), transparent 72%);
+  filter: blur(12px);
+  animation-name: sweepTravelWide, sweepFade;
+}
+
+/* ── C · Data stream ───────────────────────────────────────────────
+   Segmented streaks at staggered depths. The rows drift continuously at
+   their own speeds — the parallax is what sells the depth — and the group is
+   gated to visible for one short window per cycle, so the bar is still for
+   most of the time like every other variant. */
+
+.streamGate {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: streamGate var(--sweep-duration) ease-in-out infinite;
+}
+
+@keyframes streamGate {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  14% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Three times the host's width, parked a full width to the left, so a row can
+   drift a whole width without ever running out of dashes at either end. */
+.streamRow {
+  position: absolute;
+  left: -100%;
+  width: 300%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg,
+      var(--sweep-color) 0 var(--dash),
+      transparent var(--dash) var(--pitch));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent);
+  animation: streamDrift var(--speed) linear infinite;
+}
+
+@keyframes streamDrift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(33.333%, 0, 0);
+  }
+}
+
+/* ── D · Specular pass ─────────────────────────────────────────────
+   The light crosses the type rather than the chrome, the way a highlight
+   travels over glass. The real text stays put and legible; a clipped copy on
+   ::after carries the highlight, so nothing depends on the host's colour. */
+
+.specular {
+  position: relative;
+}
+
+.specular::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(100deg,
+      transparent 42%,
+      var(--sweep-color) 50%,
+      transparent 58%);
+  background-repeat: no-repeat;
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: specularPass var(--sweep-duration) cubic-bezier(.45, .05, .55, .95) infinite;
+}
+
+/* The background is 2.6× the element, so its highlight band sits off to the
+   left at 100% and off to the right at 0% — counting down runs the light in
+   the reading direction. */
+@keyframes specularPass {
+  0% {
+    background-position: 100% 0;
+  }
+
+  11% {
+    background-position: 0% 0;
+  }
+
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────
+   No crawl, no fade-in-place — the light is decoration, so it is simply not
+   there. The host keeps its ordinary border and background. */
+@media (prefers-reduced-motion: reduce) {
+
+  .layer,
+  .traceLayer,
+  .specular::after {
+    display: none;
+  }
+}
+/* ── Toast / notification ──────────────────────────────────────────
+   The same light on a different clock. A toast lives about four seconds, so
+   the nav's 18s cycle would almost never be seen on one: here the light runs
+   once, just after the toast settles, and the surface is still for the rest
+   of its life.
+
+   Sonner renders the toast element itself, so there are no children to paint
+   into: the variant is built from ::before and ::after, which the component
+   leaves free. That means each pseudo-element carries more than one job — the
+   streak and its bloom are two background layers on one box rather than two
+   boxes.
+
+   Everything moves by `background-position`, never `transform`. A translated
+   box would need `overflow: hidden` on the toast to stay contained, and that
+   would clip Sonner's own close button; a background is clipped to its element
+   for free, and `border-radius: inherit` rounds it off at the corners. */
+
+.toastSweep {
+  composes: stage;
+  --sweep-toast-travel: 1.6s;
+  --sweep-toast-settle: .18s;
+
+  /* A toast is read, then gone — it does not get the nav's restraint. At full
+     intensity the light lands on the brand colour outright instead of a
+     diluted version of it. */
+  --sweep-intensity: 1;
+
+  /* A CSS gradient's bands run perpendicular to its axis, so a 90deg axis
+     gives an upright streak and the tilt is simply added to it. Kept as a
+     signed knob: flip it to +30deg to lean the streak the other way. */
+  --sweep-toast-tilt: -30deg;
+  --sweep-toast-angle: calc(90deg + var(--sweep-toast-tilt));
+
+  /* The streak carries its own alpha rather than riding --sweep-intensity, so
+     it can come down without dragging the bloom and the wash with it. */
+  --sweep-streak: color-mix(in srgb, var(--sweep-color) 55%, transparent);
+
+  position: relative;
+}
+
+/* Status toasts light up in their own colour rather than the brand's — a green
+   toast swept with blue would read as two unrelated systems. --sweep-ink reads
+   --sweep-tint through a fallback, so retinting here carries the streak, the
+   bloom and the wash together, and the values are the same semantic ramp the
+   toast's own background and text come from.
+
+   Hung off .toastSweep rather than the page scope because this is a CSS
+   module: a bare `.shadcn-scope` here would be hashed into a local name and
+   match nothing. The class is already on the element, so pairing it with the
+   data attribute is both correct and shorter. */
+.toastSweep[data-type="success"] { --sweep-tint: var(--color-success); }
+.toastSweep[data-type="error"]   { --sweep-tint: var(--color-error); }
+.toastSweep[data-type="warning"] { --sweep-tint: var(--color-warning); }
+.toastSweep[data-type="info"]    { --sweep-tint: var(--color-info); }
+
+.toastSweep::before,
+.toastSweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+/* The wide body of light. It travels the same distance as the streak but over
+   a softer curve, so the glow arrives a touch ahead of the edge that catches
+   it — the same lead the nav's variant B has. */
+.toastSweep::before {
+  background-image: radial-gradient(46% 130% at 50% 55%, var(--sweep-wash), transparent 72%);
+  background-size: 50% 100%;
+  background-position: -100% center;
+  animation: toastWash var(--sweep-toast-travel) cubic-bezier(.45, .05, .55, .95) var(--sweep-toast-settle) 1 both;
+}
+
+@keyframes toastWash {
+  from { background-position: -100% center; opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  to   { background-position: 200% center; opacity: 0; }
+}
+
+/* The streak crosses the whole face rather than riding the bottom edge — a
+   tilted hairline is no longer a horizon. Two layers on the same axis: a broad
+   soft one for the bloom and a narrow one for the streak itself, so the light
+   has falloff instead of being a bare diagonal line.
+
+   Both layers are half the toast wide, which puts them fully clear of the box
+   at -100% and 200% — a background sitting at p% is offset by
+   (container − image) × p, and half-width makes that denominator 0.5. */
+.toastSweep::after {
+  background-image:
+    linear-gradient(var(--sweep-toast-angle), transparent 26%, var(--sweep-bloom) 50%, transparent 74%),
+    linear-gradient(var(--sweep-toast-angle), transparent 45%, var(--sweep-streak) 50%, transparent 55%);
+  background-size: 50% 100%, 50% 100%;
+  background-position: -100% center, -100% center;
+  animation: toastBeam var(--sweep-toast-travel) cubic-bezier(.45, .05, .55, .95) var(--sweep-toast-settle) 1 both;
+}
+
+@keyframes toastBeam {
+  from { background-position: -100% center, -100% center; opacity: 0; }
+  8%   { opacity: 1; }
+  88%  { opacity: 1; }
+  to   { background-position: 200% center, 200% center; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toastSweep::before,
+  .toastSweep::after {
+    display: none;
+  }
+}

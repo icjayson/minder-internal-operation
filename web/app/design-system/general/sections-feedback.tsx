@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircleIcon, CheckCircle2Icon, InboxIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
+import { AlertCircleIcon, CheckCircle2Icon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/design-system/components/alert";
@@ -27,6 +27,11 @@ import { Toaster } from "@/design-system/components/sonner";
 import { Spinner } from "@/design-system/components/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/design-system/components/tooltip";
 
+import sweep from "../ambient-sweep.module.css";
+import { LottieIcon } from "../lottie-icon";
+import emptyStateLottie from "./lottie/empty-state.json";
+import loadingStateLottie from "./lottie/loading-state.json";
+import { useDesignSystemTheme } from "../theme-context";
 import { Spec, SpecGrid, generalStyles as styles } from "./shell";
 
 function ProgressSpec() {
@@ -44,6 +49,12 @@ function ProgressSpec() {
 }
 
 export function FeedbackSection() {
+  /* Sonner reads its theme from next-themes, which this app does not use — so
+     it falls back to "system" and paints its dark-theme text colours onto a
+     light toast. Handing it the design system's own sky fixes that; the
+     vendored component spreads props last, so this wins without touching it. */
+  const { dark } = useDesignSystemTheme();
+
   return (
     <SpecGrid>
       <Spec label="Alert / Banner" source="components/alert" wide>
@@ -67,7 +78,11 @@ export function FeedbackSection() {
       </Spec>
 
       <Spec label="Toast / Notification" source="components/sonner">
-        <Toaster />
+        <Toaster
+          theme={dark ? "dark" : "light"}
+          richColors
+          toastOptions={{ className: sweep.toastSweep }}
+        />
         <div className={styles.row}>
           <Button
             variant="outline"
@@ -87,6 +102,7 @@ export function FeedbackSection() {
             Error
           </Button>
         </div>
+
       </Spec>
 
       <Spec label="Modal / Dialog" source="components/dialog">
@@ -178,6 +194,51 @@ export function FeedbackSection() {
         </div>
       </Spec>
 
+      {/* The sibling of Empty state: the same surface, before the answer is
+          known rather than after it comes back empty. Composed from Empty's
+          own parts so the two read as one pair — there is no vendored
+          loading-state primitive. `tall` matches Empty's two rows, otherwise
+          the pair sits at different heights side by side. */}
+      <Spec label="Loading state" source="composed · empty + lottie + skeleton" tall>
+        <Empty className={styles.emptyFrame}>
+          <EmptyHeader>
+            {/* Rendered larger than the empty icon on purpose. The loading
+                document inks only 75%x54% of its own 128x128 canvas against the
+                empty one's 92%x64%, so at a matching 72px its artwork came out
+                39px tall against 46px — visibly smaller inside the same frame.
+                86px cancels that built-in padding and lands them level. */}
+            <EmptyMedia variant="icon" className="size-30">
+              <LottieIcon data={loadingStateLottie} size={86} />
+            </EmptyMedia>
+            <EmptyTitle>Loading deployments</EmptyTitle>
+            <EmptyDescription>Fetching the latest rollout history.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <div className={styles.stack}>
+              <Skeleton className="h-4 w-[220px]" />
+              <Skeleton className="h-4 w-[160px]" />
+            </div>
+          </EmptyContent>
+        </Empty>
+      </Spec>
+
+      <Spec label="Empty state" source="components/empty" tall>
+        <Empty className={styles.emptyFrame}>
+          <EmptyHeader>
+            <EmptyMedia variant="icon" className="size-30">
+              <LottieIcon data={emptyStateLottie} size={72} />
+            </EmptyMedia>
+            <EmptyTitle>No deployments yet</EmptyTitle>
+            <EmptyDescription>Kick off the first rollout to see it here.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button size="sm">New deployment</Button>
+          </EmptyContent>
+        </Empty>
+      </Spec>
+
+      {/* Last in source, but `grid-auto-flow: dense` drops it into the free
+          slot under Skeleton loader rather than trailing the two tall cards. */}
       <Spec label="Badge / Tag / Chip" source="components/badge">
         <div className={styles.row}>
           <Badge>Default</Badge>
@@ -188,21 +249,6 @@ export function FeedbackSection() {
             <TriangleAlertIcon /> Needs review
           </Badge>
         </div>
-      </Spec>
-
-      <Spec label="Empty state" source="components/empty" tall>
-        <Empty className={styles.emptyFrame}>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <InboxIcon />
-            </EmptyMedia>
-            <EmptyTitle>No deployments yet</EmptyTitle>
-            <EmptyDescription>Kick off the first rollout to see it here.</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button size="sm">New deployment</Button>
-          </EmptyContent>
-        </Empty>
       </Spec>
     </SpecGrid>
   );

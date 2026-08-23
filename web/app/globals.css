@@ -217,176 +217,322 @@ h1, h2, h3, h4, .font-display {
 
 /* Declared so Tailwind generates the utilities; the values that matter are
    the scoped ones below. `--color-accent` and `--color-muted` are absent on
-   purpose — the Celesnity palette already owns those names. */
+   purpose — this @theme block is global, not scoped, and the Celesnity palette
+   above already owns those two names. */
 @theme {
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.145 0 0);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.145 0 0);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.145 0 0);
-  --color-primary: oklch(0.205 0 0);
-  --color-primary-foreground: oklch(0.985 0 0);
-  --color-secondary: oklch(0.97 0 0);
-  --color-secondary-foreground: oklch(0.205 0 0);
-  --color-muted-foreground: oklch(0.556 0 0);
-  --color-accent-foreground: oklch(0.205 0 0);
-  --color-destructive: oklch(0.577 0.245 27.325);
-  --color-border: oklch(0.922 0 0);
-  --color-input: oklch(0.922 0 0);
-  --color-ring: oklch(0.708 0 0);
-  --color-chart-1: var(--color-blue-300);
-  --color-chart-2: var(--color-blue-500);
-  --color-chart-3: var(--color-blue-600);
-  --color-chart-4: var(--color-blue-700);
-  --color-chart-5: var(--color-blue-800);
-  --color-sidebar: oklch(0.985 0 0);
-  --color-sidebar-foreground: oklch(0.145 0 0);
-  --color-sidebar-primary: oklch(0.205 0 0);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.97 0 0);
-  --color-sidebar-accent-foreground: oklch(0.205 0 0);
-  --color-sidebar-border: oklch(0.922 0 0);
-  --color-sidebar-ring: oklch(0.708 0 0);
+   --color-background: oklch(1 0 0);
+   --color-foreground: oklch(0.145 0 0);
+   --color-card: oklch(1 0 0);
+   --color-card-foreground: oklch(0.145 0 0);
+   --color-popover: oklch(1 0 0);
+   --color-popover-foreground: oklch(0.145 0 0);
+   --color-primary: oklch(0.205 0 0);
+   --color-primary-foreground: oklch(0.985 0 0);
+   --color-secondary: oklch(0.97 0 0);
+   --color-secondary-foreground: oklch(0.205 0 0);
+   --color-muted-foreground: oklch(0.556 0 0);
+   --color-accent-foreground: oklch(0.205 0 0);
+   --color-destructive: oklch(0.577 0.245 27.325);
+   --color-border: oklch(0.922 0 0);
+   --color-input: oklch(0.922 0 0);
+   --color-ring: oklch(0.708 0 0);
+   --color-chart-1: var(--color-blue-300);
+   --color-chart-2: var(--color-blue-500);
+   --color-chart-3: var(--color-blue-600);
+   --color-chart-4: var(--color-blue-700);
+   --color-chart-5: var(--color-blue-800);
+   --color-sidebar: oklch(0.985 0 0);
+   --color-sidebar-foreground: oklch(0.145 0 0);
+   --color-sidebar-primary: oklch(0.205 0 0);
+   --color-sidebar-primary-foreground: oklch(0.985 0 0);
+   --color-sidebar-accent: oklch(0.97 0 0);
+   --color-sidebar-accent-foreground: oklch(0.205 0 0);
+   --color-sidebar-border: oklch(0.922 0 0);
+   --color-sidebar-ring: oklch(0.708 0 0);
 }
 
 .shadcn-scope {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  /* The `neutral` base ships a grayscale chart ramp; ui.shadcn.com overrides it
+   --radius: 0.625rem;
+   --background: oklch(1 0 0);
+   --foreground: oklch(0.145 0 0);
+   --card: oklch(1 0 0);
+   --card-foreground: oklch(0.145 0 0);
+   --popover: oklch(1 0 0);
+   --popover-foreground: oklch(0.145 0 0);
+   --primary: oklch(0.205 0 0);
+   --primary-foreground: oklch(0.985 0 0);
+   --secondary: oklch(0.97 0 0);
+   --secondary-foreground: oklch(0.205 0 0);
+   --muted: oklch(0.97 0 0);
+   --muted-foreground: oklch(0.556 0 0);
+   --accent: oklch(0.97 0 0);
+   --accent-foreground: oklch(0.205 0 0);
+   --destructive: oklch(0.577 0.245 27.325);
+   --border: oklch(0.922 0 0);
+   --input: oklch(0.922 0 0);
+   --ring: oklch(0.708 0 0);
+   /* The `neutral` base ships a grayscale chart ramp; ui.shadcn.com overrides it
      with Tailwind's blue scale (`.theme-default`), which is what the /charts
      gallery actually renders. Same override here, referencing Tailwind's own
      tokens so the two stay in step. */
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+   --chart-1: var(--color-blue-300);
+   --chart-2: var(--color-blue-500);
+   --chart-3: var(--color-blue-600);
+   --chart-4: var(--color-blue-700);
+   --chart-5: var(--color-blue-800);
+   --sidebar: oklch(0.985 0 0);
+   --sidebar-foreground: oklch(0.145 0 0);
+   --sidebar-primary: oklch(0.205 0 0);
+   --sidebar-primary-foreground: oklch(0.985 0 0);
+   --sidebar-accent: oklch(0.97 0 0);
+   --sidebar-accent-foreground: oklch(0.205 0 0);
+   --sidebar-border: oklch(0.922 0 0);
+   --sidebar-ring: oklch(0.708 0 0);
 }
 
 .shadcn-scope.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+   --background: oklch(0.145 0 0);
+   --foreground: oklch(0.985 0 0);
+   --card: oklch(0.205 0 0);
+   --card-foreground: oklch(0.985 0 0);
+   --popover: oklch(0.205 0 0);
+   --popover-foreground: oklch(0.985 0 0);
+   --primary: oklch(0.922 0 0);
+   --primary-foreground: oklch(0.205 0 0);
+   --secondary: oklch(0.269 0 0);
+   --secondary-foreground: oklch(0.985 0 0);
+   --muted: oklch(0.269 0 0);
+   --muted-foreground: oklch(0.708 0 0);
+   --accent: oklch(0.269 0 0);
+   --accent-foreground: oklch(0.985 0 0);
+   --destructive: oklch(0.704 0.191 22.216);
+   --border: oklch(1 0 0 / 10%);
+   --input: oklch(1 0 0 / 15%);
+   --ring: oklch(0.556 0 0);
+   --sidebar: oklch(0.205 0 0);
+   --sidebar-foreground: oklch(0.985 0 0);
+   --sidebar-primary: oklch(0.488 0.243 264.376);
+   --sidebar-primary-foreground: oklch(0.985 0 0);
+   --sidebar-accent: oklch(0.269 0 0);
+   --sidebar-accent-foreground: oklch(0.985 0 0);
+   --sidebar-border: oklch(1 0 0 / 10%);
+   --sidebar-ring: oklch(0.556 0 0);
 }
 
 /* Point the Tailwind colour utilities at the raw tokens above — shadcn does
    this with `@theme inline`, which is not an option here because the mapping
    has to stay inside the scope. Same effect, same single source. */
 .shadcn-scope {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+   --radius-sm: calc(var(--radius) - 4px);
+   --radius-md: calc(var(--radius) - 2px);
+   --radius-lg: var(--radius);
+   --radius-xl: calc(var(--radius) + 4px);
+   --color-background: var(--background);
+   --color-foreground: var(--foreground);
+   --color-card: var(--card);
+   --color-card-foreground: var(--card-foreground);
+   --color-popover: var(--popover);
+   --color-popover-foreground: var(--popover-foreground);
+   --color-primary: var(--primary);
+   --color-primary-foreground: var(--primary-foreground);
+   --color-secondary: var(--secondary);
+   --color-secondary-foreground: var(--secondary-foreground);
+   --color-muted: var(--muted);
+   --color-muted-foreground: var(--muted-foreground);
+   --color-accent: var(--accent);
+   --color-accent-foreground: var(--accent-foreground);
+   --color-destructive: var(--destructive);
+   --color-border: var(--border);
+   --color-input: var(--input);
+   --color-ring: var(--ring);
+   --color-chart-1: var(--chart-1);
+   --color-chart-2: var(--chart-2);
+   --color-chart-3: var(--chart-3);
+   --color-chart-4: var(--chart-4);
+   --color-chart-5: var(--chart-5);
+   --color-sidebar: var(--sidebar);
+   --color-sidebar-foreground: var(--sidebar-foreground);
+   --color-sidebar-primary: var(--sidebar-primary);
+   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+   --color-sidebar-accent: var(--sidebar-accent);
+   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+   --color-sidebar-border: var(--sidebar-border);
+   --color-sidebar-ring: var(--sidebar-ring);
 }
 
 /* The Minder general design system is the same library re-tokenised to the brand
    blue. Applied on <body> alongside .shadcn-scope so portalled dialogs and menus
    pick it up too. */
 .shadcn-scope.minder-brand {
-  --primary: #0075de;
-  --primary-foreground: #ffffff;
-  --ring: #0075de;
-  --sidebar-primary: #0075de;
-  --sidebar-primary-foreground: #ffffff;
+   --primary: #0075de;
+   --primary-foreground: #ffffff;
+   --ring: #0075de;
+   --sidebar-primary: #0075de;
+   --sidebar-primary-foreground: #ffffff;
+
+   /* Hover skin for the platform's primary and secondary buttons.
+
+     Kept as values rather than four finished rules because both skies share
+     one structure and differ only here. `-from` doubles as the glow colour:
+     in the source design the inset top glow and the outer bloom are both the
+     gradient's own top stop, so binding them to one token means the glow can
+     never drift from the gradient it comes out of. */
+   /* The gradient starts at the brand colour itself. The source design uses
+     #006AD3 light / #56A5E9 dark, both within ~4% of --primary — close enough
+     that binding to the token instead buys more than it costs: the value is
+     declared once for both skies, the hover can never drift from the resting
+     state it grows out of, and retinting the brand carries the gradient and
+     both glows with it. Only the dark end is a genuinely new value — #010F2E
+     sits below primary-900, past the bottom of the documented ramp. */
+   --primary-hover-from: var(--primary);
+   --primary-hover-to: #00277c;
+   --primary-hover-rim: rgb(255 255 255 / 24%);
+   --primary-hover-foreground: #ffffff;
+   --secondary-hover: #afd3f2;
+   --secondary-hover-foreground: #000000;
+
+   /* Minder's status palette — the same values tokens.ts documents and emits
+     into the downloadable stylesheet. Until now they existed only in that
+     generated file, so nothing on the live page could reach them; declaring
+     them here keeps the documented ramp and the rendered one as one thing. */
+  --color-success-light: #e4f5e7;
+  --color-success: #1aae39;
+  --color-success-dark: #137d29;
+  --color-warning-light: #fbebe0;
+  --color-warning: #dd5b00;
+  --color-warning-dark: #9f4200;
+  --color-error-light: #fae9ec;
+  --color-error: #d6455f;
+  --color-error-dark: #9a3244;
+  --color-info-light: #e0eefb;
+  --color-info: #0075de;
+  --color-info-dark: #0054a0;
+
+  /* The source design is drawn on a ~47px button (12px padding around 18px
+     text at 130%). Ours is 36px on the system's scale, and the lighting is
+     specified in fixed pixels — so at full size the two inset glows cover 25
+     of those 36px and swallow the gradient they are meant to sit on, which
+     reads as muddy rather than lit. Scaling by the height ratio keeps the
+     proportions the design intends instead of the pixels it happens to use.
+     One knob: raise it if the button ever grows. */
+   --primary-hover-lift: .77;
 }
+
 .shadcn-scope.minder-brand.dark {
-  --primary: #62aef0;
-  --primary-foreground: #06254a;
-  --ring: #62aef0;
+   --primary: #62aef0;
+   --primary-foreground: #06254a;
+   --ring: #62aef0;
+
+   /* The dark sky inverts the lighting: the gradient runs light-to-lighter and
+     the rim highlight becomes a shadow, so the button still reads as lit from
+     above against a dark canvas. --primary-hover-from is not restated here —
+     it resolves to --primary, which this block has already flipped. */
+   --primary-hover-to: #cadbff;
+   --primary-hover-rim: rgb(0 0 0 / 50%);
+   --primary-hover-foreground: #000000;
+   --secondary-hover: #1F2B74;
+   --secondary-hover-foreground: #ffffff;
+}
+
+/* A transparent gradient at rest, so hover interpolates instead of snapping:
+   `background-image` cannot animate from `none`, only from another gradient of
+   the same kind. The button already carries `transition-all`, so this is the
+   only thing standing between it and a smooth lift. */
+.shadcn-scope.minder-brand [data-slot="button"][data-variant="default"] {
+   background-image: linear-gradient(180deg, transparent 0%, transparent 100%);
+}
+
+/* Two attributes plus :hover comfortably out-specifies the variant's own
+   `hover:bg-primary/90`, so nothing here needs !important. Geometry is
+   untouched on purpose — height, radius, padding and type stay on the system's
+   scale and only the surface changes. */
+.shadcn-scope.minder-brand [data-slot="button"][data-variant="default"]:hover:not(:disabled) {
+   background-color: var(--primary-hover-to);
+   background-image: linear-gradient(180deg, var(--primary-hover-from) 0%, var(--primary-hover-to) 100%);
+   color: var(--primary-hover-foreground);
+   box-shadow:
+      inset 0 calc(-3px * var(--primary-hover-lift)) calc(8px * var(--primary-hover-lift)) var(--primary-hover-rim),
+      inset 0 calc(4px * var(--primary-hover-lift)) calc(10px * var(--primary-hover-lift)) var(--primary-hover-from),
+      0 calc(4px * var(--primary-hover-lift)) calc(20px * var(--primary-hover-lift)) calc(8px * var(--primary-hover-lift)) color-mix(in srgb, var(--primary-hover-from) 35%, transparent);
+}
+
+.shadcn-scope.minder-brand [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) {
+   background-color: var(--secondary-hover);
+   color: var(--secondary-hover-foreground);
 }
 
 /* shadcn's base layer, scoped. Upstream this is `* { @apply border-border
    outline-ring/50 }` on every element in the document. */
-.shadcn-scope [data-slot], .shadcn-scope [data-slot]::before, .shadcn-scope [data-slot]::after,
-.shadcn-scope [data-slot] *, .shadcn-scope [data-slot] *::before, .shadcn-scope [data-slot] *::after {
-  border-color: var(--border);
+.shadcn-scope [data-slot],
+.shadcn-scope [data-slot]::before,
+.shadcn-scope [data-slot]::after,
+.shadcn-scope [data-slot] *,
+.shadcn-scope [data-slot] *::before,
+.shadcn-scope [data-slot] *::after {
+   border-color: var(--border);
 }
+
 /* The app-wide `*:focus-visible { outline: 2px solid … }` above would paint a
    second ring on top of the one every shadcn component already draws for
    itself (`focus-visible:border-ring` + `focus-visible:ring-ring/50`). Upstream
    only sets an outline *colour* on `*`, never an outline, so suppress it here
    and let the components own their focus treatment. */
-.shadcn-scope [data-slot]:focus-visible, .shadcn-scope [data-slot] *:focus-visible {
-  outline: none;
+.shadcn-scope [data-slot]:focus-visible,
+.shadcn-scope [data-slot] *:focus-visible {
+   outline: none;
 }
-.shadcn-scope ::selection { background: var(--foreground); color: var(--background); }
+
+.shadcn-scope ::selection {
+   background: var(--foreground);
+   color: var(--background);
+}
+
+/* ── Toast status colours ─────────────────────────────────────────────
+   Sonner ships its own rich-colour palette; these point it at Minder's
+   semantic ramp instead, so a success toast is the same green the Foundation
+   section documents rather than a second, unrelated one.
+
+   Specificity has to clear Sonner's own `[data-sonner-toaster][data-sonner-
+   theme="light"]` rules, which sit at two attributes — two classes plus the
+   attribute does it without !important. */
+.shadcn-scope.minder-brand [data-sonner-toaster] {
+  --success-bg: var(--color-success-light);
+  --success-text: var(--color-success-dark);
+  --success-border: color-mix(in srgb, var(--color-success) 32%, transparent);
+  --error-bg: var(--color-error-light);
+  --error-text: var(--color-error-dark);
+  --error-border: color-mix(in srgb, var(--color-error) 32%, transparent);
+  --warning-bg: var(--color-warning-light);
+  --warning-text: var(--color-warning-dark);
+  --warning-border: color-mix(in srgb, var(--color-warning) 32%, transparent);
+  --info-bg: var(--color-info-light);
+  --info-text: var(--color-info-dark);
+  --info-border: color-mix(in srgb, var(--color-info) 32%, transparent);
+}
+
+/* The dark sky inverts the pairing rather than reusing it: the tint becomes a
+   deep wash mixed into the canvas and the type comes up bright, which is the
+   only way the same hue stays legible on a near-black surface. */
+.shadcn-scope.minder-brand.dark [data-sonner-toaster] {
+  --success-bg: color-mix(in srgb, var(--color-success-dark) 24%, #0b0b0d);
+  --success-text: color-mix(in srgb, var(--color-success) 62%, #ffffff);
+  --success-border: color-mix(in srgb, var(--color-success-dark) 55%, #0b0b0d);
+  --error-bg: color-mix(in srgb, var(--color-error-dark) 24%, #0b0b0d);
+  --error-text: color-mix(in srgb, var(--color-error) 62%, #ffffff);
+  --error-border: color-mix(in srgb, var(--color-error-dark) 55%, #0b0b0d);
+  --warning-bg: color-mix(in srgb, var(--color-warning-dark) 24%, #0b0b0d);
+  --warning-text: color-mix(in srgb, var(--color-warning) 62%, #ffffff);
+  --warning-border: color-mix(in srgb, var(--color-warning-dark) 55%, #0b0b0d);
+  --info-bg: color-mix(in srgb, var(--color-info-dark) 24%, #0b0b0d);
+  --info-text: color-mix(in srgb, var(--color-info) 62%, #ffffff);
+  --info-border: color-mix(in srgb, var(--color-info-dark) 55%, #0b0b0d);
+}
+
+/* Rich colours make every description inherit the toast's own colour. That is
+   right for a status toast — the green body should be the same green as its
+   title — but it flattens the plain one, where title and description both land
+   on near-black and the hierarchy disappears. Only the untyped toast needs its
+   secondary tone handed back. */
+.shadcn-scope.minder-brand [data-sonner-toast]:not([data-type]) [data-description] {
+  color: var(--muted-foreground);
+}

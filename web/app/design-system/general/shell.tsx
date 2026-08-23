@@ -109,10 +109,10 @@ export function Spec({
   );
 }
 
-export function SpecGrid({ children, columns }: { children: React.ReactNode; columns?: 2 | 3 }) {
-  return (
-    <div className={columns === 2 ? styles.grid2 : columns === 3 ? styles.grid3 : styles.grid}>{children}</div>
-  );
+export function SpecGrid({ children, columns }: { children: React.ReactNode; columns?: 1 | 2 | 3 }) {
+  const grid =
+    columns === 1 ? styles.grid1 : columns === 2 ? styles.grid2 : columns === 3 ? styles.grid3 : styles.grid;
+  return <div className={grid}>{children}</div>;
 }
 
 export { styles as generalStyles };
