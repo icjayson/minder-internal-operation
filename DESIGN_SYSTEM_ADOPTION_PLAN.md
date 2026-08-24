@@ -3,10 +3,10 @@
 > Applies `web/design-system/` (the vendored shadcn `new-york-v4` snapshot, re-tokenised
 > to the Minder brand) to the ops platform in `web/app/(app)/` + `web/app/components/`.
 >
-> **Status — branch `feat/design-system-adoption`.** Phases 0, 1 and 2 are done and
-> verified (build, typecheck, 55 tests, every route rendered in both skies). Phases 3
-> and 4 are open. See "Progress" at the bottom for what each commit covers and what
-> the remaining work actually changes.
+> **Status — branch `feat/design-system-adoption`. All phases done.** Build, typecheck,
+> 55 tests and the retired-token guard pass; every route renders at unchanged geometry
+> in both skies. See "Progress" at the bottom for what each commit covers and where the
+> work departed from this plan.
 
 ## Goal
 
@@ -329,6 +329,7 @@ Phase 1 alone already delivers a Minder-branded ops platform. Phases 2–4 are w
 | `2aeb152` | **Phase 2b** — the four "add a …" panels |
 | `d5aba0f` | **Phase 2c** — detail panels, modal, toasts |
 | `3a3d245` | **Phase 2d** — sidebar |
+| `632e58d` | **Phase 3 + 4** — shim retired, radius on the component set's scale, CI guard |
 
 What landed, against what the plan assumed:
 
@@ -364,15 +365,38 @@ What landed, against what the plan assumed:
   other end. It is marked as such in `globals.css`. This is the one place the work
   designs rather than adopts.
 
-### Open
+### Phases 3 and 4, as built
 
-**Phase 3 — route by route.** The routes already *look* right, because the shim
-re-skinned them. What is left is replacing shim classes with the system's own, moving
-headings onto the type scale, retiring `.mono`, and putting `/analytics` on the
-vendored chart blocks. Invisible to users; it is what lets Phase 4 happen.
+Scoped to "keep the current layout" on request, so every mapping is value-for-value
+and the pass is a rename rather than a restyle. Two plan items were dropped for that
+reason and remain open if wanted:
 
-**Phase 4 — cleanup.** Delete the shim, delete the leftover Celesnity CSS, drop Inter
-if nothing uses it, and add the CI grep that stops the retired names coming back.
+- **Headings onto the type scale.** `text-heading-2` and friends exist, but adopting
+  them changes type sizes and therefore layout. The routes keep their explicit sizes.
+- **`/analytics` onto the vendored chart blocks.** Recharts would re-lay-out the
+  charts. The hand-drawn bars stay.
+
+What did land:
+
+- The shim is gone; call sites use the system's names. `--muted` is retuned to
+  neutral-50 so `bg-surface-2 → bg-muted` keeps its colour, which leaves two quiet
+  surfaces — `muted` passive, `accent` interactive — a distinction the platform
+  already drew.
+- `border-strong` and `primary-tint` survive as **genuine extensions**, not shim: the
+  documented system has one border weight and the platform has always needed two.
+- `.mono` retired to `tabular-nums` at all 201 sites — that is what the class did,
+  since it never named a monospace. `--font-mono` therefore goes back to a real
+  monospace, which is what the chart tooltips using `font-mono` wanted.
+- **Radius now derives the way the component set derives it** (one `--radius` at
+  0.625rem, sm/md/lg/xl off it) rather than the second scale this branch had been
+  overriding it with. `tokens.ts` is updated to document what ships. This changes
+  `rounded-lg` 12→10px and `rounded-xl` 16→14px; it is the one deliberate geometry
+  change, made on request so a hand-authored panel and the Card beside it agree.
+- `scripts/check-retired-tokens.mjs`, wired into `npm test`, fails on a retired name.
+  It has to exist because retired names no longer resolve — a stray `bg-surface`
+  renders unstyled rather than erroring, which no build would catch.
+
+Inter stays in the root layout: `/design-system`'s own CSS modules still use it.
 
 ### Known, and not ours
 
