@@ -333,6 +333,7 @@ Phase 1 alone already delivers a Minder-branded ops platform. Phases 2–4 are w
 | `a8c1f55` | **Element audit** — buttons, controls, date picker, cards, empties |
 | `252bb6c` | **Element audit** — toggles, chips, the remaining buttons |
 | `758759a` | **Element audit** — the last hand-picked colours onto the ramps |
+| `4987196` | **/analytics** — onto the vendored chart blocks |
 
 What landed, against what the plan assumed:
 
@@ -459,8 +460,27 @@ something meant to read as the row it sits in:
 string and on `#3a51ff` specifically. A hex literal bypasses the token layer
 completely — it will not follow a brand change and will not flip with the sky.
 
+### /analytics
+
+Done in `4987196`. The six distributions were hand-drawn divs — a background
+track with a percentage-width fill — with no tooltip, no axis and no keyboard
+access. They are Recharts bar charts now, composed the way `chart-bar-default`
+and `chart-bar-label` compose them, upright rather than horizontal because long
+vertical names collide in a category gutter at any width. The drill-down table
+moved onto `Table` at the same time.
+
+Colour follows meaning rather than variety: the two funnels take two steps of
+one hue (same measure, different entity), grade mix is per-bar semantic (A/B/C
+already mean good / needs attention / poor), and verticals use the categorical
+ramp.
+
+> **Recharts bars need `isAnimationActive={false}` here.** They computed correct
+> geometry but rendered no `<path>`: Recharts grows a bar from zero on mount and
+> only paints after the first animation frame lands. Worth knowing before adding
+> any more chart blocks.
+
 ### Still open
 
-The two items dropped to preserve layout: **headings onto the type scale** (it
-changes type sizes) and **`/analytics` onto the vendored chart blocks** (Recharts
-re-lays-out the charts). Both are one commit each whenever the layout can move.
+**Headings onto the type scale.** `text-heading-2` and friends exist and are
+generated from tokens.ts, but adopting them changes type sizes and therefore
+layout. One commit whenever the layout can move.
