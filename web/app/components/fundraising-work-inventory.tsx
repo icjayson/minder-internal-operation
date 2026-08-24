@@ -338,7 +338,7 @@ function WorkItemModal({
             <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">
               {item ? "Work item" : "New work item"}
             </div>
-            <h3 className="text-lg font-display text-foreground mt-0.5">{item ? "Details" : "Add to inventory"}</h3>
+            <h3 className="mt-0.5 text-title text-foreground">{item ? "Details" : "Add to inventory"}</h3>
           </div>
           <Button variant="ghost" size="icon-sm" type="button" onClick={onClose} className="w-7 h-7" aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>

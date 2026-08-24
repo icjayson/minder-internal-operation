@@ -46,7 +46,7 @@ export default function MapPage() {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="mr-auto">
             <div className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary">Map · live</div>
-            <h1 className="text-[20px] font-display text-foreground leading-tight">Relationship map</h1>
+            <h1 className="text-title text-foreground">Relationship map</h1>
           </div>
           <SelectControl value={vertical} onChange={setVertical}
             options={[{ value: "All", label: "All verticals" }, ...verticals.map((v) => ({ value: v.id, label: v.name }))]} />

@@ -379,14 +379,16 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* Minder sets headings at 700; the tracking is the type scale's own, which
-   lands within a hair of -0.02em from `heading-1` down to `title`. Routes
-   that have moved onto the scale use `text-heading-2` and friends and are
-   unaffected by this rule. */
-h1, h2, h3, h4, .font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-  font-weight: 700;
+/* The element default for a heading that has not been given a type token.
+   It sits in `base` so a `text-heading-2` — a utility — wins over it: as
+   unlayered CSS it used to beat every utility, which meant a heading on the
+   scale still got this rule's tracking rather than the token's own. */
+@layer base {
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

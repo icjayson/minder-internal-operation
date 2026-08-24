@@ -24,7 +24,7 @@ export default function InvestorDetailPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
-          <h1 className="text-xl font-display text-foreground">Investor not found</h1>
+          <h1 className="text-title text-foreground">Investor not found</h1>
           <Button onClick={() => router.push("/fundraising/investors")} className="mt-4">
             Back to investors
           </Button>

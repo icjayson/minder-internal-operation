@@ -398,7 +398,7 @@ function WorkItemModal({
             <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">
               {item ? "Work item" : "New work item"}
             </div>
-            <h3 id="work-item-modal-title" className="text-lg font-display text-foreground mt-0.5">
+            <h3 id="work-item-modal-title" className="mt-0.5 text-title text-foreground">
               {item ? "Details" : "Add to inventory"}
             </h3>
           </div>

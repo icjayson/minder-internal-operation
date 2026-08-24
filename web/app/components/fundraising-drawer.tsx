@@ -90,7 +90,7 @@ export function FundraisingDrawer({
                 defaultValue={l.name}
                 aria-label="Name"
                 onBlur={(e) => e.target.value.trim() && e.target.value !== l.name && set({ name: e.target.value.trim() })}
-                className="block w-full text-[21px] leading-tight font-display text-foreground bg-transparent border-none focus:outline-none"
+                className="block w-full text-heading-3 text-foreground bg-transparent border-none focus:outline-none"
               />
             </div>
             <div className="flex items-center gap-1 shrink-0">

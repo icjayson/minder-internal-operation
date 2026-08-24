@@ -296,7 +296,7 @@ export function FactoryDrawer({
               {editingProfile ? (
                 <Input defaultValue={f.name} aria-label="Factory name" onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })} className="block w-full px-2 py-1 text-[20px] font-display" />
               ) : (
-                <h1 className="truncate text-[21px] leading-tight font-display text-foreground">{f.name}</h1>
+                <h1 className="truncate text-heading-3 text-foreground">{f.name}</h1>
               )}
             </div>
             <div className="hidden items-center gap-2 sm:flex">

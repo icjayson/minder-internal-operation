@@ -68,7 +68,7 @@ export function FormDrawer({
         <SheetHeader className="relative gap-1 border-b px-6 pt-5 pb-4">
           <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="text-[10px] tracking-[0.14em] text-primary uppercase">{eyebrow}</div>
-          <SheetTitle className="font-display text-[22px]">{title}</SheetTitle>
+          <SheetTitle className="text-heading-3">{title}</SheetTitle>
           {description && (
             <SheetDescription className="text-[12px]">{description}</SheetDescription>
           )}

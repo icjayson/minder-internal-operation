@@ -24,7 +24,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
-          <h1 className="text-xl font-display text-foreground">Customer not found</h1>
+          <h1 className="text-title text-foreground">Customer not found</h1>
           <Button onClick={() => router.push("/customers")} className="mt-4">
             Back to customers
           </Button>

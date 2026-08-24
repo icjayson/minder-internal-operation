@@ -25,7 +25,7 @@ export function PageHeader({
             </span>
             {eyebrow}
           </div>
-          <h1 className="text-[23px] leading-tight tracking-tight sm:text-[26px]">{title}</h1>
+          <h1 className="text-heading-2">{title}</h1>
           {subtitle && (
             <p className="text-[13px] text-foreground/80 mt-1">{subtitle}</p>
           )}

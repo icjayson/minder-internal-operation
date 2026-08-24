@@ -88,7 +88,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
               <input
                 defaultValue={n.name}
                 onBlur={(e) => e.target.value.trim() && e.target.value !== n.name && set({ name: e.target.value.trim() })}
-                className="block w-full text-[22px] font-display text-foreground bg-transparent border-none focus:outline-none"
+                className="block w-full text-heading-3 text-foreground bg-transparent border-none focus:outline-none"
               />
             </div>
             <Button variant="ghost" size="icon-sm" onClick={onClose} className="w-7 h-7" aria-label="Close">
