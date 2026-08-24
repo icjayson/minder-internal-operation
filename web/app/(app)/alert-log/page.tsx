@@ -274,7 +274,7 @@ function AlertLogItem({
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {canOpen && (
-            <Button variant="outline" size="sm" type="button" onClick={onOpen} className="h-7 rounded-full px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">
+            <Button variant="outline" size="sm" type="button" onClick={onOpen} className="h-7 px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">
               Open
             </Button>
           )}
@@ -295,7 +295,7 @@ function AlertLogItem({
               onClick={onDelete}
               disabled={!deletable || deleting}
               title={deletable ? "Delete this message from Discord" : "No stored Discord message id — can't delete"}
-              className="h-7 rounded-full px-3 text-[11px]"
+              className="h-7 px-3 text-[11px]"
             >
               {deleting ? "Deleting…" : "Delete from Discord"}
             </Button>

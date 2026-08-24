@@ -178,7 +178,7 @@ export function ContextPanel({
       <div className="mb-3 rounded-md border border-border bg-muted/50 px-3 py-2.5">
         <div className="flex items-center justify-between mb-1">
           <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">✦ Summary</div>
-          <Button variant="outline" size="sm" onClick={regenerateSummary} disabled={summarizing} className="h-6 px-2.5 rounded-full text-[10.5px] text-foreground/80 hover:text-foreground">
+          <Button variant="outline" size="sm" onClick={regenerateSummary} disabled={summarizing} className="h-6 px-2.5 text-[10.5px] text-foreground/80 hover:text-foreground">
             {summarizing ? "Summarising…" : shownSummary ? "Regenerate" : "Generate"}
           </Button>
         </div>
@@ -255,7 +255,7 @@ function TextForm({
       <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Paste notes, findings, transcript…" className="w-full px-2 py-1.5 text-[12.5px] leading-relaxed resize-y" />
       <div className="flex gap-2">
         <Button size="sm" onClick={() => onSave(title, body)} className="h-7 px-3 text-[11.5px]">Save</Button>
-        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80">Cancel</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 text-[11.5px] text-foreground/80">Cancel</Button>
       </div>
     </div>
   );

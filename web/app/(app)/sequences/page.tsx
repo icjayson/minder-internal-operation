@@ -121,7 +121,7 @@ export default function SequencesPage() {
           </NativeSelect>
           <div className="flex-1" />
           {seq && !seqSteps.some((s) => s.day_offset === 51) && (
-            <Button variant="outline" size="sm" onClick={addD51} className="h-8 px-3 rounded-full text-[11.5px] text-foreground/80">
+            <Button variant="outline" size="sm" onClick={addD51} className="h-8 px-3 text-[11.5px] text-foreground/80">
               + Optional D51
             </Button>
           )}

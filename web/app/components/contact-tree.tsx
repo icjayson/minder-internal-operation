@@ -57,7 +57,7 @@ export function ContactTree({
       <div className="flex items-center gap-2 mb-3">
         <span className="w-2 h-2 rounded-full bg-primary" />
         <span className="text-[13px] font-medium text-foreground truncate">{factoryName}</span>
-        <Button variant="outline" size="sm" onClick={onAdd} className="ml-auto h-6 px-2 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:text-foreground">
+        <Button variant="outline" size="sm" onClick={onAdd} className="ml-auto h-6 px-2 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:text-foreground">
           + Contact
         </Button>
       </div>

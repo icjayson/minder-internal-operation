@@ -76,7 +76,7 @@ function AlertRow({ n, onOpen, onDone }: { n: Notification; onOpen: () => void; 
           </div>
         </div>
         {canOpen && (
-          <Button variant="outline" size="sm" onClick={onOpen} className="h-7 px-3 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">Open</Button>
+          <Button variant="outline" size="sm" onClick={onOpen} className="h-7 px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">Open</Button>
         )}
         <Button size="sm" onClick={onDone} className="h-7 px-3 text-[11px]">Done</Button>
       </div>

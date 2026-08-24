@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { Contact, FactoryWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/design-system/components/button";
@@ -9,6 +8,13 @@ import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
 import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { DateField } from "./date-field";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/design-system/components/dialog";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
   { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
@@ -383,31 +389,28 @@ function WorkItemModal({
     setSaving(false);
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4">
-      <button onClick={onClose} aria-label="Close work item" className="absolute inset-0 bg-background/75 backdrop-blur-sm" />
-      <form
-        onSubmit={submit}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="work-item-modal-title"
-        className="relative z-10 w-full max-w-xl rounded-xl border border-border-strong bg-card shadow-mo-soft"
-      >
-        <header className="flex items-center justify-between px-5 py-4 border-b border-border">
+  return (
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="gap-0 p-0 sm:max-w-xl" showCloseButton={false}>
+      <form onSubmit={submit}>
+        <DialogHeader className="flex-row items-center justify-between space-y-0 border-b px-5 py-4 text-left">
           <div>
             <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">
               {item ? "Work item" : "New work item"}
             </div>
-            <h3 id="work-item-modal-title" className="mt-0.5 text-title text-foreground">
+            <DialogTitle className="mt-0.5 text-title">
               {item ? "Details" : "Add to inventory"}
-            </h3>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Title, status, next-step trigger, owner and body for this work item.
+            </DialogDescription>
           </div>
           <Button variant="ghost" size="icon-sm" type="button" onClick={onClose} className="w-7 h-7" aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </Button>
-        </header>
+        </DialogHeader>
 
         <div className="p-5 space-y-4">
           <label className="block">
@@ -458,12 +461,12 @@ function WorkItemModal({
         <footer className="flex items-center gap-2 px-5 py-3 border-t border-border bg-muted/40 rounded-b-xl">
           {onDelete && (
             <Button variant="outline" type="button" onClick={onDelete}
-              className="h-9 rounded-full border-error/35 px-4 text-[12px] text-error hover:bg-error-light hover:text-error-dark">
+              className="h-9 border-error/35 px-4 text-[12px] text-error hover:bg-error-light hover:text-error-dark">
               Delete
             </Button>
           )}
           <div className="flex-1" />
-          <Button variant="outline" size="sm" type="button" onClick={onClose} className="h-9 px-4 rounded-full text-[12px] text-foreground/80 hover:text-foreground">
+          <Button variant="outline" size="sm" type="button" onClick={onClose} className="h-9 px-4 text-[12px] text-foreground/80 hover:text-foreground">
             Cancel
           </Button>
           <Button type="submit" disabled={saving || !title.trim()} className="px-5 text-[12px]">
@@ -471,7 +474,7 @@ function WorkItemModal({
           </Button>
         </footer>
       </form>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }

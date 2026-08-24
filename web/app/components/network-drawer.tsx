@@ -388,7 +388,7 @@ function NetworkContactForm({
       <Textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full px-2 py-1.5 text-[12px] resize-y" />
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} className="h-7 px-3 text-[11.5px]">Save</Button>
-        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80">Cancel</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 text-[11.5px] text-foreground/80">Cancel</Button>
       </div>
     </div>
   );

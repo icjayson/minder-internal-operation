@@ -229,7 +229,7 @@ function MapCanvasInner({
       }}
     >
       <Panel position="top-right">
-        <Button variant="outline" size="sm" onClick={resetLayout} className="h-8 px-3 rounded-full text-[11.5px] text-foreground/80 hover:text-foreground shadow-mo-elevated">
+        <Button variant="outline" size="sm" onClick={resetLayout} className="h-8 px-3 text-[11.5px] text-foreground/80 hover:text-foreground shadow-mo-elevated">
           Reset layout
         </Button>
       </Panel>
