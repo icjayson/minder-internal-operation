@@ -224,7 +224,7 @@ function RelationshipMini({ level }: { level: number }) {
     <div title={`L${safeLevel} · ${LADDER[safeLevel]}`}>
       <div className="flex items-center gap-1" aria-hidden>
         {LADDER.map((_, index) => (
-          <span key={index} className={`h-1.5 flex-1 rounded-full ${index <= safeLevel ? "bg-[#0fa79b]" : "bg-accent"}`} />
+          <span key={index} className={`h-1.5 flex-1 rounded-full ${index <= safeLevel ? "bg-success" : "bg-accent"}`} />
         ))}
       </div>
       <div className="mt-1 truncate text-[10px] text-foreground/80">L{safeLevel} · {LADDER[safeLevel]}</div>

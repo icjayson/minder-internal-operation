@@ -241,7 +241,15 @@ function MapCanvasInner({
 }
 
 function miniColor(kind?: Kind): string {
-  return kind === "network" ? "#2d44e0" : kind === "factory" ? "#8b93a7" : kind === "contact" ? "#5468ff" : "#6b7488";
+  // The map distinguishes three kinds, and the system has one hue — so depth on
+  // the primary ramp carries network vs contact, and the neutrals carry the rest.
+  return kind === "network"
+    ? "var(--mo-primary-500)"
+    : kind === "factory"
+      ? "var(--mo-neutral-400)"
+      : kind === "contact"
+        ? "var(--mo-primary-300)"
+        : "var(--mo-neutral-500)";
 }
 
 function EntityNode({ data }: NodeProps) {

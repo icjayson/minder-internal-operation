@@ -203,10 +203,10 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
     : tone === "danger"
       ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
       : tone === "customer"
-        ? "border-[#0fa79b]/45 bg-[#e6f8f5] text-[#0b8375]"
+        ? "border-success/45 bg-success-light text-success-dark"
         : "border-primary/40 bg-primary-tint text-primary";
   const idleClass = tone === "customer"
-    ? "border-[#0fa79b]/35 bg-card text-[#0b8375] hover:border-[#0fa79b]/55"
+    ? "border-success/35 bg-card text-success-dark hover:border-success/55"
     : "border-border bg-card text-foreground/80 hover:border-border-strong hover:text-foreground";
   return (
     <Toggle

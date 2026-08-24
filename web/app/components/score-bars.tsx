@@ -30,11 +30,14 @@ export function ScoreChip({ score, grade }: { score: number | null; grade: strin
 
 // Prominent score treatment used inside the AI assessment summary.
 export function AssessmentScoreBadge({ score, grade }: { score: number | null; grade: string | null }) {
+  // A / B / C already mean good / needs attention / poor, which is exactly what
+  // the semantic ramp is for — so the grades read it rather than carrying their
+  // own three triads of hand-picked hex.
   const tone = grade === "A"
-    ? { ring: "border-[#27ad7c] bg-[#e8f8f2] text-[#087454]", mark: "bg-[#15986b] text-white" }
+    ? { ring: "border-success bg-success-light text-success-dark", mark: "bg-success text-white" }
     : grade === "B"
-      ? { ring: "border-[#e0a62f] bg-[#fff7df] text-[#9a6500]", mark: "bg-[#ca8611] text-white" }
-      : { ring: "border-[#dd6571] bg-[#fff0f1] text-[#a82d3a]", mark: "bg-[#c74452] text-white" };
+      ? { ring: "border-warning bg-warning-light text-warning-dark", mark: "bg-warning text-white" }
+      : { ring: "border-error bg-error-light text-error-dark", mark: "bg-error text-white" };
 
   return (
     <div className="relative mb-1 h-12 w-12 shrink-0" aria-label={score == null ? "Not scored" : `Score ${Math.round(score)} out of 100, grade ${grade ?? "ungraded"}`}>

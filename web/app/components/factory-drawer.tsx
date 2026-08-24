@@ -311,7 +311,7 @@ export function FactoryDrawer({
                     <Link
                       href={`/customers/${factoryId}`}
                       title="This account is tracked as a customer — open in the Customer tracker"
-                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#0fa79b]/40 bg-[#e6f8f5] px-3 text-[11.5px] font-medium text-[#0b8375]"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-success/40 bg-success-light px-3 text-[11.5px] font-medium text-success-dark"
                     >
                       <CustomerIcon /> Customer
                     </Link>
@@ -656,7 +656,7 @@ function ReadBlock({ label, body }: { label: string; body: string }) {
   return (
     <article className="rounded-xl border border-border/60 bg-muted/55 p-3.5 shadow-sm transition-colors hover:border-border-strong">
       <div className="flex items-center gap-2.5">
-        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-[#e6f8f5] text-[#118b7c]" : "bg-primary-tint text-primary"}`}>
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-success-light text-success-dark" : "bg-primary-tint text-primary"}`}>
           <ProfileCardIcon kind={isApproach ? "approach" : "company"} />
         </span>
         <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-foreground/80">{label}</h4>

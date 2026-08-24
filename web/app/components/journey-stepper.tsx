@@ -12,7 +12,7 @@ type JourneyTone = "indigo" | "teal";
 
 const TONES: Record<JourneyTone, { accent: string; soft: string }> = {
   indigo: { accent: "var(--color-primary)", soft: "var(--color-primary-tint)" },
-  teal: { accent: "#0fa79b", soft: "color-mix(in srgb, #0fa79b 14%, transparent)" },
+  teal: { accent: "var(--color-success)", soft: "color-mix(in srgb, var(--color-success) 14%, transparent)" },
 };
 
 export function JourneyStepper<T extends string | number>({
