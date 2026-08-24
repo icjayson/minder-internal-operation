@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { SelectField } from "./select-field";
 
 export function FactoryDrawer({
   factoryId,
@@ -382,10 +382,14 @@ export function FactoryDrawer({
               {/* Activity first: this is the account's operating narrative. */}
               <Section title={`Activity · ${activities.length}`} className={variant === "drawer" ? "order-[8]" : ""}>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1.5 transition-colors focus-within:border-border-strong focus-within:bg-muted/35">
-                  <NativeSelect value={activityContact} onChange={(e) => setActivityContact(e.target.value)} aria-label="Attribute activity to" className="h-8 shrink-0 max-w-[132px] bg-muted px-2 text-[11px] text-foreground/80">
-                    <NativeSelectOption value="">Factory</NativeSelectOption>
-                    {contacts.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.full_name}</NativeSelectOption>)}
-                  </NativeSelect>
+                  <SelectField
+            value={activityContact}
+            onChange={(next) => setActivityContact(next)}
+            options={contacts.map((c) => ({ value: c.id, label: c.full_name }))}
+            emptyLabel="Factory"
+            aria-label="Attribute activity to"
+            className="h-8 shrink-0 max-w-[132px] bg-muted text-[11px] text-foreground/80"
+          />
                   <input
                 value={activityNote}
                     onChange={(e) => setActivityNote(e.target.value)}
@@ -481,14 +485,14 @@ export function FactoryDrawer({
               >
                 {editingProfile ? <>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
+                    <LabelledSelect label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
                       options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
-                    <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
+                    <LabelledSelect label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
                       placeholder="None"
                       options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
-                    <SelectField label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
+                    <LabelledSelect label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
                       options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} />
-                    <SelectField label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
+                    <LabelledSelect label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
                       options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
                     <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
                     <InputField label="Company website" value={f.website_url ?? f.company_url}
@@ -752,17 +756,23 @@ function ContactForm({
       </div>
       <Input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)} className="w-full h-8 px-2 text-[13px]" />
       <div className="grid grid-cols-2 gap-2">
-        <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+        <label className="block">
           <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground block mb-1">Contact stage</span>
-          <NativeSelect value={stage} onChange={(e) => setStage(e.target.value as Stage)} className="w-full h-8 px-2 text-[12px]">
-            {STAGES.map((option) => <NativeSelectOption key={option} value={option}>{option}</NativeSelectOption>)}
-          </NativeSelect>
+          <SelectField
+            value={stage}
+            onChange={(next) => setStage(next as Stage)}
+            options={STAGES.map((option) => ({ value: option, label: option }))}
+            className="h-8 text-[12px]"
+          />
         </label>
         <Input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)} className="h-8 self-end px-2 text-[13px]" />
-        <NativeSelect value={role_category} onChange={(e) => setCat(e.target.value)} className="h-8 px-2 text-[12px]">
-          <NativeSelectOption value="">Role category…</NativeSelectOption>
-          {ROLE_CATEGORIES.map((r) => <NativeSelectOption key={r.key} value={r.key}>{r.label}</NativeSelectOption>)}
-        </NativeSelect>
+        <SelectField
+            value={role_category}
+            onChange={(next) => setCat(next)}
+            options={ROLE_CATEGORIES.map((r) => ({ value: r.key, label: r.label }))}
+            emptyLabel="Role category…"
+            className="h-8 text-[12px]"
+          />
         <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
         <Input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
         <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
@@ -857,16 +867,19 @@ function InputField({ label, value, onSave, type = "text", tabular = false }: {
     </label>
   );
 }
-function SelectField({ label, value, onChange, options, placeholder = "—" }: {
+function LabelledSelect({ label, value, onChange, options, placeholder = "—" }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; placeholder?: string;
 }) {
   return (
-    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+    <label className="block">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 text-[13px]">
-        <NativeSelectOption value="">{placeholder}</NativeSelectOption>
-        {options.map((o) => <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>)}
-      </NativeSelect>
+      <SelectField
+        value={value}
+        onChange={onChange}
+        options={options}
+        emptyLabel={placeholder}
+        className="h-9 text-[13px]"
+      />
     </label>
   );
 }

@@ -7,10 +7,6 @@ import { useStore } from "@/lib/factories-store";
 import { effectiveContactRoleLevel } from "@/lib/contact-role";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/design-system/components/input";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/design-system/components/native-select";
 import { Textarea } from "@/design-system/components/textarea";
 import {
   ToggleGroup,
@@ -18,6 +14,7 @@ import {
 } from "@/design-system/components/toggle-group";
 import { Field, FormDrawer } from "./form-drawer";
 import { DateField } from "./date-field";
+import { SelectField } from "./select-field";
 
 // Add a contact from the Contacts page. You can attach it to an existing
 // factory or create a new factory inline — either way the Factory page syncs
@@ -124,18 +121,12 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
           <Input value={role_title} onChange={(e) => setRole(e.target.value)} />
         </Field>
         <Field label="Role category">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={role_category}
-            onChange={(e) => setCat(e.target.value)}
-          >
-            <NativeSelectOption value="">—</NativeSelectOption>
-            {ROLE_CATEGORIES.map((r) => (
-              <NativeSelectOption key={r.key} value={r.key}>
-                {r.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => setCat(next)}
+            options={ROLE_CATEGORIES.map((r) => ({ value: r.key, label: r.label }))}
+            emptyLabel="—"
+          />
         </Field>
         <Field label="Email">
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -173,17 +164,11 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
         </ToggleGroup>
         {factoryMode === "existing" ? (
           <Field label="Factory">
-            <NativeSelect
-              className="w-full"
+            <SelectField
               value={factoryId}
-              onChange={(e) => setFactoryId(e.target.value)}
-            >
-              {(factories ?? []).map((f) => (
-                <NativeSelectOption key={f.id} value={f.id}>
-                  {f.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+              onChange={setFactoryId}
+              options={(factories ?? []).map((f) => ({ value: f.id, label: f.name }))}
+            />
           </Field>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -194,17 +179,11 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
               />
             </Field>
             <Field label="Vertical">
-              <NativeSelect
-                className="w-full"
-                value={newFactoryVertical}
-                onChange={(e) => setNewFactoryVertical(e.target.value)}
-              >
-                {verticals.map((v) => (
-                  <NativeSelectOption key={v.id} value={v.id}>
-                    {v.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <SelectField
+            value={newFactoryVertical}
+            onChange={(next) => setNewFactoryVertical(next)}
+            options={verticals.map((v) => ({ value: v.id, label: v.name }))}
+          />
             </Field>
           </div>
         )}

@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { SelectField } from "./select-field";
 
 const BUCKET = "context-files";
 
@@ -192,19 +192,23 @@ export function ContextPanel({
       <div className="mb-2.5 flex flex-wrap items-center justify-end gap-2">
         <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Type
-          <NativeSelect aria-label="Filter context by type" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as ContextTypeFilter)} className="h-8 px-2.5 text-[11.5px] normal-case tracking-normal" >
-            <NativeSelectOption value="all">All</NativeSelectOption>
-            <NativeSelectOption value="file">Files</NativeSelectOption>
-            <NativeSelectOption value="link">Links</NativeSelectOption>
-            <NativeSelectOption value="text">Notes</NativeSelectOption>
-          </NativeSelect>
+          <SelectField
+            value={typeFilter}
+            onChange={(next) => setTypeFilter(next as ContextTypeFilter)}
+            options={[...[{ value: "all", label: "All" }], ...[{ value: "file", label: "Files" }], ...[{ value: "link", label: "Links" }], ...[{ value: "text", label: "Notes" }]]}
+            aria-label="Filter context by type"
+            className="h-8 text-[11.5px] normal-case tracking-normal"
+          />
         </label>
         <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Sort
-          <NativeSelect aria-label="Sort context items" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as ContextSortOrder)} className="h-8 px-2.5 text-[11.5px] normal-case tracking-normal" >
-            <NativeSelectOption value="latest">Latest</NativeSelectOption>
-            <NativeSelectOption value="oldest">Oldest</NativeSelectOption>
-          </NativeSelect>
+          <SelectField
+            value={sortOrder}
+            onChange={(next) => setSortOrder(next as ContextSortOrder)}
+            options={[...[{ value: "latest", label: "Latest" }], ...[{ value: "oldest", label: "Oldest" }]]}
+            aria-label="Sort context items"
+            className="h-8 text-[11.5px] normal-case tracking-normal"
+          />
         </label>
       </div>
 

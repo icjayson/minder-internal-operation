@@ -107,7 +107,7 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+    <label className="block">
       <Label className="mb-1 block text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
         {label}
       </Label>

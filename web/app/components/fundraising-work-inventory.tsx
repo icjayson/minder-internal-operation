@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { DateField } from "./date-field";
 import {
   Dialog,
@@ -15,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/design-system/components/dialog";
+import { SelectField } from "./select-field";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
   { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
@@ -355,11 +355,14 @@ function WorkItemModal({
             <Input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What needs to be done?" className="w-full h-10 px-3 text-[13px]" />
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+            <label className="block">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Status</span>
-              <NativeSelect value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)} className="w-full h-10 px-3 text-[13px]">
-                {COLUMNS.map((col) => <NativeSelectOption key={col.key} value={col.key}>{col.label}</NativeSelectOption>)}
-              </NativeSelect>
+              <SelectField
+            value={status}
+            onChange={(next) => setStatus(next as WorkStatus)}
+            options={COLUMNS.map((col) => ({ value: col.key, label: col.label }))}
+            className="h-10 text-[13px]"
+          />
             </label>
             <label className="block">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next-step trigger</span>

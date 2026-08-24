@@ -34,6 +34,9 @@ const RETIRED = [
   // `mono` was a font class that never named a monospace; it is tabular-nums now.
   [/(?<![-\w])mono\b/, "tabular-nums"],
   [/(?<![-\w])tnum\b/, "tabular-nums"],
+  // The platform is on the styled Select now; NativeSelect is the unstyled
+  // fallback and mixing the two gives one page two dropdown treatments.
+  [/\bNativeSelect\b/, "SelectField (app/components/select-field.tsx)"],
   // A hex literal in a class string bypasses the token layer completely: it
   // will not follow a brand change and it will not flip with the sky.
   [/\[#[0-9a-fA-F]{3,8}\]/, "a token — see app/globals.css"],

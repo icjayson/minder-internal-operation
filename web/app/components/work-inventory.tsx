@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { DateField } from "./date-field";
 import {
   Dialog,
@@ -15,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/design-system/components/dialog";
+import { SelectField } from "./select-field";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
   { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
@@ -418,11 +418,14 @@ function WorkItemModal({
             <Input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What needs to be done?" className="w-full h-10 px-3 text-[13px]" />
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+            <label className="block">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Status</span>
-              <NativeSelect value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)} className="w-full h-10 px-3 text-[13px]">
-                {COLUMNS.map((column) => <NativeSelectOption key={column.key} value={column.key}>{column.label}</NativeSelectOption>)}
-              </NativeSelect>
+              <SelectField
+            value={status}
+            onChange={(next) => setStatus(next as WorkStatus)}
+            options={COLUMNS.map((column) => ({ value: column.key, label: column.label }))}
+            className="h-10 text-[13px]"
+          />
             </label>
             <label className="block">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">
@@ -434,18 +437,20 @@ function WorkItemModal({
               </span>
             </label>
           </div>
-          <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+          <label className="block">
             <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">
               PIC
             </span>
-            <NativeSelect value={picContactId} onChange={(event) => setPicContactId(event.target.value)} className="w-full h-10 px-3 text-[13px]" >
-              <NativeSelectOption value="">None</NativeSelectOption>
-              {contacts.map((contact) => (
-                <NativeSelectOption key={contact.id} value={contact.id}>
-                  {contact.full_name}{contact.role_title ? ` — ${contact.role_title}` : ""}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SelectField
+              value={picContactId}
+              onChange={setPicContactId}
+              emptyLabel="None"
+              options={contacts.map((contact) => ({
+                value: contact.id,
+                label: `${contact.full_name}${contact.role_title ? ` — ${contact.role_title}` : ""}`,
+              }))}
+              className="h-10 text-[13px]"
+            />
             {contacts.length === 0 && (
               <span className="mt-1 block text-[10.5px] text-muted-foreground">
                 Add a contact to this factory before assigning a PIC.

@@ -14,8 +14,8 @@ import { DetailDrawer } from "./form-drawer";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { DateField } from "./date-field";
+import { SelectField } from "./select-field";
 
 export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClose: () => void }) {
   const {
@@ -148,7 +148,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Profile */}
           <Section title="Profile">
             <div className="grid grid-cols-2 gap-3">
-              <SelectField label="Type" value={n.type ?? ""} onChange={(v) => set({ type: (v || null) as Network["type"] })}
+              <LabelledSelect label="Type" value={n.type ?? ""} onChange={(v) => set({ type: (v || null) as Network["type"] })}
                 options={NETWORK_TYPES.map((t) => ({ value: t.key, label: t.label }))} />
               <InputField label="Country" value={n.country} onSave={(v) => set({ country: v })} />
               <InputField label="HQ location" value={n.hq_location} onSave={(v) => set({ hq_location: v })} />
@@ -176,11 +176,14 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Pipeline */}
           <Section title="Network pipeline">
             <div className="grid grid-cols-2 gap-3">
-              <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+              <label className="block">
                 <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Stage</span>
-                <NativeSelect value={n.stage} onChange={(e) => set({ stage: e.target.value as Stage })} className="w-full h-9 px-2 text-[13px]">
-                  {STAGES.map((s) => <NativeSelectOption key={s} value={s}>{s}</NativeSelectOption>)}
-                </NativeSelect>
+                <SelectField
+            value={n.stage}
+            onChange={(next) => set({ stage: next as Stage })}
+            options={STAGES.map((s) => ({ value: s, label: s }))}
+            className="h-9 text-[13px]"
+          />
               </label>
               <label className="block">
                 <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next action due</span>
@@ -193,10 +196,14 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Network + network-contact activities share one timeline. */}
           <Section title={`Activity · ${activities.length}`}>
             <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1.5 transition-colors focus-within:border-border-strong focus-within:bg-muted/35">
-              <NativeSelect value={activityContact} onChange={(event) => setActivityContact(event.target.value)} aria-label="Attribute network activity to" className="h-8 max-w-[132px] shrink-0 bg-muted px-2 text-[11px] text-foreground/80">
-                <NativeSelectOption value="">Network</NativeSelectOption>
-                {contacts.map((contact) => <NativeSelectOption key={contact.id} value={contact.id}>{contact.full_name}</NativeSelectOption>)}
-              </NativeSelect>
+              <SelectField
+            value={activityContact}
+            onChange={(next) => setActivityContact(next)}
+            options={contacts.map((contact) => ({ value: contact.id, label: contact.full_name }))}
+            emptyLabel="Network"
+            aria-label="Attribute network activity to"
+            className="h-8 max-w-[132px] shrink-0 bg-muted text-[11px] text-foreground/80"
+          />
               <input value={activityNote} onChange={(event) => setActivityNote(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") void logActivity(); }}
                 placeholder="Log a call, note, reply or evidence…"
@@ -369,17 +376,23 @@ function NetworkContactForm({
       </div>
       <Input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)} className="w-full h-8 px-2 text-[13px]" />
       <div className="grid grid-cols-2 gap-2">
-        <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+        <label className="block">
           <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground block mb-1">Stage</span>
-          <NativeSelect value={stage} onChange={(e) => setStage(e.target.value as Stage)} className="w-full h-8 px-2 text-[12px]">
-            {STAGES.map((option) => <NativeSelectOption key={option} value={option}>{option}</NativeSelectOption>)}
-          </NativeSelect>
+          <SelectField
+            value={stage}
+            onChange={(next) => setStage(next as Stage)}
+            options={STAGES.map((option) => ({ value: option, label: option }))}
+            className="h-8 text-[12px]"
+          />
         </label>
         <Input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)} className="h-8 px-2 text-[13px]" />
-        <NativeSelect value={role_category} onChange={(e) => setCat(e.target.value)} className="h-8 px-2 text-[12px]">
-          <NativeSelectOption value="">Role category…</NativeSelectOption>
-          {ROLE_CATEGORIES.map((r) => <NativeSelectOption key={r.key} value={r.key}>{r.label}</NativeSelectOption>)}
-        </NativeSelect>
+        <SelectField
+            value={role_category}
+            onChange={(next) => setCat(next)}
+            options={ROLE_CATEGORIES.map((r) => ({ value: r.key, label: r.label }))}
+            emptyLabel="Role category…"
+            className="h-8 text-[12px]"
+          />
         <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
         <Input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
         <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
@@ -429,16 +442,19 @@ function InputField({ label, value, onSave, tabular = false }: {
     </label>
   );
 }
-function SelectField({ label, value, onChange, options }: {
+function LabelledSelect({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
-    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+    <label className="block">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 text-[13px]">
-        <NativeSelectOption value="">—</NativeSelectOption>
-        {options.map((o) => <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>)}
-      </NativeSelect>
+      <SelectField
+        value={value}
+        onChange={onChange}
+        options={options}
+        emptyLabel={"—"}
+        className="h-9 text-[13px]"
+      />
     </label>
   );
 }

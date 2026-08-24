@@ -14,8 +14,8 @@ import { PanelShell } from "./form-drawer";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { DateField } from "./date-field";
+import { SelectField } from "./select-field";
 
 export function FundraisingDrawer({
   leadId,
@@ -164,7 +164,7 @@ export function FundraisingDrawer({
               {/* Profile */}
               <Section title="Profile">
                 <div className="grid grid-cols-2 gap-3">
-                  <SelectField label="Type" value={l.type ?? ""} onChange={(v) => set({ type: v || null })}
+                  <LabelledSelect label="Type" value={l.type ?? ""} onChange={(v) => set({ type: v || null })}
                     options={types.map((t) => ({ value: t.key, label: t.label }))} />
                   <InputField label="Contact person" value={l.contact_person} onSave={(v) => set({ contact_person: v || null })} />
                   <NumberField
@@ -257,16 +257,19 @@ function NumberField({ label, value, onSave }: { label: string; value: number | 
     </label>
   );
 }
-function SelectField({ label, value, onChange, options }: {
+function LabelledSelect({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
-    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
+    <label className="block">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 text-[13px]">
-        <NativeSelectOption value="">—</NativeSelectOption>
-        {options.map((o) => <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>)}
-      </NativeSelect>
+      <SelectField
+        value={value}
+        onChange={onChange}
+        options={options}
+        emptyLabel={"—"}
+        className="h-9 text-[13px]"
+      />
     </label>
   );
 }

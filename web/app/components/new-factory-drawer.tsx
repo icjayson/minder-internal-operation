@@ -7,12 +7,9 @@ import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
 import { Checkbox } from "@/design-system/components/checkbox";
 import { Input } from "@/design-system/components/input";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/design-system/components/native-select";
 import { Textarea } from "@/design-system/components/textarea";
 import { Field, FormDrawer } from "./form-drawer";
+import { SelectField } from "./select-field";
 
 export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () => void; asCustomer?: boolean }) {
   const { verticals, networks, openFactory, openCustomer } = useStore();
@@ -93,59 +90,35 @@ export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () 
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Vertical">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.vertical_id}
-            onChange={(e) => set("vertical_id", e.target.value)}
-          >
-            {verticals.map((v) => (
-              <NativeSelectOption key={v.id} value={v.id}>
-                {v.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("vertical_id", next)}
+            options={verticals.map((v) => ({ value: v.id, label: v.name }))}
+          />
         </Field>
         <Field label="Geo">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.geo_tier}
-            onChange={(e) => set("geo_tier", e.target.value)}
-          >
-            <NativeSelectOption value="">—</NativeSelectOption>
-            {GEO_OPTIONS.map((g) => (
-              <NativeSelectOption key={g.key} value={g.key}>
-                {g.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("geo_tier", next)}
+            options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))}
+            emptyLabel="—"
+          />
         </Field>
         <Field label="Network (source)">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.network_id}
-            onChange={(e) => set("network_id", e.target.value)}
-          >
-            <NativeSelectOption value="">None</NativeSelectOption>
-            {(networks ?? []).map((nw) => (
-              <NativeSelectOption key={nw.id} value={nw.id}>
-                {nw.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("network_id", next)}
+            emptyLabel="None"
+            options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))}
+          />
         </Field>
         <Field label="Frontline workers">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.frontline_workers}
-            onChange={(e) => set("frontline_workers", e.target.value)}
-          >
-            <NativeSelectOption value="">—</NativeSelectOption>
-            {WORKER_BANDS.map((b) => (
-              <NativeSelectOption key={b} value={b}>
-                {b}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("frontline_workers", next)}
+            options={WORKER_BANDS.map((b) => ({ value: b, label: b }))}
+            emptyLabel="—"
+          />
         </Field>
         <Field label="Location">
           <Input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} />

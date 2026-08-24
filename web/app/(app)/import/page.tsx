@@ -17,8 +17,8 @@ import {
 import { PageHeader } from "@/app/components/page-header";
 import { Button } from "@/design-system/components/button";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { Card } from "@/design-system/components/card";
+import { SelectField } from "@/app/components/select-field";
 
 type Mapping = {
   factory: Record<string, string | null>;
@@ -500,10 +500,13 @@ function MapRow({ label, value, headers, onChange }: { label: string; value: str
   return (
     <div className="flex items-center gap-2">
       <span className="w-32 shrink-0 text-[11px] text-foreground/80 truncate">{label}</span>
-      <NativeSelect value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} className="flex-1 h-8 px-2 text-[12px]">
-        <NativeSelectOption value="">— none —</NativeSelectOption>
-        {headers.map((h) => <NativeSelectOption key={h} value={h}>{h}</NativeSelectOption>)}
-      </NativeSelect>
+      <SelectField
+            value={value ?? ""}
+            onChange={(next) => onChange(next || null)}
+            options={headers.map((h) => ({ value: h, label: h }))}
+            emptyLabel="— none —"
+            className="flex-1 h-8 text-[12px]"
+          />
     </div>
   );
 }

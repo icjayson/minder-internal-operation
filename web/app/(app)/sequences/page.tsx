@@ -8,8 +8,8 @@ import { PageHeader } from "@/app/components/page-header";
 import { Button } from "@/design-system/components/button";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 import { Card } from "@/design-system/components/card";
+import { SelectField } from "@/app/components/select-field";
 
 export default function SequencesPage() {
   const { contacts, factory } = useStore();
@@ -115,10 +115,13 @@ export default function SequencesPage() {
 
         <div className="max-w-3xl flex items-center gap-2 mb-3">
           <span className="text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">Preview as</span>
-          <NativeSelect value={previewContact} onChange={(e) => setPreviewContact(e.target.value)} className="h-8 min-w-56 px-2 text-[12px]">
-            {eligibleContacts.length === 0 && <NativeSelectOption value="">No contacts in this vertical</NativeSelectOption>}
-            {eligibleContacts.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.full_name} · {c.role_title ?? "contact"}</NativeSelectOption>)}
-          </NativeSelect>
+          <SelectField
+            value={previewContact}
+            onChange={(next) => setPreviewContact(next)}
+            options={eligibleContacts.map((c) => ({ value: c.id, label: `${c.full_name} · ${c.role_title ?? "contact"}` }))}
+            emptyLabel="No contacts in this vertical"
+            className="h-8 min-w-56 text-[12px]"
+          />
           <div className="flex-1" />
           {seq && !seqSteps.some((s) => s.day_offset === 51) && (
             <Button variant="outline" size="sm" onClick={addD51} className="h-8 px-3 text-[11.5px] text-foreground/80">

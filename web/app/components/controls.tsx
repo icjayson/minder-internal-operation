@@ -11,10 +11,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/design-system/components/input-group";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/design-system/components/native-select";
+import { SelectField } from "./select-field";
 
 export function SearchInput({
   value,
@@ -49,13 +46,6 @@ export function SelectControl({
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
 }) {
-  return (
-    <NativeSelect value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((o) => (
-        <NativeSelectOption key={o.value} value={o.value}>
-          {o.label}
-        </NativeSelectOption>
-      ))}
-    </NativeSelect>
-  );
+  // The toolbar sizes itself to its content, so this one is not full width.
+  return <SelectField value={value} onChange={onChange} options={options} className="w-auto min-w-36" />;
 }

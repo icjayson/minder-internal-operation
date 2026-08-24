@@ -5,13 +5,10 @@ import type { FundraisingStage, FundraisingTrack } from "@/lib/types";
 import { FUNDRAISING_TRACKS, fundraisingStages, fundraisingTypes } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { Input } from "@/design-system/components/input";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/design-system/components/native-select";
 import { Textarea } from "@/design-system/components/textarea";
 import { Field, FormDrawer } from "./form-drawer";
 import { DateField } from "./date-field";
+import { SelectField } from "./select-field";
 
 export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTrack; onClose: () => void }) {
   const { createFundraisingLead, openFundraising } = useStore();
@@ -81,30 +78,18 @@ export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTra
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Type">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.type}
-            onChange={(e) => set("type", e.target.value)}
-          >
-            {types.map((t) => (
-              <NativeSelectOption key={t.key} value={t.key}>
-                {t.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("type", next)}
+            options={types.map((t) => ({ value: t.key, label: t.label }))}
+          />
         </Field>
         <Field label="Stage">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.stage}
-            onChange={(e) => set("stage", e.target.value)}
-          >
-            {stages.map((s) => (
-              <NativeSelectOption key={s} value={s}>
-                {s}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("stage", next)}
+            options={stages.map((s) => ({ value: s, label: s }))}
+          />
         </Field>
         <Field label="Contact person">
           <Input

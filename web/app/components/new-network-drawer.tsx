@@ -6,12 +6,9 @@ import { useStore } from "@/lib/factories-store";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/design-system/components/input";
 import { Textarea } from "@/design-system/components/textarea";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/design-system/components/native-select";
 import { Toggle } from "@/design-system/components/toggle";
 import { Field, FormDrawer } from "./form-drawer";
+import { SelectField } from "./select-field";
 
 export function NewNetworkDrawer({ onClose }: { onClose: () => void }) {
   const { openNetwork } = useStore();
@@ -77,17 +74,11 @@ export function NewNetworkDrawer({ onClose }: { onClose: () => void }) {
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Type">
-          <NativeSelect
-            className="w-full"
+          <SelectField
             value={form.type}
-            onChange={(e) => set("type", e.target.value)}
-          >
-            {NETWORK_TYPES.map((t) => (
-              <NativeSelectOption key={t.key} value={t.key}>
-                {t.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            onChange={(next) => set("type", next)}
+            options={NETWORK_TYPES.map((t) => ({ value: t.key, label: t.label }))}
+          />
         </Field>
         <Field label="Country">
           <Input value={form.country} onChange={(e) => set("country", e.target.value)} />
