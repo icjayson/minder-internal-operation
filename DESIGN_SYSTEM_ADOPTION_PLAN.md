@@ -2,6 +2,11 @@
 
 > Applies `web/design-system/` (the vendored shadcn `new-york-v4` snapshot, re-tokenised
 > to the Minder brand) to the ops platform in `web/app/(app)/` + `web/app/components/`.
+>
+> **Status — branch `feat/design-system-adoption`.** Phases 0, 1 and 2 are done and
+> verified (build, typecheck, 55 tests, every route rendered in both skies). Phases 3
+> and 4 are open. See "Progress" at the bottom for what each commit covers and what
+> the remaining work actually changes.
 
 ## Goal
 
@@ -309,3 +314,68 @@ Phase 4  cleanup            — delete the shim, add the guardrail
 
 Phase 1 alone already delivers a Minder-branded ops platform. Phases 2–4 are what make it a
 *system* rather than a re-paint.
+
+
+---
+
+## Progress
+
+### Done
+
+| Commit | Covers |
+|---|---|
+| `ca6690c` | **Phase 1** — token foundation |
+| `8502f9f` | **Phase 2a** — shared primitives |
+| `2aeb152` | **Phase 2b** — the four "add a …" panels |
+| `d5aba0f` | **Phase 2c** — detail panels, modal, toasts |
+| `3a3d245` | **Phase 2d** — sidebar |
+
+What landed, against what the plan assumed:
+
+- `scripts/generate-tokens-css.mjs` → `app/tokens.generated.css`. Ramps are `--mo-*`
+  custom properties rather than Tailwind theme colours, to avoid colliding with
+  Tailwind's own `neutral` scale and shadcn's `--color-primary`. Role assignment stays
+  hand-written in `globals.css`, since which step is a border is a judgement, not data.
+- The `accent` / `muted` collision was resolved by **renaming the 399 call sites** to
+  `primary` and `muted-foreground`, not by shimming — shadcn needs those two names for
+  its own hover surfaces. The other ~1,500 Celesnity utilities are aliased and re-skin
+  without JSX changes, as planned.
+- `useShadcnScope` pins `<html>` to `data-theme="light"` while `/design-system` is
+  mounted. CSS cannot express "nearest ancestor wins", so without this an app left in
+  dark bleeds into a docs page set to light. This was not in the plan.
+- Every hand-rolled overlay is gone: no `fixed inset-0` backdrop, no
+  `fixed right-0 top-0 bottom-0` panel, no keydown Escape listener anywhere.
+- The sidebar's open state moved from `localStorage` to Sidebar's own cookie, read
+  server-side in `app/(app)/layout.tsx` so a collapsed sidebar does not flash open.
+- `SidebarInset` carries a mobile-only trigger bar: below 768px the sidebar becomes an
+  off-canvas sheet and takes its own trigger with it.
+
+### Deviations worth knowing
+
+- **The global `h1–h4` tracking rule stayed.** The plan said retire it; retiring it
+  without the per-token utilities in place would have left every heading looser than
+  designed. The type scale is emitted as real `text-heading-2`-style utilities, so
+  routes can move onto it in Phase 3 and the global rule can go with the shim.
+- **`--font-mono` points at Roboto, not a monospace.** The Celesnity palette already
+  aliased it to its body font, so the 200-odd `.mono` sites are uppercase tabular meta
+  rather than code. Switching them to a real monospace would be a visual change nobody
+  asked for; they are retired to `tabular-nums` route by route instead.
+- **The Minder dark ramp is provisional**, derived by reading the neutral ramp from the
+  other end. It is marked as such in `globals.css`. This is the one place the work
+  designs rather than adopts.
+
+### Open
+
+**Phase 3 — route by route.** The routes already *look* right, because the shim
+re-skinned them. What is left is replacing shim classes with the system's own, moving
+headings onto the type scale, retiring `.mono`, and putting `/analytics` on the
+vendored chart blocks. Invisible to users; it is what lets Phase 4 happen.
+
+**Phase 4 — cleanup.** Delete the shim, delete the leftover Celesnity CSS, drop Inter
+if nothing uses it, and add the CI grep that stops the retired names coming back.
+
+### Known, and not ours
+
+`/customers` and a few other routes log two `400`s from Supabase REST. They are
+data-layer — `/alert-log` names the missing migrations in its own banner — and predate
+this work, which touched no data code.
