@@ -59,7 +59,7 @@ export const GEO_OPTIONS = [
 ] as const;
 
 // Frontline-workforce size bands (selectable in the factory profile).
-export const WORKER_BANDS = ["50 - 200", "200 - 500", "500 - 1000"] as const;
+export const WORKER_BANDS = ["50 - 200", "200 - 500", "500 - 1000", "1000 - 5000", "5000+"] as const;
 
 // ── Contact role model (PDF 1 §1.2.2) ───────────────────────────────────────
 // Rank tiers (ordered high → low): Direction, Manager, Lead, then everyone else.
