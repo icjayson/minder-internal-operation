@@ -91,7 +91,20 @@ export function StagePillSelect<T extends string>({
         >
           {children}
         </SelectTrigger>
-        <SelectContent>
+        {/* `position="popper"` anchors the menu to the trigger. The default,
+            "item-aligned", tries to lay the selected item over the trigger, and
+            on a 20px pill inside a scrolling table it computed a position tens
+            of thousands of pixels down the page — the menu opened every time,
+            just far below the fold.
+
+            Popper mode then pins the viewport to the trigger's height, which is
+            the pill's 20px, so the height is handed back. */}
+        <SelectContent
+          position="popper"
+          align="start"
+          sideOffset={6}
+          className="[&_[data-radix-select-viewport]]:h-auto"
+        >
           {options.map((option) => (
             <SelectItem key={option} value={option}>
               {option}
