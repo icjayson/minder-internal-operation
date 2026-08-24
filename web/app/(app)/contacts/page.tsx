@@ -13,6 +13,7 @@ import { DataTable, type Column } from "@/app/components/data-table";
 import { NewContactDrawer } from "@/app/components/new-contact-drawer";
 import { Button } from "@/design-system/components/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
+import { Toggle } from "@/design-system/components/toggle";
 
 type ContactFocus = "all" | "targets" | "engaged" | "due";
 
@@ -188,7 +189,18 @@ export default function ContactsPage() {
 }
 
 function FocusButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn"; onClick: () => void }) {
-  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-primary/40 bg-primary-tint text-primary" : "border-border bg-card text-foreground/80 hover:border-border-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span></button>;
+  return (
+    <Toggle
+      variant="outline"
+      size="sm"
+      pressed={active}
+      onPressedChange={onClick}
+      className={`h-8 shrink-0 gap-2 rounded-full px-3 text-[11px] ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-primary/40 bg-primary-tint text-primary" : "border-border bg-card text-foreground/80 hover:border-border-strong"}`}
+    >
+      {label}
+      <span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span>
+    </Toggle>
+  );
 }
 
 function FollowUpDate({ value }: { value: string | null }) {

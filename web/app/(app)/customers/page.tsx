@@ -14,6 +14,7 @@ import { useFdeDeploymentProgressByFactory } from "@/app/components/fde-deployme
 import { SearchInput, SelectControl } from "@/app/components/controls";
 import { Button } from "@/design-system/components/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
+import { Toggle } from "@/design-system/components/toggle";
 
 type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
 
@@ -193,10 +194,15 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
       ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
       : "border-primary/40 bg-primary-tint text-primary";
   return (
-    <button type="button" onClick={onClick} aria-pressed={active}
-      className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : "border-border bg-card text-foreground/80 hover:border-border-strong hover:text-foreground"}`}>
+    <Toggle
+      variant="outline"
+      size="sm"
+      pressed={active}
+      onPressedChange={onClick}
+      className={`h-8 shrink-0 gap-2 rounded-full px-3 text-[11px] ${active ? activeTone : "border-border bg-card text-foreground/80 hover:border-border-strong hover:text-foreground"}`}
+    >
       {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span>
-    </button>
+    </Toggle>
   );
 }
 
@@ -213,13 +219,16 @@ function ViewBtn({ active, onClick, label, children }: {
   active: boolean; onClick: () => void; label: string; children: React.ReactNode;
 }) {
   return (
-    <button onClick={onClick} title={`${label} view`}
-      className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer inline-flex items-center gap-1.5 transition-colors ${
-        active ? "bg-primary text-primary-foreground" : "text-foreground/80 hover:text-foreground"
-      }`}>
+    <Toggle
+      size="sm"
+      pressed={active}
+      onPressedChange={onClick}
+      title={`${label} view`}
+      className="h-8 gap-1.5 rounded-full px-3 text-[12px] text-foreground/80 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+    >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">{children}</svg>
       {label}
-    </button>
+    </Toggle>
   );
 }
 

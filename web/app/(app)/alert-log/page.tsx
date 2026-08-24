@@ -257,13 +257,15 @@ function AlertLogItem({
             {row.due_on && <span className="tabular-nums">due {row.due_on}</span>}
             <span className="tabular-nums">{when}</span>
             {row.summary && (
-              <button
+              <Button
+                variant="link"
+                size="xs"
                 type="button"
                 onClick={() => setShowSummary((current) => !current)}
-                className="cursor-pointer text-primary hover:underline"
+                className="h-auto p-0 text-[inherit]"
               >
                 {showSummary ? "Hide recap" : "AI recap"}
-              </button>
+              </Button>
             )}
             {row.delivery_state === "pending" && <span className="rounded-full border border-border-strong px-2 py-0.5">Discord pending</span>}
             {row.delivery_state === "unlogged" && <span className="rounded-full border border-border-strong px-2 py-0.5">No Discord log</span>}
@@ -286,15 +288,17 @@ function AlertLogItem({
           {deleted ? (
             <span className="rounded-full border border-border-strong px-3 py-1 text-[11px] tabular-nums uppercase text-muted-foreground">Discord deleted</span>
           ) : row.log_id ? (
-            <button
+            <Button
+              variant="destructive"
+              size="sm"
               type="button"
               onClick={onDelete}
               disabled={!deletable || deleting}
               title={deletable ? "Delete this message from Discord" : "No stored Discord message id — can't delete"}
-              className="h-7 rounded-full bg-[color:var(--color-danger)] px-3 text-[11px] font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+              className="h-7 rounded-full px-3 text-[11px]"
             >
               {deleting ? "Deleting…" : "Delete from Discord"}
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

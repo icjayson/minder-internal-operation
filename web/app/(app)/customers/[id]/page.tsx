@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { FactoryDrawer } from "@/app/components/factory-drawer";
 import { useStore } from "@/lib/factories-store";
+import { Button } from "@/design-system/components/button";
 
 export default function CustomerDetailPage() {
   const params = useParams<{ id: string }>();
@@ -24,10 +25,9 @@ export default function CustomerDetailPage() {
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
           <h1 className="text-xl font-display text-foreground">Customer not found</h1>
-          <button onClick={() => router.push("/customers")}
-            className="mt-4 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[12.5px] font-medium cursor-pointer">
+          <Button onClick={() => router.push("/customers")} className="mt-4">
             Back to customers
-          </button>
+          </Button>
         </div>
       </div>
     );

@@ -371,10 +371,10 @@ function WorkItemModal({
 
         <footer className="flex items-center gap-2 px-5 py-3 border-t border-border bg-muted/40 rounded-b-xl">
           {onDelete && (
-            <button type="button" onClick={onDelete}
-              className="h-9 px-4 rounded-full border border-[color:var(--color-danger)]/35 text-[12px] text-[color:var(--color-danger)] hover:tint-danger cursor-pointer">
+            <Button variant="outline" type="button" onClick={onDelete}
+              className="h-9 rounded-full border-error/35 px-4 text-[12px] text-error hover:bg-error-light hover:text-error-dark">
               Delete
-            </button>
+            </Button>
           )}
           <div className="flex-1" />
           <Button variant="outline" size="sm" type="button" onClick={onClose} className="h-9 px-4 rounded-full text-[12px] text-foreground/80 hover:text-foreground">

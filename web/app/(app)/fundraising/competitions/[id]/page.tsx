@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { FundraisingDrawer } from "@/app/components/fundraising-drawer";
 import { useStore } from "@/lib/factories-store";
+import { Button } from "@/design-system/components/button";
 
 export default function CompetitionDetailPage() {
   const params = useParams<{ id: string }>();
@@ -24,10 +25,9 @@ export default function CompetitionDetailPage() {
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
           <h1 className="text-xl font-display text-foreground">Programme not found</h1>
-          <button onClick={() => router.push("/fundraising/competitions")}
-            className="mt-4 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[12.5px] font-medium cursor-pointer">
+          <Button onClick={() => router.push("/fundraising/competitions")} className="mt-4">
             Back to competitions & programmes
-          </button>
+          </Button>
         </div>
       </div>
     );
