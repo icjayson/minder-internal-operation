@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Contact, Network, Stage } from "@/lib/types";
 import { NETWORK_SCORE_DIMENSIONS, NETWORK_TYPES, ROLE_CATEGORIES, STAGES, VERTICALS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
@@ -10,6 +10,7 @@ import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContextPanel } from "./context-panel";
 import { ActivityRowActions } from "./activity-alert-countdown";
+import { DetailDrawer } from "./form-drawer";
 
 export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClose: () => void }) {
   const {
@@ -28,12 +29,6 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
   const [ctxStats, setCtxStats] = useState<{ count: number; latestAt: string | null }>({ count: 0, latestAt: null });
   const [activityNote, setActivityNote] = useState("");
   const [activityContact, setActivityContact] = useState("");
-
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
 
   const scoredAtMs = n?.scored_at ? new Date(n.scored_at).getTime() : null;
   const contextStale =
@@ -77,9 +72,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
   }
 
   return (
-    <>
-      <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
+    <DetailDrawer title={n.name} description="Network details" onClose={onClose}>
         <header className="relative px-6 pt-5 pb-4 border-b border-line">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="flex items-start justify-between mb-3">
@@ -331,8 +324,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </footer>
-      </aside>
-    </>
+    </DetailDrawer>
   );
 }
 

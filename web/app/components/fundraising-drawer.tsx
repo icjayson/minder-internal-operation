@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FundraisingLead, FundraisingStage } from "@/lib/types";
 import { FUNDRAISING_TRACKS, fundraisingTypes } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
@@ -10,6 +10,7 @@ import { PriorityStars } from "./priority-stars";
 import { FundraisingJourney } from "./fundraising-journey";
 import { FundraisingWorkInventory } from "./fundraising-work-inventory";
 import { ActivityRowActions } from "./activity-alert-countdown";
+import { PanelShell } from "./form-drawer";
 
 export function FundraisingDrawer({
   leadId,
@@ -31,13 +32,6 @@ export function FundraisingDrawer({
   const l = fundraisingLead(leadId);
   const [activityNote, setActivityNote] = useState("");
 
-  useEffect(() => {
-    if (variant !== "drawer") return;
-    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose, variant]);
-
   if (!l) return null;
 
   const track = l.track;
@@ -57,15 +51,13 @@ export function FundraisingDrawer({
   }
 
   return (
-    <>
-      {variant === "drawer" && (
-        <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      )}
-      <section className={
-        variant === "drawer"
-          ? "fixed right-0 top-0 bottom-0 w-full max-w-[640px] bg-canvas border-l border-line-strong z-50 flex flex-col shadow-drawer"
-          : "min-h-screen w-full bg-surface"
-      }>
+    <PanelShell
+      variant={variant}
+      title={l.name}
+      description="Fundraising lead details"
+      width="sm:max-w-[640px]"
+      onClose={onClose}
+    >
         {/* Header */}
         <header className="relative bg-surface px-5 py-4 border-b border-line sm:px-6">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -222,8 +214,7 @@ export function FundraisingDrawer({
             </div>
           </div>
         </div>
-      </section>
-    </>
+    </PanelShell>
   );
 }
 

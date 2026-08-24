@@ -23,6 +23,8 @@ import { WorkInventory } from "./work-inventory";
 import { JourneyOverview } from "./journey-overview";
 import { FactoryNotificationModal } from "./factory-notification-modal";
 import { ActivityRowActions } from "./activity-alert-countdown";
+import { PanelShell } from "./form-drawer";
+import { toast } from "sonner";
 
 export function FactoryDrawer({
   factoryId,
@@ -79,18 +81,10 @@ export function FactoryDrawer({
   const [activityContact, setActivityContact] = useState("");
   const [editingProfile, setEditingProfile] = useState(false);
   const [assessmentOpen, setAssessmentOpen] = useState(false);
-  const [journeyNotice, setJourneyNotice] = useState<{ message: string; undo: () => void } | null>(null);
   const [nextWorkItem, setNextWorkItem] = useState<FactoryWorkItem | null>(null);
   const contactSectionRef = useRef<HTMLDivElement>(null);
   const workInventoryRef = useRef<HTMLDivElement>(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
-
-  useEffect(() => {
-    if (variant !== "drawer") return;
-    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose, variant]);
 
   useEffect(() => {
     if (!contactId) return;
@@ -129,12 +123,6 @@ export function FactoryDrawer({
     })();
     return () => { live = false; };
   }, [f?.vertical_id]);
-
-  useEffect(() => {
-    if (!journeyNotice) return;
-    const timeout = window.setTimeout(() => setJourneyNotice(null), 5000);
-    return () => window.clearTimeout(timeout);
-  }, [journeyNotice]);
 
   useEffect(() => {
     const sb = supabase();
@@ -246,12 +234,8 @@ export function FactoryDrawer({
     if (!currentFactory || next === currentFactory.stage) return;
     const previous = currentFactory.stage;
     await setFactoryStage(factoryId, next);
-    setJourneyNotice({
-      message: `Pipeline moved to ${next}`,
-      undo: () => {
-        void setFactoryStage(factoryId, previous);
-        setJourneyNotice(null);
-      },
+    toast.success(`Pipeline moved to ${next}`, {
+      action: { label: "Undo", onClick: () => void setFactoryStage(factoryId, previous) },
     });
   }
 
@@ -260,12 +244,8 @@ export function FactoryDrawer({
     if (!currentFactory || next === currentFactory.ladder_level) return;
     const previous = currentFactory.ladder_level;
     await set({ ladder_level: next });
-    setJourneyNotice({
-      message: `Relationship moved to L${next}`,
-      undo: () => {
-        void set({ ladder_level: previous });
-        setJourneyNotice(null);
-      },
+    toast.success(`Relationship moved to L${next}`, {
+      action: { label: "Undo", onClick: () => void set({ ladder_level: previous }) },
     });
   }
 
@@ -279,14 +259,13 @@ export function FactoryDrawer({
           onClose={() => setNotificationOpen(false)}
         />
       )}
-      {variant === "drawer" && (
-        <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      )}
-      <section className={
-        variant === "drawer"
-          ? "fixed right-0 top-0 bottom-0 w-full max-w-[720px] bg-canvas border-l border-line-strong z-50 flex flex-col shadow-drawer"
-          : "min-h-screen w-full bg-surface"
-      }>
+      <PanelShell
+        variant={variant}
+        title={f.name}
+        description="Factory details"
+        width="sm:max-w-[720px]"
+        onClose={onClose}
+      >
         {/* Header */}
         <header className="relative bg-surface px-5 py-4 border-b border-line sm:px-6">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -415,14 +394,6 @@ export function FactoryDrawer({
         {error && (
           <div className="mx-6 mt-3 rounded-md border border-[color:var(--color-danger)]/30 tint-danger px-3 py-2 text-xs text-[color:var(--color-danger)]">
             {error}
-          </div>
-        )}
-
-        {journeyNotice && (
-          <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 text-[12px] text-ink shadow-soft" role="status">
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-white"><CheckIcon /></span>
-            {journeyNotice.message}
-            <button type="button" onClick={journeyNotice.undo} className="font-semibold text-primary hover:underline">Undo</button>
           </div>
         )}
 
@@ -657,7 +628,7 @@ export function FactoryDrawer({
             </div>
           </div>
         </div>
-      </section>
+      </PanelShell>
     </>
   );
 }
@@ -759,10 +730,6 @@ function ActivityIcon({ type }: { type: string }) {
   if (type.includes("email") || type.includes("message")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16v12H4zM4 7l8 6 8-6" strokeWidth="1.8" strokeLinejoin="round" /></svg>;
   if (type.includes("call")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h4l2 5-2.5 1.5a14 14 0 0 0 5 5L15 13l5 2v4c0 1-1 2-2 2C10 20 4 14 3 6c0-1 1-2 2-2Z" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
   return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h12v16H6zM9 8h6m-6 4h6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function CheckIcon() {
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 4 4L19 6" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function AlertIcon() {

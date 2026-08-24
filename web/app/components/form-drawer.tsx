@@ -115,3 +115,73 @@ export function Field({
     </label>
   );
 }
+
+/**
+ * The shell behind the read/edit side panels — factory, network, fundraising.
+ *
+ * Unlike FormDrawer this one supplies only the panel: each of these draws its
+ * own header, with an editable title, a score chip, and its own close control,
+ * so Sheet's built-in close button is off. The Title and Description are still
+ * rendered for the accessibility tree, since Radix requires them and the
+ * visible heading is an <input> the panel owns.
+ */
+export function DetailDrawer({
+  title,
+  description,
+  onClose,
+  className,
+  children,
+}: {
+  title: string;
+  description?: string;
+  onClose: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className={cn("w-full gap-0 bg-card p-0 sm:max-w-[560px]", className)}
+      >
+        <SheetHeader className="sr-only">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description ?? title}</SheetDescription>
+        </SheetHeader>
+        {children}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * The factory and fundraising panels render either as a side drawer or as a
+ * full page at their own route, from one body of markup. This picks the
+ * wrapper so the body does not have to know which it is in.
+ */
+export function PanelShell({
+  variant,
+  title,
+  description,
+  width,
+  onClose,
+  children,
+}: {
+  variant: "drawer" | "page";
+  title: string;
+  description?: string;
+  /** Drawer width; ignored on the page variant. */
+  width?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (variant === "page") {
+    return <section className="min-h-screen w-full bg-card">{children}</section>;
+  }
+  return (
+    <DetailDrawer title={title} description={description} onClose={onClose} className={width}>
+      {children}
+    </DetailDrawer>
+  );
+}
