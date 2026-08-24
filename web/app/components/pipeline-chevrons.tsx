@@ -38,7 +38,7 @@ export function PipelineChevrons<S extends string>({
             <span className="truncate">{s}</span>
             <span
               className={`ml-2 min-w-5 h-5 px-1.5 rounded-full grid place-items-center text-[10px] font-medium ${
-                active ? "bg-primary text-white" : "bg-accent text-foreground/80"
+                active ? "bg-primary text-primary-foreground" : "bg-accent text-foreground/80"
               }`}
             >
               {n}

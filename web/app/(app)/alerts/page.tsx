@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Notification } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 const KIND_LABEL: Record<string, string> = {
   stale_factory: "Stale factory",
@@ -34,9 +36,9 @@ export default function AlertsPage() {
         right={<><span>{rows.length}</span><span className="opacity-50">unread</span></>} />
       <div className="px-8 py-5 max-w-3xl">
         {rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
-            Nothing needs attention. 🎉
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyDescription className="text-sm">Nothing needs attention. 🎉</EmptyDescription>
+          </Empty>
         ) : (
           <div className="space-y-2">
             {rows.map((n) => (
@@ -67,19 +69,16 @@ function AlertRow({ n, onOpen, onDone }: { n: Notification; onOpen: () => void; 
           <div className="flex items-center gap-2 mt-0.5">
             {n.due_on && <span className="text-[11px] text-muted-foreground tabular-nums">due {n.due_on}</span>}
             {n.summary && (
-              <button onClick={() => setShowSummary((s) => !s)}
-                className="text-[11px] text-primary hover:underline cursor-pointer">
+              <Button variant="link" size="sm" onClick={() => setShowSummary((s) => !s)} className="text-[11px]">
                 {showSummary ? "Hide recap" : "AI recap"}
-              </button>
+              </Button>
             )}
           </div>
         </div>
         {canOpen && (
-          <button onClick={onOpen}
-            className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Open</button>
+          <Button variant="outline" size="sm" onClick={onOpen} className="h-7 px-3 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">Open</Button>
         )}
-        <button onClick={onDone}
-          className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11px] font-medium cursor-pointer">Done</button>
+        <Button size="sm" onClick={onDone} className="h-7 px-3 text-[11px]">Done</Button>
       </div>
       {showSummary && n.summary && (
         <p className="mt-2 pl-8 text-[12.5px] text-foreground/80 leading-relaxed whitespace-pre-wrap">{n.summary}</p>

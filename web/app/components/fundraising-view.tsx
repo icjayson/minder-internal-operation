@@ -9,6 +9,8 @@ import { PipelineChevrons } from "@/app/components/pipeline-chevrons";
 import { StatCard } from "@/app/components/stat-card";
 import { FundraisingTable, formatAmount } from "@/app/components/fundraising-table";
 import { SearchInput, SelectControl } from "@/app/components/controls";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 export function FundraisingView({ track }: { track: FundraisingTrack }) {
   const { fundraisingLeads, updateFundraisingLead, deleteFundraisingLead, openFundraising, openNewFundraising } = useStore();
@@ -93,26 +95,27 @@ export function FundraisingView({ track }: { track: FundraisingTrack }) {
           <SelectControl value={type} onChange={setType}
             options={[{ value: "All", label: "All types" }, ...types.map((t) => ({ value: t.key, label: t.label }))]} />
           <div className="flex-1" />
-          <button onClick={() => openNewFundraising(track)}
-            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={() => openNewFundraising(track)} className="px-4 text-[13px] gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             {track === "investor" ? "New investor" : "New programme"}
-          </button>
+          </Button>
         </div>
 
         {!rows ? (
           <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading {meta.label.toLowerCase()}…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
-            <div className="text-lg font-display mb-2">
-              {track === "investor" ? "No investors yet" : "No competitions or programmes yet"}
-            </div>
-            <p className="text-sm text-foreground/80 max-w-md mx-auto">
-              {track === "investor"
-                ? "Add the angels, VCs, accelerators and family offices you’re raising from."
-                : "Add the grants, competitions, awards, credits and programmes you’re pursuing."}
-            </p>
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyHeader>
+              <EmptyTitle className="font-display text-lg">
+                {track === "investor" ? "No investors yet" : "No competitions or programmes yet"}
+              </EmptyTitle>
+              <EmptyDescription className="text-sm">
+                {track === "investor"
+                  ? "Add the angels, VCs, accelerators and family offices you’re raising from."
+                  : "Add the grants, competitions, awards, credits and programmes you’re pursuing."}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <FundraisingTable
             track={track}

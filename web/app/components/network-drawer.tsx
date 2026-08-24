@@ -11,6 +11,11 @@ import { PriorityStars } from "./priority-stars";
 import { ContextPanel } from "./context-panel";
 import { ActivityRowActions } from "./activity-alert-countdown";
 import { DetailDrawer } from "./form-drawer";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { DateField } from "./date-field";
 
 export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClose: () => void }) {
   const {
@@ -86,9 +91,9 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 className="block w-full text-[22px] font-display text-foreground bg-transparent border-none focus:outline-none"
               />
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer" aria-label="Close">
+            <Button variant="ghost" size="icon-sm" onClick={onClose} className="w-7 h-7" aria-label="Close">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            </button>
+            </Button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <ScoreChip score={n.score} grade={n.grade} />
@@ -116,7 +121,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 title={contextStale ? "New context added since last score" : undefined}
                 className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${
                   contextStale
-                    ? "bg-primary text-white hover:bg-[#3a51ff]"
+                    ? "bg-primary text-primary-foreground"
                     : "border border-border-strong bg-muted hover:bg-accent text-foreground/80 hover:text-foreground"
                 }`}
               >
@@ -157,7 +162,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                   return (
                     <button key={v.key} type="button" onClick={() => toggleFocus(v.key)}
                       className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer border transition-colors ${
-                        on ? "bg-primary text-white border-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"
+                        on ? "bg-primary text-primary-foreground border-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"
                       }`}>
                       {v.short}
                     </button>
@@ -171,17 +176,15 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Pipeline */}
           <Section title="Network pipeline">
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
+              <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
                 <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Stage</span>
-                <select value={n.stage} onChange={(e) => set({ stage: e.target.value as Stage })}
-                  className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground cursor-pointer focus:border-border-strong focus:outline-none">
-                  {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                <NativeSelect value={n.stage} onChange={(e) => set({ stage: e.target.value as Stage })} className="w-full h-9 px-2 text-[13px]">
+                  {STAGES.map((s) => <NativeSelectOption key={s} value={s}>{s}</NativeSelectOption>)}
+                </NativeSelect>
               </label>
               <label className="block">
                 <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next action due</span>
-                <input type="date" value={n.next_action_due ?? ""} onChange={(e) => set({ next_action_due: e.target.value || null })}
-                  className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-border-strong focus:outline-none" />
+                <DateField value={n.next_action_due} onChange={(v) => set({ next_action_due: v || null })} className="h-9 text-[13px]" />
               </label>
             </div>
             <InputField label="Next action" value={n.next_action} onSave={(v) => set({ next_action: v })} />
@@ -190,19 +193,17 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Network + network-contact activities share one timeline. */}
           <Section title={`Activity · ${activities.length}`}>
             <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1.5 transition-colors focus-within:border-border-strong focus-within:bg-muted/35">
-              <select value={activityContact} onChange={(event) => setActivityContact(event.target.value)} aria-label="Attribute network activity to"
-                className="h-8 max-w-[132px] shrink-0 rounded-md bg-muted px-2 text-[11px] text-foreground/80 focus:outline-none focus-visible:outline-none">
-                <option value="">Network</option>
-                {contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.full_name}</option>)}
-              </select>
+              <NativeSelect value={activityContact} onChange={(event) => setActivityContact(event.target.value)} aria-label="Attribute network activity to" className="h-8 max-w-[132px] shrink-0 bg-muted px-2 text-[11px] text-foreground/80">
+                <NativeSelectOption value="">Network</NativeSelectOption>
+                {contacts.map((contact) => <NativeSelectOption key={contact.id} value={contact.id}>{contact.full_name}</NativeSelectOption>)}
+              </NativeSelect>
               <input value={activityNote} onChange={(event) => setActivityNote(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") void logActivity(); }}
                 placeholder="Log a call, note, reply or evidence…"
                 className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-foreground focus:outline-none focus-visible:outline-none" />
-              <button type="button" onClick={() => { void logActivity(); }} disabled={!activityNote.trim()}
-                className="h-8 rounded-full bg-primary px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-45">
+              <Button size="sm" type="button" onClick={() => { void logActivity(); }} disabled={!activityNote.trim()} className="px-3 text-[11.5px]">
                 Add
-              </button>
+              </Button>
             </div>
             {activities.length === 0 ? (
               <p className="rounded-lg border border-dashed border-border px-4 py-5 text-center text-[11.5px] text-muted-foreground">No network activity yet.</p>
@@ -266,10 +267,9 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
             )}
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] text-muted-foreground">People you work with at this network.</span>
-              <button onClick={() => setEditContact("new")}
-                className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer">
+              <Button variant="outline" size="sm" onClick={() => setEditContact("new")} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80 hover:text-foreground">
                 + Contact
-              </button>
+              </Button>
             </div>
             {contacts.length === 0 ? (
               <p className="text-[12px] text-muted-foreground">No contacts yet.</p>
@@ -290,10 +290,9 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                         {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
-                    <button onClick={() => { if (confirm(`Delete ${c.full_name}?`)) deleteContact(c.id); }}
-                      className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer" aria-label="Delete contact">
+                    <Button variant="ghost" size="icon-sm" onClick={() => { if (confirm(`Delete ${c.full_name}?`)) deleteContact(c.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)]" aria-label="Delete contact">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -305,9 +304,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
 
           {/* Notes */}
           <Section title="Notes">
-            <textarea defaultValue={n.notes ?? ""} onBlur={(e) => e.target.value !== (n.notes ?? "") && set({ notes: e.target.value })}
-              rows={4} placeholder="Context, who introduced them, what they can unlock…"
-              className="w-full rounded-md bg-background border border-border px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground resize-y focus:border-border-strong focus:outline-none" />
+            <Textarea defaultValue={n.notes ?? ""} onBlur={(e) => e.target.value !== (n.notes ?? "") && set({ notes: e.target.value })} rows={4} placeholder="Context, who introduced them, what they can unlock…" className="w-full px-3 py-2 text-[13px] resize-y" />
           </Section>
         </div>
 
@@ -319,10 +316,9 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
             </a>
           )}
           <div className="flex-1" />
-          <button onClick={() => { if (confirm(`Delete ${n.name}?`)) { deleteNetwork(networkId); onClose(); } }}
-            className="h-9 w-9 rounded-full border border-border-strong bg-card hover:bg-[color:var(--color-danger)]/10 text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer grid place-items-center" aria-label="Delete network">
+          <Button variant="ghost" size="icon-sm" onClick={() => { if (confirm(`Delete ${n.name}?`)) { deleteNetwork(networkId); onClose(); } }} className="h-9 w-9 rounded-full border border-border-strong bg-card hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]" aria-label="Delete network">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+          </Button>
         </footer>
     </DetailDrawer>
   );
@@ -371,37 +367,28 @@ function NetworkContactForm({
       <div className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-primary">
         {contact ? `Editing contact · ${contact.full_name}` : "New network contact"}
       </div>
-      <input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)}
-        className="w-full h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-primary focus:outline-none" />
+      <Input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)} className="w-full h-8 px-2 text-[13px]" />
       <div className="grid grid-cols-2 gap-2">
-        <label className="block">
+        <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
           <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground block mb-1">Stage</span>
-          <select value={stage} onChange={(e) => setStage(e.target.value as Stage)}
-            className="w-full h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
-            {STAGES.map((option) => <option key={option} value={option}>{option}</option>)}
-          </select>
+          <NativeSelect value={stage} onChange={(e) => setStage(e.target.value as Stage)} className="w-full h-8 px-2 text-[12px]">
+            {STAGES.map((option) => <NativeSelectOption key={option} value={option}>{option}</NativeSelectOption>)}
+          </NativeSelect>
         </label>
-        <input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-primary focus:outline-none" />
-        <select value={role_category} onChange={(e) => setCat(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
-          <option value="">Role category…</option>
-          {ROLE_CATEGORIES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
-        </select>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
-        <input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
-        <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
-        <input type="date" title="Next follow-up" value={next_follow_up} onChange={(e) => setNextFollowUp(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
+        <Input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)} className="h-8 px-2 text-[13px]" />
+        <NativeSelect value={role_category} onChange={(e) => setCat(e.target.value)} className="h-8 px-2 text-[12px]">
+          <NativeSelectOption value="">Role category…</NativeSelectOption>
+          {ROLE_CATEGORIES.map((r) => <NativeSelectOption key={r.key} value={r.key}>{r.label}</NativeSelectOption>)}
+        </NativeSelect>
+        <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
+        <Input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
+        <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
+        <DateField size="sm" title="Next follow-up" placeholder="Next follow-up" value={next_follow_up} onChange={setNextFollowUp} className="h-8 text-[12px]" />
       </div>
-      <textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground resize-y focus:border-primary focus:outline-none" />
+      <Textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full px-2 py-1.5 text-[12px] resize-y" />
       <div className="flex gap-2">
-        <button onClick={submit} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
-        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-border-strong bg-card text-[11.5px] text-foreground/80 cursor-pointer">Cancel</button>
+        <Button size="sm" onClick={submit} className="h-7 px-3 text-[11.5px]">Save</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80">Cancel</Button>
       </div>
     </div>
   );
@@ -446,13 +433,12 @@ function SelectField({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
-    <label className="block">
+    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground cursor-pointer focus:border-border-strong focus:outline-none">
-        <option value="">—</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 text-[13px]">
+        <NativeSelectOption value="">—</NativeSelectOption>
+        {options.map((o) => <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>)}
+      </NativeSelect>
     </label>
   );
 }

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import type { Contact, Factory, Vertical } from "@/lib/types";
 import { StagePill } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
+import { Button } from "@/design-system/components/button";
+import { Card } from "@/design-system/components/card";
 
 type Props = {
   verticals: Vertical[];
@@ -36,15 +38,13 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
   const toggleF = (k: string) => setOpenF((s) => flip(s, k));
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <Card className="py-0 gap-0">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border">
         <span className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mr-auto">
           {groups.length} verticals · {factories.length} factories
         </span>
-        <button onClick={() => setOpenV(new Set(groups.map((g) => g.key)))}
-          className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Expand all</button>
-        <button onClick={() => { setOpenV(new Set()); setOpenF(new Set()); }}
-          className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Collapse all</button>
+        <Button variant="outline" size="sm" onClick={() => setOpenV(new Set(groups.map((g) => g.key)))} className="h-7 px-3 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">Expand all</Button>
+        <Button variant="outline" size="sm" onClick={() => { setOpenV(new Set()); setOpenF(new Set()); }} className="h-7 px-3 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">Collapse all</Button>
       </div>
 
       <div className="p-3 space-y-1.5">
@@ -93,7 +93,7 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
           <p className="px-2 py-8 text-center text-sm text-muted-foreground">No factories match the current filter.</p>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 

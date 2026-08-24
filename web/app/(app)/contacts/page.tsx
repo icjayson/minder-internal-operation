@@ -11,6 +11,8 @@ import { SearchInput } from "@/app/components/controls";
 import { StagePill } from "@/app/components/stage-pill";
 import { DataTable, type Column } from "@/app/components/data-table";
 import { NewContactDrawer } from "@/app/components/new-contact-drawer";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 type ContactFocus = "all" | "targets" | "engaged" | "due";
 
@@ -163,19 +165,18 @@ export default function ContactsPage() {
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 max-w-md"><SearchInput value={search} onChange={setSearch} placeholder="Search name, role or factory…" /></div>
           <div className="flex-1" />
-          <button onClick={() => setShowNew(true)}
-            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={() => setShowNew(true)} className="px-4 text-[13px] gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New contact
-          </button>
+          </Button>
         </div>
 
         {!rows ? (
           <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
-            No contacts match. Add one with “New contact” — you can create its factory inline.
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyDescription className="text-sm">No contacts match. Add one with “New contact” — you can create its factory inline.</EmptyDescription>
+          </Empty>
         ) : (
           <DataTable columns={columns} rows={rows} onRowClick={(c) => openContact(c.id)} storageKey="contacts" />
         )}

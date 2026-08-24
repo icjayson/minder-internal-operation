@@ -10,6 +10,9 @@ import {
 } from "@/lib/shared-context";
 import { supabase } from "@/lib/supabase";
 import type { SharedContext, SharedContextFile } from "@/lib/types";
+import { Button } from "@/design-system/components/button";
+import { Textarea } from "@/design-system/components/textarea";
+import { Card } from "@/design-system/components/card";
 
 const BUCKET = "context-files";
 
@@ -172,7 +175,7 @@ export default function AIContextPage() {
       />
 
       <div className="max-w-5xl space-y-5 px-8 py-5">
-        <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-card p-1.5">
+        <Card className="grid grid-cols-2 gap-2 p-1.5">
           {(Object.entries(SHARED_CONTEXT_CATEGORIES) as [
             SharedContextCategory,
             (typeof SHARED_CONTEXT_CATEGORIES)[SharedContextCategory],
@@ -193,7 +196,7 @@ export default function AIContextPage() {
               </button>
             );
           })}
-        </div>
+        </Card>
 
         {schemaMissing && (
           <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[12.5px] text-foreground/80">
@@ -240,21 +243,11 @@ export default function AIContextPage() {
                       active
                     </label>
                   </div>
-                  <textarea
-                    value={context?.body ?? definition.defaultBody}
-                    disabled={!context}
-                    rows={Math.min(14, Math.max(6, (context?.body ?? definition.defaultBody).split("\n").length + 2))}
-                    onChange={(event) => editContext(definition.key, { body: event.target.value })}
-                    className="w-full resize-y rounded-md border border-border bg-background px-3 py-2.5 text-[12.5px] leading-relaxed text-foreground/80 focus:border-primary focus:outline-none disabled:opacity-60"
-                  />
+                  <Textarea value={context?.body ?? definition.defaultBody} disabled={!context} rows={Math.min(14, Math.max(6, (context?.body ?? definition.defaultBody).split("\n").length + 2))} onChange={(event) => editContext(definition.key, { body: event.target.value })} className="w-full resize-y px-3 py-2.5 text-[12.5px] leading-relaxed text-foreground/80 disabled:opacity-60" />
                   <div className="mt-2 flex justify-end">
-                    <button
-                      onClick={() => saveContext(definition.key)}
-                      disabled={!context || saving === definition.key}
-                      className="h-7 min-w-20 rounded-full bg-primary px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
-                    >
+                    <Button size="sm" onClick={() => saveContext(definition.key)} disabled={!context || saving === definition.key} className="h-7 min-w-20 px-3 text-[11.5px]">
                       {saving === definition.key ? "Saving…" : saved === definition.key ? "Saved ✓" : "Save"}
-                    </button>
+                    </Button>
                   </div>
                 </article>
               );
@@ -262,7 +255,7 @@ export default function AIContextPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-border bg-card p-4">
+        <Card className="gap-0 p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">
@@ -272,13 +265,9 @@ export default function AIContextPage() {
                 Uploaded files are extracted to text and appended to this category in future AI runs.
               </p>
             </div>
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={schemaMissing || uploading}
-              className="h-8 shrink-0 rounded-full bg-primary px-4 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
-            >
+            <Button size="sm" onClick={() => fileRef.current?.click()} disabled={schemaMissing || uploading} className="shrink-0 px-4 text-[11.5px]">
               {uploading ? "Uploading…" : "Upload context"}
-            </button>
+            </Button>
             <input
               ref={fileRef}
               type="file"
@@ -305,7 +294,7 @@ export default function AIContextPage() {
               ))
             )}
           </div>
-        </section>
+        </Card>
       </div>
     </>
   );
@@ -339,9 +328,9 @@ function SharedFileRow({
           {statusLabel(file.extraction_status)}
         </span>
         {retryable && (
-          <button onClick={onRetry} className="text-[10.5px] text-primary hover:underline cursor-pointer">
+          <Button variant="link" size="sm" onClick={onRetry} className="text-[10.5px]">
             Retry
-          </button>
+          </Button>
         )}
         {file.body && (
           <button onClick={() => setOpen((current) => !current)} className="text-[10.5px] text-foreground/80 hover:text-foreground cursor-pointer">

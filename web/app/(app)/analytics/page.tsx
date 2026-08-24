@@ -5,6 +5,7 @@ import { PIPELINE_STAGES } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
 import { StatCard } from "@/app/components/stat-card";
+import { Card as DsCard } from "@/design-system/components/card";
 
 export default function AnalyticsPage() {
   const { factories, contacts, verticals } = useStore();
@@ -117,10 +118,10 @@ export default function AnalyticsPage() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
-      <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-4">{title}</h3>
+    <DsCard className="gap-0 p-5">
+      <h3 className="mb-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{title}</h3>
       <div className="space-y-2">{children}</div>
-    </div>
+    </DsCard>
   );
 }
 

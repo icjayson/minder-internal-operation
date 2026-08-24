@@ -5,6 +5,9 @@ import type { Message } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
+import { Button } from "@/design-system/components/button";
+import { Card } from "@/design-system/components/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 export default function MessagesPage() {
   const { contacts, openFactory } = useStore();
@@ -66,13 +69,13 @@ export default function MessagesPage() {
         {!messages ? (
           <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : messages.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
-            No drafts yet. Open a factory, pick a contact and click <span className="text-primary">Draft</span>.
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyDescription className="text-sm">No drafts yet. Open a factory, pick a contact and click <span className="text-primary">Draft</span>.</EmptyDescription>
+          </Empty>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {messages.map((m) => (
-              <div key={m.id} className="rounded-lg border border-border bg-card flex flex-col overflow-hidden">
+              <Card key={m.id} className="py-0 gap-0 flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border/60">
                   <button onClick={() => { const fid = contactFactory(m.contact_id); if (fid) openFactory(fid); }}
                     className="text-[13px] font-medium text-foreground hover:text-primary truncate cursor-pointer">
@@ -97,16 +100,14 @@ export default function MessagesPage() {
                   className="px-4 py-2 bg-transparent text-[13px] text-foreground/80 leading-relaxed resize-y flex-1 focus:outline-none disabled:opacity-70"
                 />
                 <div className="flex items-center gap-2 px-4 py-2.5 border-t border-border/60 bg-muted/40">
-                  <button onClick={() => navigator.clipboard.writeText(m.body ?? "")}
-                    className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Copy</button>
+                  <Button size="sm" onClick={() => navigator.clipboard.writeText(m.body ?? "")} className="h-7 px-3 text-[11.5px]">Copy</Button>
                   {m.status !== "sent" && (
-                    <button onClick={() => markSent(m)} disabled={sendingId === m.id}
-                      className="h-7 px-3 rounded-full border border-border-strong bg-card hover:bg-accent disabled:opacity-60 text-[11.5px] font-medium text-foreground/80 cursor-pointer">
+                    <Button variant="outline" size="sm" onClick={() => markSent(m)} disabled={sendingId === m.id} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80">
                       {sendingId === m.id ? "Saving…" : "Mark sent"}
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

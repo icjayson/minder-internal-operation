@@ -5,6 +5,7 @@ import { NETWORK_TYPES, STAGES } from "@/lib/types";
 import { StagePill } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
 import { DataTable, type Column } from "./data-table";
+import { Button } from "@/design-system/components/button";
 
 type Props = {
   networks: Network[];
@@ -121,18 +122,11 @@ export function NetworkTable({
       width: 52,
       minWidth: 44,
       render: (n) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-accent cursor-pointer transition-all duration-150"
-          aria-label={`Delete ${n.name}`}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)] transition-all duration-150" aria-label={`Delete ${n.name}`}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
+        </Button>
       ),
     },
   ];

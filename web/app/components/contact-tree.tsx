@@ -5,6 +5,7 @@ import { ROLE_CATEGORIES, ROLE_LEVELS, STAGES } from "@/lib/types";
 import { isTopLevelContactTitle } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { StagePill } from "./stage-pill";
+import { Button } from "@/design-system/components/button";
 
 const LEVEL_LABEL: Record<string, string> = {
   high: "High-level",
@@ -56,12 +57,9 @@ export function ContactTree({
       <div className="flex items-center gap-2 mb-3">
         <span className="w-2 h-2 rounded-full bg-primary" />
         <span className="text-[13px] font-medium text-foreground truncate">{factoryName}</span>
-        <button
-          onClick={onAdd}
-          className="ml-auto h-6 px-2 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:text-foreground cursor-pointer transition-colors"
-        >
+        <Button variant="outline" size="sm" onClick={onAdd} className="ml-auto h-6 px-2 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:text-foreground">
           + Contact
-        </button>
+        </Button>
       </div>
 
       {contacts.length === 0 && (
@@ -131,7 +129,7 @@ function ContactRow({
         title={c.is_primary_target ? "Confirmed primary target — click to remove" : "Confirm as primary target"}
         className={`grid h-7 w-7 shrink-0 place-items-center rounded-full transition-colors ${
           c.is_primary_target
-            ? "bg-primary text-white shadow-glow"
+            ? "bg-primary text-primary-foreground shadow-glow"
             : "text-muted-foreground hover:bg-primary-tint hover:text-primary"
         }`}
       >
@@ -165,12 +163,14 @@ function ContactRow({
       </div>
 
       {c.linkedin_url && (
+        /* A link that acts as a button, so it is a Button that renders an
+           anchor rather than an anchor wearing the button's classes. */
+        <Button size="xs" className="shrink-0" asChild>
         <a
           href={normalizeUrl(c.linkedin_url)}
           target="_blank"
           rel="noopener noreferrer"
           title="Open LinkedIn in a new tab"
-          className="h-6 px-2 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[10.5px] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0"
         >
           LinkedIn
           <svg
@@ -187,16 +187,13 @@ function ContactRow({
             <path d="M6 5h5v5" />
           </svg>
         </a>
+        </Button>
       )}
-      <button
-        onClick={() => { if (confirm(`Remove ${c.full_name}?`)) onDelete(c.id); }}
-        className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer transition-all"
-        aria-label="Remove contact"
-      >
+      <Button variant="ghost" size="icon-xs" onClick={() => { if (confirm(`Remove ${c.full_name}?`)) onDelete(c.id); }} className="opacity-0 group-hover:opacity-100 w-6 h-6 hover:text-[color:var(--color-danger)] transition-all" aria-label="Remove contact">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </button>
+      </Button>
     </div>
   );
 }

@@ -299,13 +299,17 @@ export function Sidebar() {
   return (
     <SidebarRoot collapsible="icon">
       <SidebarHeader>
-        <SidebarMenu>
+        {/* Brand on the left, the collapse toggle on the right. In icon mode
+            there is only room for one, and it has to be the toggle — the rail
+            and ⌘B are the only other ways back out, and neither is obvious. */}
+        <div className="flex items-center gap-1">
+        <SidebarMenu className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" tooltip="Minder Ops Platform">
               <Link href="/" aria-label="Minder Ops Platform — home">
                 <span className="relative aspect-square size-8 shrink-0 overflow-hidden rounded-lg ring-1 ring-sidebar-border">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/minder-lead-logo.png" alt="" className="h-full w-full object-cover" />
+                  <img src="/minder-platform-icon.png" alt="" className="h-full w-full object-cover" />
                   <span className="absolute right-0 bottom-0 size-2 rounded-full bg-primary ring-2 ring-sidebar" />
                 </span>
                 <span className="grid min-w-0 flex-1">
@@ -318,6 +322,8 @@ export function Sidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarTrigger className="shrink-0 text-muted-foreground group-data-[collapsible=icon]:mx-auto" />
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
@@ -402,9 +408,6 @@ export function Sidebar() {
           {!HIDDEN_NAV_HREFS.has(SETTINGS.href) && (
             <NavLink {...SETTINGS} pathname={pathname} />
           )}
-          <SidebarMenuItem>
-            <SidebarTrigger className="w-full justify-start gap-2 px-2 text-[10.5px] text-muted-foreground group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0" />
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
 

@@ -54,7 +54,7 @@ export default function MapPage() {
             options={[{ value: "All", label: "All grades" }, { value: "A", label: "A-grade" }, { value: "B", label: "B-grade" }, { value: "C", label: "C-grade" }]} />
           <button onClick={() => setShowContacts((s) => !s)}
             className={`h-9 px-4 rounded-full text-[13px] font-medium cursor-pointer border transition-colors ${
-              showContacts ? "bg-primary text-white border-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"
+              showContacts ? "bg-primary text-primary-foreground border-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"
             }`}>
             {showContacts ? "Hide contacts" : "Show contacts"}
           </button>

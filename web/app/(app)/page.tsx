@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
 import { StatCard } from "@/app/components/stat-card";
+import { Button } from "@/design-system/components/button";
 
 export default function VerticalsPage() {
   const { verticals, factories, openFactory, openNewFactory } = useStore();
@@ -84,11 +85,10 @@ export default function VerticalsPage() {
 
         <div className="flex items-center justify-between mb-4">
           <div><h2 className="text-[15px] font-semibold text-foreground">Explore by vertical</h2><p className="text-[11.5px] text-muted-foreground">Compare portfolio shape and relationship maturity.</p></div>
-          <button onClick={openNewFactory}
-            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={openNewFactory} className="px-4 gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New factory
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">

@@ -11,6 +11,7 @@ import {
 } from "@/design-system/components/native-select";
 import { Textarea } from "@/design-system/components/textarea";
 import { Field, FormDrawer } from "./form-drawer";
+import { DateField } from "./date-field";
 
 export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTrack; onClose: () => void }) {
   const { createFundraisingLead, openFundraising } = useStore();
@@ -122,11 +123,7 @@ export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTra
           />
         </Field>
         <Field label="Next touch">
-          <Input
-            type="date"
-            value={form.next_touch}
-            onChange={(e) => set("next_touch", e.target.value)}
-          />
+          <DateField value={form.next_touch} onChange={(v) => set("next_touch", v)} />
         </Field>
       </div>
       <Field label="Notes">

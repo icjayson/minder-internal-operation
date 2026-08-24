@@ -4,6 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Contact, FactoryWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { DateField } from "./date-field";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
   { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
@@ -227,12 +232,9 @@ export function WorkInventory({
           </h3>
           <p className="text-[11.5px] text-muted-foreground mt-0.5">Drag cards between stages to update progress.</p>
         </div>
-        <button
-          onClick={() => setSelected("new")}
-          className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer"
-        >
+        <Button size="sm" onClick={() => setSelected("new")} className="h-7 px-3 text-[11.5px]">
           + Work
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -400,75 +402,47 @@ function WorkItemModal({
               {item ? "Details" : "Add to inventory"}
             </h3>
           </div>
-          <button type="button" onClick={onClose}
-            className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer"
-            aria-label="Close">
+          <Button variant="ghost" size="icon-sm" type="button" onClick={onClose} className="w-7 h-7" aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
-          </button>
+          </Button>
         </header>
 
         <div className="p-5 space-y-4">
           <label className="block">
             <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Title</span>
-            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)}
-              placeholder="What needs to be done?"
-              className="w-full h-10 rounded-md border border-border bg-background px-3 text-[13px] text-foreground focus:border-primary focus:outline-none" />
+            <Input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What needs to be done?" className="w-full h-10 px-3 text-[13px]" />
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="block">
+            <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Status</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)}
-                className="w-full h-10 rounded-md border border-border bg-background px-3 text-[13px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
-                {COLUMNS.map((column) => <option key={column.key} value={column.key}>{column.label}</option>)}
-              </select>
+              <NativeSelect value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)} className="w-full h-10 px-3 text-[13px]">
+                {COLUMNS.map((column) => <NativeSelectOption key={column.key} value={column.key}>{column.label}</NativeSelectOption>)}
+              </NativeSelect>
             </label>
             <label className="block">
               <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">
                 Next-step trigger
               </span>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={triggerOn}
-                  onChange={(event) => setTriggerOn(event.target.value)}
-                  className="w-full h-10 rounded-md border border-border bg-background px-3 pr-8 text-[13px] text-foreground cursor-pointer focus:border-primary focus:outline-none"
-                />
-                {triggerOn && (
-                  <button
-                    type="button"
-                    onClick={() => setTriggerOn("")}
-                    aria-label="Clear trigger date"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+              <DateField value={triggerOn} onChange={setTriggerOn} className="h-10 text-[13px]" />
               <span className="mt-1 block text-[10.5px] text-muted-foreground">
                 When this step should be triggered (deadline).
               </span>
             </label>
           </div>
-          <label className="block">
+          <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
             <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">
               PIC
             </span>
-            <select
-              value={picContactId}
-              onChange={(event) => setPicContactId(event.target.value)}
-              className="w-full h-10 rounded-md border border-border bg-background px-3 text-[13px] text-foreground cursor-pointer focus:border-primary focus:outline-none"
-            >
-              <option value="">None</option>
+            <NativeSelect value={picContactId} onChange={(event) => setPicContactId(event.target.value)} className="w-full h-10 px-3 text-[13px]" >
+              <NativeSelectOption value="">None</NativeSelectOption>
               {contacts.map((contact) => (
-                <option key={contact.id} value={contact.id}>
+                <NativeSelectOption key={contact.id} value={contact.id}>
                   {contact.full_name}{contact.role_title ? ` — ${contact.role_title}` : ""}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
             {contacts.length === 0 && (
               <span className="mt-1 block text-[10.5px] text-muted-foreground">
                 Add a contact to this factory before assigning a PIC.
@@ -477,9 +451,7 @@ function WorkItemModal({
           </label>
           <label className="block">
             <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Body</span>
-            <textarea value={body} onChange={(event) => setBody(event.target.value)}
-              rows={9} placeholder="Add the detailed work item context…"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground leading-relaxed resize-y focus:border-primary focus:outline-none" />
+            <Textarea value={body} onChange={(event) => setBody(event.target.value)} rows={9} placeholder="Add the detailed work item context…" className="w-full px-3 py-2 text-[13px] leading-relaxed resize-y" />
           </label>
         </div>
 
@@ -491,14 +463,12 @@ function WorkItemModal({
             </button>
           )}
           <div className="flex-1" />
-          <button type="button" onClick={onClose}
-            className="h-9 px-4 rounded-full border border-border-strong bg-card text-[12px] text-foreground/80 hover:text-foreground cursor-pointer">
+          <Button variant="outline" size="sm" type="button" onClick={onClose} className="h-9 px-4 rounded-full text-[12px] text-foreground/80 hover:text-foreground">
             Cancel
-          </button>
-          <button type="submit" disabled={saving || !title.trim()}
-            className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[12px] font-medium cursor-pointer">
+          </Button>
+          <Button type="submit" disabled={saving || !title.trim()} className="px-5 text-[12px]">
             {saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </footer>
       </form>
     </div>,

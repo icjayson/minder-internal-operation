@@ -12,6 +12,8 @@ import { FactoryTable } from "@/app/components/factory-table";
 import { FactoryTree } from "@/app/components/factory-tree";
 import { useFdeDeploymentProgressByFactory } from "@/app/components/fde-deployment-progress";
 import { SearchInput, SelectControl } from "@/app/components/controls";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
 
@@ -145,20 +147,21 @@ function CustomersInner() {
           <SelectControl value={geoTier} onChange={setGeoTier}
             options={[{ value: "All", label: "All geos" }, ...GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))]} />
           <div className="flex-1" />
-          <button onClick={openNewCustomer}
-            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={openNewCustomer} className="px-4 gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New customer
-          </button>
+          </Button>
         </div>
 
         {!rows ? (
           <FactoryTableSkeleton />
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
-            <div className="text-lg font-display mb-2">No customers yet</div>
-            <p className="text-sm text-foreground/80 max-w-md mx-auto">Mark a factory as a customer from its page, or add one directly.</p>
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyHeader>
+              <EmptyTitle className="font-display text-lg">No customers yet</EmptyTitle>
+              <EmptyDescription className="text-sm">Mark a factory as a customer from its page, or add one directly.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : view === "tree" ? (
           <FactoryTree
             verticals={verticals}
@@ -212,7 +215,7 @@ function ViewBtn({ active, onClick, label, children }: {
   return (
     <button onClick={onClick} title={`${label} view`}
       className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer inline-flex items-center gap-1.5 transition-colors ${
-        active ? "bg-primary text-white" : "text-foreground/80 hover:text-foreground"
+        active ? "bg-primary text-primary-foreground" : "text-foreground/80 hover:text-foreground"
       }`}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">{children}</svg>
       {label}

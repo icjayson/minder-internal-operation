@@ -12,6 +12,10 @@ import {
 } from "@/lib/context-item";
 import type { ContextEntityType, ContextItem } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
 
 const BUCKET = "context-files";
 
@@ -150,15 +154,13 @@ export function ContextPanel({
           Context {items ? `· ${items.length}` : ""}
         </h3>
         <div className="flex items-center gap-1.5">
-          <button onClick={() => { setAddingText(true); setEditId(null); }}
-            className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer">
+          <Button variant="outline" size="sm" onClick={() => { setAddingText(true); setEditId(null); }} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80 hover:text-foreground">
             + Text
-          </button>
-          <button onClick={() => fileRef.current?.click()} disabled={busy}
-            className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5">
+          </Button>
+          <Button size="sm" onClick={() => fileRef.current?.click()} disabled={busy} className="h-7 px-3 text-[11.5px] gap-1.5">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15V3m0 0 4 4m-4-4L8 7M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             {busy ? "Uploading…" : "Upload"}
-          </button>
+          </Button>
           <input ref={fileRef} type="file" multiple hidden
             onChange={(e) => e.target.files && e.target.files.length && uploadFiles(e.target.files)} />
         </div>
@@ -176,10 +178,9 @@ export function ContextPanel({
       <div className="mb-3 rounded-md border border-border bg-muted/50 px-3 py-2.5">
         <div className="flex items-center justify-between mb-1">
           <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">✦ Summary</div>
-          <button onClick={regenerateSummary} disabled={summarizing}
-            className="h-6 px-2.5 rounded-full border border-border-strong bg-card hover:bg-accent text-[10.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer disabled:opacity-60">
+          <Button variant="outline" size="sm" onClick={regenerateSummary} disabled={summarizing} className="h-6 px-2.5 rounded-full text-[10.5px] text-foreground/80 hover:text-foreground">
             {summarizing ? "Summarising…" : shownSummary ? "Regenerate" : "Generate"}
-          </button>
+          </Button>
         </div>
         {shownSummary ? (
           <p className="text-[12.5px] text-foreground/80 leading-relaxed whitespace-pre-wrap">{shownSummary}</p>
@@ -191,29 +192,19 @@ export function ContextPanel({
       <div className="mb-2.5 flex flex-wrap items-center justify-end gap-2">
         <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Type
-          <select
-            aria-label="Filter context by type"
-            value={typeFilter}
-            onChange={(event) => setTypeFilter(event.target.value as ContextTypeFilter)}
-            className="h-8 rounded-md border border-border bg-card px-2.5 text-[11.5px] normal-case tracking-normal text-foreground focus:border-border-strong focus:outline-none"
-          >
-            <option value="all">All</option>
-            <option value="file">Files</option>
-            <option value="link">Links</option>
-            <option value="text">Notes</option>
-          </select>
+          <NativeSelect aria-label="Filter context by type" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as ContextTypeFilter)} className="h-8 px-2.5 text-[11.5px] normal-case tracking-normal" >
+            <NativeSelectOption value="all">All</NativeSelectOption>
+            <NativeSelectOption value="file">Files</NativeSelectOption>
+            <NativeSelectOption value="link">Links</NativeSelectOption>
+            <NativeSelectOption value="text">Notes</NativeSelectOption>
+          </NativeSelect>
         </label>
         <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Sort
-          <select
-            aria-label="Sort context items"
-            value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value as ContextSortOrder)}
-            className="h-8 rounded-md border border-border bg-card px-2.5 text-[11.5px] normal-case tracking-normal text-foreground focus:border-border-strong focus:outline-none"
-          >
-            <option value="latest">Latest</option>
-            <option value="oldest">Oldest</option>
-          </select>
+          <NativeSelect aria-label="Sort context items" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as ContextSortOrder)} className="h-8 px-2.5 text-[11.5px] normal-case tracking-normal" >
+            <NativeSelectOption value="latest">Latest</NativeSelectOption>
+            <NativeSelectOption value="oldest">Oldest</NativeSelectOption>
+          </NativeSelect>
         </label>
       </div>
 
@@ -260,13 +251,11 @@ function TextForm({
   const [body, setBody] = useState(initial?.body ?? "");
   return (
     <div className="mb-2 rounded-md border border-border-strong bg-muted/60 p-2.5 space-y-2">
-      <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional) — e.g. Call 12 Jul, Site audit…"
-        className="w-full h-8 rounded-md border border-border bg-background px-2 text-[12.5px] text-foreground focus:border-primary focus:outline-none" />
-      <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Paste notes, findings, transcript…"
-        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12.5px] text-foreground leading-relaxed resize-y focus:border-primary focus:outline-none" />
+      <Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional) — e.g. Call 12 Jul, Site audit…" className="w-full h-8 px-2 text-[12.5px]" />
+      <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Paste notes, findings, transcript…" className="w-full px-2 py-1.5 text-[12.5px] leading-relaxed resize-y" />
       <div className="flex gap-2">
-        <button onClick={() => onSave(title, body)} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
-        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-border-strong bg-card text-[11.5px] text-foreground/80 cursor-pointer">Cancel</button>
+        <Button size="sm" onClick={() => onSave(title, body)} className="h-7 px-3 text-[11.5px]">Save</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 rounded-full text-[11.5px] text-foreground/80">Cancel</Button>
       </div>
     </div>
   );
@@ -335,18 +324,14 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
         </div>
         <StatusBadge status={item.extraction_status} onRetry={onRetry} readOnly={readOnly} />
         {item.storage_path && (
-          <button onClick={download} disabled={downloading} title="Download file" aria-label="Download file"
-            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer disabled:opacity-50">
+          <Button variant="ghost" size="icon-xs" onClick={download} disabled={downloading} title="Download file" aria-label="Download file" className="w-6 h-6 disabled:opacity-50">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+          </Button>
         )}
         {canToggle && (
-          <button onClick={() => setOpen((o) => !o)}
-            title={open ? (isImg ? "Hide preview" : "Hide text") : (isImg ? "Show preview" : "Show extracted text")}
-            aria-label={isImg ? "Toggle image preview" : "Toggle extracted text"}
-            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer">
+          <Button variant="ghost" size="icon-xs" onClick={() => setOpen((o) => !o)} title={open ? (isImg ? "Hide preview" : "Hide text") : (isImg ? "Show preview" : "Show extracted text")} aria-label={isImg ? "Toggle image preview" : "Toggle extracted text"} className="w-6 h-6">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+          </Button>
         )}
         <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
         {readOnly ? <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
@@ -405,10 +390,9 @@ function StatusBadge({ status, onRetry, readOnly }: { status: ContextItem["extra
 
 function RowDelete({ onDelete }: { onDelete: () => void }) {
   return (
-    <button onClick={onDelete} aria-label="Remove"
-      className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer transition-opacity shrink-0">
+    <Button variant="ghost" size="icon-xs" onClick={onDelete} aria-label="Remove" className="opacity-0 group-hover:opacity-100 w-6 h-6 hover:text-[color:var(--color-danger)] transition-opacity shrink-0">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    </button>
+    </Button>
   );
 }
 

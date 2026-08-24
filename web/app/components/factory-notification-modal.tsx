@@ -17,6 +17,7 @@ import { Input } from "@/design-system/components/input";
 import { Label } from "@/design-system/components/label";
 import { Textarea } from "@/design-system/components/textarea";
 import { cn } from "@/design-system/lib/utils";
+import { DateField } from "./date-field";
 
 type CreateResult = {
   notificationId: string;
@@ -162,7 +163,7 @@ export function FactoryNotificationModal({
                 Due date{" "}
                 <span className="font-normal tracking-normal normal-case">· optional</span>
               </Label>
-              <Input type="date" value={dueOn} onChange={(event) => setDueOn(event.target.value)} />
+              <DateField value={dueOn} onChange={setDueOn} placeholder="No due date" />
             </label>
 
             {error && (

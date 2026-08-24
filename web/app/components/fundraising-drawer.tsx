@@ -11,6 +11,11 @@ import { FundraisingJourney } from "./fundraising-journey";
 import { FundraisingWorkInventory } from "./fundraising-work-inventory";
 import { ActivityRowActions } from "./activity-alert-countdown";
 import { PanelShell } from "./form-drawer";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { DateField } from "./date-field";
 
 export function FundraisingDrawer({
   leadId,
@@ -73,14 +78,9 @@ export function FundraisingDrawer({
                 <ExpandIcon />
               </Link>
             ) : (
-              <button
-                onClick={onClose}
-                title={`Back to ${meta.label}`}
-                aria-label={`Back to ${meta.label}`}
-                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer shrink-0"
-              >
+              <Button variant="ghost" size="icon-sm" onClick={onClose} title={`Back to ${meta.label}`} aria-label={`Back to ${meta.label}`} className="mt-0.5 w-7 h-7 shrink-0">
                 <BackIcon />
-              </button>
+              </Button>
             )}
             <div className="min-w-0 flex-1">
               <div className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary mb-1">
@@ -94,17 +94,13 @@ export function FundraisingDrawer({
               />
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => { if (confirm(`Delete ${l.name}?`)) { deleteFundraisingLead(track, leadId); onClose(); } }}
-                className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/10 cursor-pointer"
-                aria-label="Delete" title="Delete"
-              >
+              <Button variant="ghost" size="icon-sm" onClick={() => { if (confirm(`Delete ${l.name}?`)) { deleteFundraisingLead(track, leadId); onClose(); } }} className="w-7 h-7 hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/10" aria-label="Delete" title="Delete">
                 <DeleteIcon />
-              </button>
+              </Button>
               {variant === "drawer" && (
-                <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer" aria-label="Close">
+                <Button variant="ghost" size="icon-sm" onClick={onClose} className="w-7 h-7" aria-label="Close">
                   <CloseIcon />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -142,14 +138,9 @@ export function FundraisingDrawer({
                     placeholder="Log a call, note, reply or update…"
                     className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-foreground focus:outline-none focus-visible:outline-none"
                   />
-                  <button
-                    type="button"
-                    onClick={() => { void logActivity(); }}
-                    disabled={!activityNote.trim()}
-                    className="h-8 rounded-full bg-primary px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-45"
-                  >
+                  <Button size="sm" type="button" onClick={() => { void logActivity(); }} disabled={!activityNote.trim()} className="px-3 text-[11.5px]">
                     Add
-                  </button>
+                  </Button>
                 </div>
                 {activities.length === 0 ? (
                   <EmptyState title="No activity yet" body="Log the first touchpoint to start this timeline." />
@@ -183,17 +174,14 @@ export function FundraisingDrawer({
                   />
                   <label className="block">
                     <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next touch</span>
-                    <input type="date" value={l.next_touch ?? ""} onChange={(e) => set({ next_touch: e.target.value || null })}
-                      className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-border-strong focus:outline-none" />
+                    <DateField value={l.next_touch} onChange={(v) => set({ next_touch: v || null })} className="h-9 text-[13px]" />
                   </label>
                 </div>
               </Section>
 
               {/* Notes */}
               <Section title="Notes">
-                <textarea defaultValue={l.notes ?? ""} onBlur={(e) => e.target.value !== (l.notes ?? "") && set({ notes: e.target.value })}
-                  rows={4} placeholder="Terms discussed, contacts, requirements, deadlines…"
-                  className="w-full rounded-md bg-background border border-border px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground resize-y focus:border-border-strong focus:outline-none" />
+                <Textarea defaultValue={l.notes ?? ""} onBlur={(e) => e.target.value !== (l.notes ?? "") && set({ notes: e.target.value })} rows={4} placeholder="Terms discussed, contacts, requirements, deadlines…" className="w-full px-3 py-2 text-[13px] resize-y" />
               </Section>
             </div>
 
@@ -257,8 +245,7 @@ function InputField({ label, value, onSave }: { label: string; value: string | n
   return (
     <label className="block">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <input defaultValue={value ?? ""} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
-        className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-border-strong focus:outline-none" />
+      <Input defaultValue={value ?? ""} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())} className="w-full h-9 px-2 text-[13px]" />
     </label>
   );
 }
@@ -266,14 +253,7 @@ function NumberField({ label, value, onSave }: { label: string; value: number | 
   return (
     <label className="block">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <input type="number" min="0" step="1000" defaultValue={value ?? ""}
-        onBlur={(e) => {
-          const raw = e.target.value.trim();
-          const next = raw === "" ? null : Number(raw);
-          if (next != null && !Number.isFinite(next)) return;
-          if (next !== (value ?? null)) onSave(next);
-        }}
-        className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-border-strong focus:outline-none" />
+      <Input type="number" min="0" step="1000" defaultValue={value ?? ""} onBlur={(e) => { const raw = e.target.value.trim(); const next = raw === "" ? null : Number(raw); if (next != null && !Number.isFinite(next)) return; if (next !== (value ?? null)) onSave(next); }} className="w-full h-9 px-2 text-[13px] tabular-nums" />
     </label>
   );
 }
@@ -281,13 +261,12 @@ function SelectField({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
-    <label className="block">
+    <label className="block [&_[data-slot=native-select-wrapper]]:w-full">
       <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground cursor-pointer focus:border-border-strong focus:outline-none">
-        <option value="">—</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 px-2 text-[13px]">
+        <NativeSelectOption value="">—</NativeSelectOption>
+        {options.map((o) => <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>)}
+      </NativeSelect>
     </label>
   );
 }

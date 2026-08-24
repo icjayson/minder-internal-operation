@@ -25,7 +25,7 @@ export default function FactoryDetailPage() {
         <div>
           <h1 className="text-xl font-display text-foreground">Factory not found</h1>
           <button onClick={() => router.push("/factories")}
-            className="mt-4 h-9 px-4 rounded-full bg-primary text-white text-[12.5px] font-medium cursor-pointer">
+            className="mt-4 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[12.5px] font-medium cursor-pointer">
             Back to factories
           </button>
         </div>

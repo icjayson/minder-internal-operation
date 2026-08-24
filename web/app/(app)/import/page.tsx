@@ -15,6 +15,10 @@ import {
   normalizeWorkerBand,
 } from "@/lib/import-normalization";
 import { PageHeader } from "@/app/components/page-header";
+import { Button } from "@/design-system/components/button";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { Card } from "@/design-system/components/card";
 
 type Mapping = {
   factory: Record<string, string | null>;
@@ -348,7 +352,7 @@ export default function ImportPage() {
         {error && <div className="rounded-md border border-[color:var(--color-danger)]/30 tint-danger px-3 py-2 text-[13px] text-[color:var(--color-danger)]">{error}</div>}
 
         {/* Step 1: input */}
-        <section className="rounded-lg border border-border bg-card p-5">
+        <Card className="gap-0 p-5">
           <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">1 · Paste or upload CSV</h3>
           <div className="flex items-center gap-2 mb-3">
             <label className="h-8 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[12px] font-medium text-foreground/80 cursor-pointer inline-flex items-center">
@@ -367,13 +371,10 @@ export default function ImportPage() {
             </label>
             {headers.length > 0 && <span className="text-[12px] text-foreground/80">{headers.length} columns · {rows.length} rows detected</span>}
           </div>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} onBlur={() => text && parse(text)}
-            rows={5} placeholder="…or paste CSV text here (first line = headers)"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground tabular-nums leading-relaxed resize-y focus:border-border-strong focus:outline-none" />
-          <button onClick={analyze} disabled={!headers.length || !!busy}
-            className="mt-3 h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} onBlur={() => text && parse(text)} rows={5} placeholder="…or paste CSV text here (first line = headers)" className="w-full px-3 py-2 text-[12px] tabular-nums leading-relaxed resize-y" />
+          <Button onClick={analyze} disabled={!headers.length || !!busy} className="mt-3 px-4">
             {busy === "Analysing with AI…" ? "Analysing…" : "Analyse with AI"}
-          </button>
+          </Button>
           {mapping && (
             <button onClick={deleteAnalysis} disabled={!!busy}
               title="Clear the uploaded CSV and its AI mapping. Imported records are not deleted."
@@ -381,11 +382,11 @@ export default function ImportPage() {
               Delete analysis
             </button>
           )}
-        </section>
+        </Card>
 
         {/* Step 2: mapping */}
         {mapping && (
-          <section className="rounded-lg border border-border bg-card p-5">
+          <Card className="gap-0 p-5">
             <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">2 · Review the AI mapping</h3>
             {mapping.notes && <p className="text-[12px] text-foreground/80 mb-3">{mapping.notes}</p>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -406,12 +407,12 @@ export default function ImportPage() {
                 ))}
               </MapGroup>
             </div>
-          </section>
+          </Card>
         )}
 
         {/* Step 3: preview + import */}
         {mapping && (
-          <section className="rounded-lg border border-border bg-card p-5">
+          <Card className="gap-0 p-5">
             <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">3 · Preview & import</h3>
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-[12px]">
@@ -439,10 +440,9 @@ export default function ImportPage() {
                 </tbody>
               </table>
             </div>
-            <button onClick={runImport} disabled={!!busy}
-              className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
+            <Button onClick={runImport} disabled={!!busy} className="px-5">
               {busy === "Importing…" ? "Importing…" : `Import ${rows.length} rows`}
-            </button>
+            </Button>
             {result && (
               <div className="mt-4 rounded-md border border-border bg-muted/50 p-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
@@ -455,14 +455,13 @@ export default function ImportPage() {
                   <ResultStat label="Warnings/errors" value={result.errors.length} />
                 </div>
                 {result.errors.length > 0 && (
-                  <button onClick={() => downloadErrors(result.errors)}
-                    className="mt-3 h-7 px-3 rounded-full border border-border-strong bg-card hover:bg-accent text-[11px] text-foreground/80 cursor-pointer">
+                  <Button variant="outline" size="sm" onClick={() => downloadErrors(result.errors)} className="mt-3 h-7 px-3 rounded-full text-[11px] text-foreground/80">
                     Download row errors (.csv)
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
-          </section>
+          </Card>
         )}
       </div>
     </>
@@ -473,19 +472,19 @@ export default function ImportPage() {
 function ImportProgress({ current }: { current: number }) {
   const steps = ["Upload", "Map columns", "Review", "Complete"];
   return (
-    <section className="rounded-lg border border-border bg-card px-4 py-4 shadow-mo-soft" aria-label="Import progress">
+    <Card className="gap-0 px-4 py-4 shadow-mo-soft" aria-label="Import progress">
       <div className="relative grid grid-cols-4">
         <span className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-border-strong" aria-hidden>
           <span className="block h-full bg-primary transition-[width] duration-300" style={{ width: `${(current / (steps.length - 1)) * 100}%` }} />
         </span>
         {steps.map((step, index) => (
           <div key={step} className="relative z-[1] flex flex-col items-center text-center">
-            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-primary bg-primary text-white" : index === current ? "border-primary bg-primary text-white ring-4 ring-primary-tint" : "border-border-strong bg-card text-muted-foreground"}`}>{index < current ? "✓" : index + 1}</span>
+            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-primary bg-primary text-primary-foreground" : index === current ? "border-primary bg-primary text-primary-foreground ring-4 ring-primary-tint" : "border-border-strong bg-card text-muted-foreground"}`}>{index < current ? "✓" : index + 1}</span>
             <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{step}</span>
           </div>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -501,11 +500,10 @@ function MapRow({ label, value, headers, onChange }: { label: string; value: str
   return (
     <div className="flex items-center gap-2">
       <span className="w-32 shrink-0 text-[11px] text-foreground/80 truncate">{label}</span>
-      <select value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}
-        className="flex-1 h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
-        <option value="">— none —</option>
-        {headers.map((h) => <option key={h} value={h}>{h}</option>)}
-      </select>
+      <NativeSelect value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} className="flex-1 h-8 px-2 text-[12px]">
+        <NativeSelectOption value="">— none —</NativeSelectOption>
+        {headers.map((h) => <NativeSelectOption key={h} value={h}>{h}</NativeSelectOption>)}
+      </NativeSelect>
     </div>
   );
 }

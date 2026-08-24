@@ -4,6 +4,7 @@ import type { FundraisingLead, FundraisingStage, FundraisingTrack } from "@/lib/
 import { fundraisingStages, fundraisingTypeLabel } from "@/lib/types";
 import { FundStagePill, ResultPill } from "./fund-stage-pill";
 import { DataTable, type Column } from "./data-table";
+import { Button } from "@/design-system/components/button";
 
 type Props = {
   track: FundraisingTrack;
@@ -96,18 +97,11 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       width: 52,
       minWidth: 44,
       render: (l) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Delete ${l.name}? This can’t be undone.`)) onDelete(l.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-accent cursor-pointer transition-all duration-150"
-          aria-label={`Delete ${l.name}`}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${l.name}? This can’t be undone.`)) onDelete(l.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)] transition-all duration-150" aria-label={`Delete ${l.name}`}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
+        </Button>
       ),
     },
   ];

@@ -17,6 +17,7 @@ import {
   ToggleGroupItem,
 } from "@/design-system/components/toggle-group";
 import { Field, FormDrawer } from "./form-drawer";
+import { DateField } from "./date-field";
 
 // Add a contact from the Contacts page. You can attach it to an existing
 // factory or create a new factory inline — either way the Factory page syncs
@@ -146,11 +147,7 @@ export function NewContactDrawer({ onClose }: { onClose: () => void }) {
           <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </Field>
         <Field label="Next follow-up">
-          <Input
-            type="date"
-            value={next_follow_up}
-            onChange={(e) => setNextFollowUp(e.target.value)}
-          />
+          <DateField value={next_follow_up} onChange={setNextFollowUp} />
         </Field>
       </div>
       <Field label="Notes">

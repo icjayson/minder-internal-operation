@@ -19,6 +19,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import type { Contact, Factory, Network, Stage } from "@/lib/types";
 import { StagePill } from "./stage-pill";
+import { Button } from "@/design-system/components/button";
 
 type Kind = "root" | "network" | "factory" | "contact";
 type NodeData = {
@@ -228,10 +229,9 @@ function MapCanvasInner({
       }}
     >
       <Panel position="top-right">
-        <button onClick={resetLayout}
-          className="h-8 px-3 rounded-full border border-border-strong bg-card hover:bg-accent text-[11.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer shadow-mo-elevated">
+        <Button variant="outline" size="sm" onClick={resetLayout} className="h-8 px-3 rounded-full text-[11.5px] text-foreground/80 hover:text-foreground shadow-mo-elevated">
           Reset layout
-        </button>
+        </Button>
       </Panel>
       <Background gap={22} />
       <Controls showInteractive={false} />

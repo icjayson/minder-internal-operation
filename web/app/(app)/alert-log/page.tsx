@@ -9,6 +9,8 @@ import {
 } from "@/lib/alert-timeline";
 import { useStore } from "@/lib/factories-store";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 const SOURCE_LABEL: Record<string, string> = {
   scan: "Scan",
@@ -192,11 +194,9 @@ export default function AlertLogPage() {
           </div>
         )}
         {rows === null ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">Loading…</div>
+          <Empty className="border bg-card/50 py-16"><EmptyDescription className="text-sm">Loading…</EmptyDescription></Empty>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
-            No alerts logged yet.
-          </div>
+          <Empty className="border bg-card/50 py-16"><EmptyDescription className="text-sm">No alerts logged yet.</EmptyDescription></Empty>
         ) : (
           <div className="space-y-2">
             {rows.map((row) => (
@@ -272,25 +272,16 @@ function AlertLogItem({
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {canOpen && (
-            <button
-              type="button"
-              onClick={onOpen}
-              className="h-7 rounded-full border border-border-strong bg-muted px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:bg-accent cursor-pointer"
-            >
+            <Button variant="outline" size="sm" type="button" onClick={onOpen} className="h-7 rounded-full px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">
               Open
-            </button>
+            </Button>
           )}
           {done ? (
             <span className="tone rounded-full px-3 py-1 text-[11px] font-medium" data-tone="green">Task done</span>
           ) : (
-            <button
-              type="button"
-              onClick={onComplete}
-              disabled={completing}
-              className="h-7 rounded-full bg-primary px-3 text-[11px] font-medium text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-            >
+            <Button size="sm" type="button" onClick={onComplete} disabled={completing} className="h-7 px-3 text-[11px]">
               {completing ? "Completing…" : "Task Done"}
-            </button>
+            </Button>
           )}
           {deleted ? (
             <span className="rounded-full border border-border-strong px-3 py-1 text-[11px] tabular-nums uppercase text-muted-foreground">Discord deleted</span>

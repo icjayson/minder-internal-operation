@@ -5,6 +5,7 @@ import {
   activityAlertRemainingMs,
   formatActivityAlertCountdown,
 } from "@/lib/activity-alerts";
+import { Button } from "@/design-system/components/button";
 
 export function ActivityRowActions({
   createdAt,
@@ -24,15 +25,9 @@ export function ActivityRowActions({
   return (
     <div className="ml-auto inline-flex shrink-0 items-center gap-2">
       <ActivityAlertCountdown createdAt={createdAt} onWithdraw={remove} />
-      <button
-        type="button"
-        title="Delete activity"
-        aria-label="Delete activity"
-        onClick={remove}
-        className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
-      >
+      <Button variant="ghost" size="icon-xs" type="button" title="Delete activity" aria-label="Delete activity" onClick={remove} className="h-6 w-6 hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]">
         <TrashIcon />
-      </button>
+      </Button>
     </div>
   );
 }

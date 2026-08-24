@@ -5,6 +5,11 @@ import type { Sequence, SequenceStep, Vertical } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { NativeSelect, NativeSelectOption } from "@/design-system/components/native-select";
+import { Card } from "@/design-system/components/card";
 
 export default function SequencesPage() {
   const { contacts, factory } = useStore();
@@ -101,7 +106,7 @@ export default function SequencesPage() {
           {verticals.map((v) => (
             <button key={v.id} onClick={() => setActive(v.id)}
               className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer transition-colors ${
-                active === v.id ? "bg-primary text-white" : "border border-border-strong bg-card hover:bg-accent text-foreground/80"
+                active === v.id ? "bg-primary text-primary-foreground" : "border border-border-strong bg-card hover:bg-accent text-foreground/80"
               }`}>
               {v.name}
             </button>
@@ -110,36 +115,31 @@ export default function SequencesPage() {
 
         <div className="max-w-3xl flex items-center gap-2 mb-3">
           <span className="text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">Preview as</span>
-          <select value={previewContact} onChange={(e) => setPreviewContact(e.target.value)}
-            className="h-8 min-w-56 rounded-md border border-border bg-card px-2 text-[12px] text-foreground focus:border-primary focus:outline-none">
-            {eligibleContacts.length === 0 && <option value="">No contacts in this vertical</option>}
-            {eligibleContacts.map((c) => <option key={c.id} value={c.id}>{c.full_name} · {c.role_title ?? "contact"}</option>)}
-          </select>
+          <NativeSelect value={previewContact} onChange={(e) => setPreviewContact(e.target.value)} className="h-8 min-w-56 px-2 text-[12px]">
+            {eligibleContacts.length === 0 && <NativeSelectOption value="">No contacts in this vertical</NativeSelectOption>}
+            {eligibleContacts.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.full_name} · {c.role_title ?? "contact"}</NativeSelectOption>)}
+          </NativeSelect>
           <div className="flex-1" />
           {seq && !seqSteps.some((s) => s.day_offset === 51) && (
-            <button onClick={addD51}
-              className="h-8 px-3 rounded-full border border-border-strong bg-card hover:bg-accent text-[11.5px] text-foreground/80 cursor-pointer">
+            <Button variant="outline" size="sm" onClick={addD51} className="h-8 px-3 rounded-full text-[11.5px] text-foreground/80">
               + Optional D51
-            </button>
+            </Button>
           )}
         </div>
 
         <div className="space-y-3 max-w-3xl">
           {seqSteps.map((s) => (
-            <div key={s.id} className="rounded-lg border border-border bg-card p-4">
+            <Card key={s.id} className="gap-0 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-primary-tint text-primary tabular-nums text-[11px] font-semibold">Day {s.day_offset}</span>
                 <span className="text-[11px] tabular-nums uppercase tracking-wider text-muted-foreground">{s.intent}</span>
                 <div className="flex-1" />
-                <button onClick={() => generatePreview(s)} disabled={!previewContact || generatingStep === s.id}
-                  className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[11px] font-medium cursor-pointer">
+                <Button size="sm" onClick={() => generatePreview(s)} disabled={!previewContact || generatingStep === s.id} className="h-7 px-3 text-[11px]">
                   {generatingStep === s.id ? "Drafting…" : "AI draft this step"}
-                </button>
+                </Button>
               </div>
-              <input defaultValue={s.subject ?? ""} placeholder="Subject" onBlur={(e) => saveStep(s.id, { subject: e.target.value })}
-                className="w-full h-9 rounded-md border border-border bg-background px-3 text-[13px] text-foreground mb-2 focus:border-border-strong focus:outline-none" />
-              <textarea defaultValue={s.body ?? ""} rows={3} onBlur={(e) => saveStep(s.id, { body: e.target.value })}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground/80 leading-relaxed resize-y focus:border-border-strong focus:outline-none" />
+              <Input defaultValue={s.subject ?? ""} placeholder="Subject" onBlur={(e) => saveStep(s.id, { subject: e.target.value })} className="w-full h-9 px-3 text-[13px] mb-2" />
+              <Textarea defaultValue={s.body ?? ""} rows={3} onBlur={(e) => saveStep(s.id, { body: e.target.value })} className="w-full px-3 py-2 text-[13px] text-foreground/80 leading-relaxed resize-y" />
               {preview[s.id] && (
                 <div className="mt-3 rounded-md border border-primary/30 bg-primary-tint p-3">
                   <div className="text-[10px] tabular-nums uppercase tracking-wider text-primary mb-1">Personalized preview · saved to drafts</div>
@@ -147,7 +147,7 @@ export default function SequencesPage() {
                   <p className="text-[12px] text-foreground/80 leading-relaxed whitespace-pre-wrap">{preview[s.id].body}</p>
                 </div>
               )}
-            </div>
+            </Card>
           ))}
           {seqSteps.length === 0 && <p className="text-sm text-muted-foreground">No steps — run the SQL seed to create the default cadence.</p>}
         </div>

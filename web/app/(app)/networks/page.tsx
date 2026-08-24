@@ -9,6 +9,8 @@ import { PipelineChevrons } from "@/app/components/pipeline-chevrons";
 import { StatCard } from "@/app/components/stat-card";
 import { NetworkTable } from "@/app/components/network-table";
 import { SearchInput, SelectControl } from "@/app/components/controls";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 export default function NetworksPage() {
   const {
@@ -84,20 +86,21 @@ export default function NetworksPage() {
           <SelectControl value={grade} onChange={setGrade}
             options={[{ value: "All", label: "All grades" }, { value: "A", label: "A-grade" }, { value: "B", label: "B-grade" }, { value: "C", label: "C-grade" }]} />
           <div className="flex-1" />
-          <button onClick={openNewNetwork}
-            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={openNewNetwork} className="px-4 gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New network
-          </button>
+          </Button>
         </div>
 
         {!rows ? (
           <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading networks…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
-            <div className="text-lg font-display mb-2">No networks yet</div>
-            <p className="text-sm text-foreground/80 max-w-md mx-auto">Add the associations, accelerators and institutes that introduce factories to you.</p>
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyHeader>
+              <EmptyTitle className="font-display text-lg">No networks yet</EmptyTitle>
+              <EmptyDescription className="text-sm">Add the associations, accelerators and institutes that introduce factories to you.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <NetworkTable
             networks={rows}
