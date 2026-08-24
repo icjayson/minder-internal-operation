@@ -330,6 +330,9 @@ Phase 1 alone already delivers a Minder-branded ops platform. Phases 2–4 are w
 | `d5aba0f` | **Phase 2c** — detail panels, modal, toasts |
 | `3a3d245` | **Phase 2d** — sidebar |
 | `632e58d` | **Phase 3 + 4** — shim retired, radius on the component set's scale, CI guard |
+| `a8c1f55` | **Element audit** — buttons, controls, date picker, cards, empties |
+| `252bb6c` | **Element audit** — toggles, chips, the remaining buttons |
+| `758759a` | **Element audit** — the last hand-picked colours onto the ramps |
 
 What landed, against what the plan assumed:
 
@@ -403,3 +406,61 @@ Inter stays in the root layout: `/design-system`'s own CSS modules still use it.
 `/customers` and a few other routes log two `400`s from Supabase REST. They are
 data-layer — `/alert-log` names the missing migrations in its own banner — and predate
 this work, which touched no data code.
+
+
+---
+
+## Element audit
+
+Prompted by a real bug: the platform's buttons carried the design system's
+*colour* but none of its *behaviour*. `/factories` had 392 buttons and not one
+was the system's `Button`, so the Minder hover skin — keyed off
+`[data-slot="button"]` — reached nothing, and the buttons still carried
+`hover:bg-[#3a51ff]`, the Celesnity cobalt. On that page it is now 364 of the
+system's and 6 raw.
+
+**Converted:** 75 buttons (primary, icon, outline, link, destructive), the
+saved-view chips and view switches (→ `Toggle`), 47 inputs / selects /
+textareas, 8 date fields (→ Popover + Calendar, the way the general page
+composes it), 9 card containers and 2 local `Card` helpers, 10 empty states
+(→ `Empty`), and 20 hex literals onto the ramps.
+
+**Deliberately still raw** — these are hit areas, not controls the system has a
+variant for. Giving them one would draw a border and a hover fill around
+something meant to read as the row it sits in:
+
+| Element | Why |
+|---|---|
+| Modal backdrop | A full-bleed dismiss target |
+| Clickable table / tree row | The row *is* the control |
+| Tree twisty, pipeline chevron, stepper node | Custom geometry with no variant |
+| Star rating | A rating widget, not a button |
+| Stage-pill overlay `<select>` | Transparent, over a pill — a wrapper would draw a border and chevron underneath |
+| Hidden file inputs | Never rendered |
+| Inline-editable panel titles | Headings that happen to be editable, not fields |
+
+### Two mistakes worth recording
+
+- **The `w-full` fix on `NativeSelect`.** Its wrapper is `w-fit`, so a select
+  told to fill its column stops short of the input beside it. The first fix was
+  a global `:has(> [data-slot="native-select"].w-full)` rule — wrong, because
+  the component's own base classes *always* contain `w-full`, so every select
+  went full width and the page toolbars wrapped onto three rows. The fix is a
+  Tailwind variant on the wrapping label: the wrapper is the select's parent and
+  cannot be reached from the select.
+
+- **Phase 2b's commit message overclaimed.** It said the `bg-[#3a51ff]` hover
+  was gone; it was gone from the four drawers only, and 28 more call sites kept
+  it for several more commits.
+
+### The guard
+
+`scripts/check-retired-tokens.mjs` now also fails on any `[#rrggbb]` in a class
+string and on `#3a51ff` specifically. A hex literal bypasses the token layer
+completely — it will not follow a brand change and will not flip with the sky.
+
+### Still open
+
+The two items dropped to preserve layout: **headings onto the type scale** (it
+changes type sizes) and **`/analytics` onto the vendored chart blocks** (Recharts
+re-lays-out the charts). Both are one commit each whenever the layout can move.

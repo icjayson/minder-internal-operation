@@ -34,6 +34,11 @@ const RETIRED = [
   // `mono` was a font class that never named a monospace; it is tabular-nums now.
   [/(?<![-\w])mono\b/, "tabular-nums"],
   [/(?<![-\w])tnum\b/, "tabular-nums"],
+  // A hex literal in a class string bypasses the token layer completely: it
+  // will not follow a brand change and it will not flip with the sky.
+  [/\[#[0-9a-fA-F]{3,8}\]/, "a token — see app/globals.css"],
+  // The Celesnity cobalt hover, which outlived the palette it came from.
+  [/#3a51ff/i, "the Button component's own hover"],
   // `accent` and `muted` still exist — they are shadcn's, and they mean a
   // surface, not a brand colour and not dim text. So only the Celesnity
   // spellings are banned: the bare `text-muted` that used to be dim text, and
