@@ -5,6 +5,14 @@ import { GEO_OPTIONS, WORKER_BANDS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { normalizeUrl } from "@/lib/import-normalization";
 import { supabase } from "@/lib/supabase";
+import { Checkbox } from "@/design-system/components/checkbox";
+import { Input } from "@/design-system/components/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/design-system/components/native-select";
+import { Textarea } from "@/design-system/components/textarea";
+import { Field, FormDrawer } from "./form-drawer";
 
 export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () => void; asCustomer?: boolean }) {
   const { verticals, networks, openFactory, openCustomer } = useStore();
@@ -27,13 +35,7 @@ export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () 
     if (!form.vertical_id && verticals[0]) setForm((f) => ({ ...f, vertical_id: verticals[0].id }));
   }, [verticals, form.vertical_id]);
 
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => e.key === "Escape" && !saving && onClose();
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose, saving]);
-
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set =(k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,73 +77,105 @@ export function NewFactoryDrawer({ onClose, asCustomer = false }: { onClose: () 
   }
 
   return (
-    <>
-      <button onClick={() => !saving && onClose()} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[520px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
-        <header className="relative px-6 pt-5 pb-4 border-b border-line">
-          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="text-[10px] mono uppercase tracking-[0.14em] text-primary mb-1">{asCustomer ? "New customer" : "New factory"}</div>
-          <h2 className="text-[22px] font-display text-ink">{asCustomer ? "Add a customer" : "Add a factory"}</h2>
-          <p className="text-[12px] text-ink-soft mt-1">AI will score it against the design-partner rubric after save.</p>
-        </header>
-
-        <form id="new-factory" onSubmit={submit} className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
-          {error && <div className="rounded-md border border-[color:var(--color-danger)]/30 tint-danger px-3 py-2 text-[12px] text-[color:var(--color-danger)]">{error}</div>}
-          <Field label="Factory name *"><input autoFocus value={form.name} onChange={(e) => set("name", e.target.value)} className={inp} /></Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Vertical">
-              <select value={form.vertical_id} onChange={(e) => set("vertical_id", e.target.value)} className={inp}>
-                {verticals.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-              </select>
-            </Field>
-            <Field label="Geo">
-              <select value={form.geo_tier} onChange={(e) => set("geo_tier", e.target.value)} className={inp}>
-                <option value="">—</option>
-                {GEO_OPTIONS.map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}
-              </select>
-            </Field>
-            <Field label="Network (source)">
-              <select value={form.network_id} onChange={(e) => set("network_id", e.target.value)} className={inp}>
-                <option value="">None</option>
-                {(networks ?? []).map((nw) => <option key={nw.id} value={nw.id}>{nw.name}</option>)}
-              </select>
-            </Field>
-            <Field label="Frontline workers">
-              <select value={form.frontline_workers} onChange={(e) => set("frontline_workers", e.target.value)} className={inp}>
-                <option value="">—</option>
-                {WORKER_BANDS.map((b) => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </Field>
-            <Field label="Location"><input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} className={inp} /></Field>
-            <Field label="Company website"><input value={form.website_url} onChange={(e) => set("website_url", e.target.value)} className={`${inp} mono`} /></Field>
-          </div>
-          <Field label="Company description"><textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
-          <Field label="How to approach / Note"><textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} className={`${inp} h-auto py-2 resize-y`} /></Field>
-          <label className="flex items-start gap-2 rounded-md border border-line bg-surface-2/50 px-3 py-2.5 text-[12px] text-ink-soft">
-            <input type="checkbox" checked={form.is_customer} onChange={(e) => setForm((current) => ({ ...current, is_customer: e.target.checked }))} className="mt-0.5 accent-[var(--color-primary)]" />
-            <span><strong className="font-medium text-ink">Customer / design partner</strong><br /><span className="text-[11px] text-muted-foreground">Create the FDE KIT deployment and checklist automatically after saving.</span></span>
-          </label>
-        </form>
-
-        <footer className="px-6 py-3 border-t border-line flex items-center gap-2 bg-surface-2/50">
-          <button type="button" onClick={() => !saving && onClose()} className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[12.5px] font-medium text-ink-soft cursor-pointer">Cancel</button>
-          <div className="flex-1" />
-          <button type="submit" form="new-factory" disabled={saving} className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[12.5px] font-medium cursor-pointer">
-            {saving ? "Saving…" : asCustomer ? "Save customer" : "Save factory"}
-          </button>
-        </footer>
-      </aside>
-    </>
-  );
-}
-
-const inp = "w-full h-9 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink placeholder:text-muted-foreground focus:border-line-strong focus:outline-none";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
-      {children}
-    </label>
+    <FormDrawer
+      eyebrow={asCustomer ? "New customer" : "New factory"}
+      title={asCustomer ? "Add a customer" : "Add a factory"}
+      description="AI will score it against the design-partner rubric after save."
+      formId="new-factory"
+      submitLabel={asCustomer ? "Save customer" : "Save factory"}
+      saving={saving}
+      error={error}
+      onClose={onClose}
+      onSubmit={submit}
+    >
+      <Field label="Factory name *">
+        <Input autoFocus value={form.name} onChange={(e) => set("name", e.target.value)} />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Vertical">
+          <NativeSelect
+            className="w-full"
+            value={form.vertical_id}
+            onChange={(e) => set("vertical_id", e.target.value)}
+          >
+            {verticals.map((v) => (
+              <NativeSelectOption key={v.id} value={v.id}>
+                {v.name}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Geo">
+          <NativeSelect
+            className="w-full"
+            value={form.geo_tier}
+            onChange={(e) => set("geo_tier", e.target.value)}
+          >
+            <NativeSelectOption value="">—</NativeSelectOption>
+            {GEO_OPTIONS.map((g) => (
+              <NativeSelectOption key={g.key} value={g.key}>
+                {g.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Network (source)">
+          <NativeSelect
+            className="w-full"
+            value={form.network_id}
+            onChange={(e) => set("network_id", e.target.value)}
+          >
+            <NativeSelectOption value="">None</NativeSelectOption>
+            {(networks ?? []).map((nw) => (
+              <NativeSelectOption key={nw.id} value={nw.id}>
+                {nw.name}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Frontline workers">
+          <NativeSelect
+            className="w-full"
+            value={form.frontline_workers}
+            onChange={(e) => set("frontline_workers", e.target.value)}
+          >
+            <NativeSelectOption value="">—</NativeSelectOption>
+            {WORKER_BANDS.map((b) => (
+              <NativeSelectOption key={b} value={b}>
+                {b}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Location">
+          <Input value={form.hq_location} onChange={(e) => set("hq_location", e.target.value)} />
+        </Field>
+        <Field label="Company website">
+          <Input value={form.website_url} onChange={(e) => set("website_url", e.target.value)} />
+        </Field>
+      </div>
+      <Field label="Company description">
+        <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} />
+      </Field>
+      <Field label="How to approach / Note">
+        <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} />
+      </Field>
+      <label className="flex items-start gap-2.5 rounded-md border bg-muted/40 px-3 py-2.5 text-[12px]">
+        <Checkbox
+          className="mt-0.5"
+          checked={form.is_customer}
+          onCheckedChange={(checked) =>
+            setForm((current) => ({ ...current, is_customer: checked === true }))
+          }
+        />
+        <span>
+          <strong className="font-medium text-foreground">Customer / design partner</strong>
+          <br />
+          <span className="text-[11px] text-muted-foreground">
+            Create the FDE KIT deployment and checklist automatically after saving.
+          </span>
+        </span>
+      </label>
+    </FormDrawer>
   );
 }
