@@ -1,11 +1,35 @@
 "use client";
 
 import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis } from "recharts";
+
 import { PIPELINE_STAGES } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
 import { StatCard } from "@/app/components/stat-card";
-import { Card as DsCard } from "@/design-system/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/design-system/components/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/design-system/components/chart";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/design-system/components/table";
+
+type Datum = { label: string; value: number };
 
 export default function AnalyticsPage() {
   const { factories, contacts, verticals } = useStore();
@@ -75,40 +99,81 @@ export default function AnalyticsPage() {
           <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card title="Factory stage funnel"><Bars data={a.factoryStages} color="var(--color-primary)" /></Card>
-            <Card title="Contact stage funnel"><Bars data={a.contactStages} color="var(--color-info)" /></Card>
-            <Card title="Grade mix"><Bars data={a.grades} color="var(--color-warn)" /></Card>
-            <Card title="By vertical"><Bars data={a.byVertical} color="var(--color-violet)" /></Card>
-            <Card title="Relationship ladder"><Bars data={a.ladder} color="var(--color-primary)" /></Card>
-            <Card title="Evidence ladder"><Bars data={a.evidence} color="var(--color-info)" /></Card>
-            <div className="lg:col-span-2 rounded-lg border border-border bg-card overflow-hidden">
-              <div className="px-5 py-3 border-b border-border">
-                <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">Per-vertical drill-down</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="bg-muted/40 text-muted-foreground">
+            {/* The two funnels are the same measure over different entities, so
+                they take two steps of one hue rather than two unrelated ones. */}
+            <Distribution
+              title="Factory stage funnel"
+              description="Where every factory sits in the pipeline"
+              data={a.factoryStages}
+              fill="var(--chart-3)"
+            />
+            <Distribution
+              title="Contact stage funnel"
+              description="The same pipeline, counted by contact"
+              data={a.contactStages}
+              fill="var(--chart-2)"
+            />
+            {/* A, B and C mean good, needs-attention and poor — the same reading
+                the score rings take from the semantic ramp. */}
+            <Distribution
+              title="Grade mix"
+              description="Scored against the 100-pt IDP rubric"
+              data={a.grades}
+              fills={["var(--color-success)", "var(--color-warning)", "var(--color-error)"]}
+            />
+            {/* Verticals are categories with no order, which is what a
+                categorical ramp is for. */}
+            <Distribution
+              title="By vertical"
+              description="Portfolio spread across the five verticals"
+              data={a.byVertical}
+              fills={["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"]}
+            />
+            <Distribution
+              title="Relationship ladder"
+              description="L0 researched through L7 active design partner"
+              data={a.ladder}
+              fill="var(--chart-3)"
+            />
+            <Distribution
+              title="Evidence ladder"
+              description="How much evidence each account has produced"
+              data={a.evidence}
+              fill="var(--chart-2)"
+            />
+
+            <Card className="gap-0 overflow-hidden py-0 lg:col-span-2">
+              <CardHeader className="border-b px-5 py-3">
+                <CardTitle className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+                  Per-vertical drill-down
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-0">
+                <Table className="text-[12px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
                       {["Vertical", "Factories", "Contacts", "A-grade", "Avg score", "L7 partners"].map((header) => (
-                        <th key={header} className="px-4 py-2 text-left tabular-nums uppercase tracking-wider text-[9px]">{header}</th>
+                        <TableHead key={header} className="h-auto px-4 py-2 text-[9px] tracking-wider text-muted-foreground uppercase">
+                          {header}
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {a.verticalDetail.map((row) => (
-                      <tr key={row.id} className="border-t border-border/60">
-                        <td className="px-4 py-2.5 text-foreground">{row.label}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.factories}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.contacts}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.aGrade}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.avgScore ?? "—"}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-primary">{row.activePartners}</td>
-                      </tr>
+                      <TableRow key={row.id} className="hover:bg-transparent">
+                        <TableCell className="px-4 py-2.5">{row.label}</TableCell>
+                        <TableCell className="px-4 py-2.5 tabular-nums text-foreground/80">{row.factories}</TableCell>
+                        <TableCell className="px-4 py-2.5 tabular-nums text-foreground/80">{row.contacts}</TableCell>
+                        <TableCell className="px-4 py-2.5 tabular-nums text-foreground/80">{row.aGrade}</TableCell>
+                        <TableCell className="px-4 py-2.5 tabular-nums text-foreground/80">{row.avgScore ?? "—"}</TableCell>
+                        <TableCell className="px-4 py-2.5 tabular-nums text-primary">{row.activePartners}</TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
@@ -116,28 +181,65 @@ export default function AnalyticsPage() {
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <DsCard className="gap-0 p-5">
-      <h3 className="mb-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{title}</h3>
-      <div className="space-y-2">{children}</div>
-    </DsCard>
-  );
-}
+const chartConfig = {
+  value: { label: "Factories" },
+} satisfies ChartConfig;
 
-function Bars({ data, color }: { data: { label: string; value: number }[]; color: string }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
+/**
+ * One horizontal distribution, on the vendored `chart-bar-horizontal` block.
+ *
+ * `fill` paints every bar the same; `fills` paints them per category, for the
+ * two charts whose bars mean different things rather than more of one thing.
+ *
+ * The height is fixed rather than left on ChartContainer's `aspect-video`,
+ * so all six read as one row of charts regardless of how many bars each has.
+ */
+function Distribution({
+  title,
+  description,
+  data,
+  fill,
+  fills,
+}: {
+  title: string;
+  description: string;
+  data: Datum[];
+  fill?: string;
+  fills?: string[];
+}) {
   return (
-    <>
-      {data.map((d) => (
-        <div key={d.label} className="flex items-center gap-3">
-          <span className="w-28 shrink-0 text-right text-[11px] text-foreground/80 truncate">{d.label}</span>
-          <div className="flex-1 h-5 rounded-sm bg-muted overflow-hidden">
-            <div className="h-full rounded-sm" style={{ width: `${(d.value / max) * 100}%`, background: d.value > 0 ? color : "transparent" }} />
-          </div>
-          <span className="w-8 shrink-0 text-right tabular-nums text-[12px] tabular-nums text-foreground">{d.value}</span>
-        </div>
-      ))}
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-[13px]">{title}</CardTitle>
+        <CardDescription className="text-[12px]">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[220px] w-full">
+          <BarChart accessibilityLayer data={data} margin={{ top: 20 }}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              interval={0}
+              // Stage and vertical names run long; the axis shows a head and
+              // the tooltip carries the label in full.
+              tickFormatter={(value: string) => (value.length > 12 ? `${value.slice(0, 11)}…` : value)}
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            {/* Recharts grows a bar from zero on mount and only paints once the
+                first animation frame lands. Six charts re-animating on every
+                realtime refresh is noise on an ops dashboard anyway, so they
+                are drawn outright. */}
+            <Bar dataKey="value" radius={8} isAnimationActive={false} fill={fill ?? "var(--chart-3)"}>
+              {fills &&
+                data.map((d, index) => <Cell key={d.label} fill={fills[index % fills.length]} />)}
+              <LabelList position="top" offset={10} className="fill-foreground" fontSize={12} />
+            </Bar>
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
