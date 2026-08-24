@@ -11,8 +11,8 @@ export type JourneyStep<T extends string | number> = {
 type JourneyTone = "indigo" | "teal";
 
 const TONES: Record<JourneyTone, { accent: string; soft: string }> = {
-  indigo: { accent: "var(--color-accent)", soft: "var(--color-accent-dim)" },
-  teal: { accent: "#0fa79b", soft: "color-mix(in srgb, #0fa79b 14%, transparent)" },
+  indigo: { accent: "var(--color-primary)", soft: "var(--color-primary-tint)" },
+  teal: { accent: "var(--color-success)", soft: "color-mix(in srgb, var(--color-success) 14%, transparent)" },
 };
 
 export function JourneyStepper<T extends string | number>({
@@ -50,9 +50,9 @@ export function JourneyStepper<T extends string | number>({
           <span className="journey-section-icon" aria-hidden>
             {tone === "indigo" ? <PipelineIcon /> : <RelationshipIcon />}
           </span>
-          <h3 className="text-[13px] font-semibold text-ink">{label}</h3>
+          <h3 className="text-[13px] font-semibold text-foreground">{label}</h3>
         </div>
-        {meta && <div className="text-[11px] text-muted">{meta}</div>}
+        {meta && <div className="text-[11px] text-muted-foreground">{meta}</div>}
       </div>
 
       <div className="overflow-x-auto pb-1">
@@ -64,7 +64,7 @@ export function JourneyStepper<T extends string | number>({
         >
           <div
             aria-hidden
-            className="absolute top-[21px] h-[2px] overflow-hidden rounded-full bg-line-strong"
+            className="absolute top-[21px] h-[2px] overflow-hidden rounded-full bg-border-strong"
             style={{ left: railInset, right: railInset }}
           >
             <span
@@ -93,7 +93,7 @@ export function JourneyStepper<T extends string | number>({
                         ? "border-[var(--journey-accent)] bg-[var(--journey-accent)] text-white"
                         : active
                           ? "border-[var(--journey-accent)] bg-[var(--journey-accent)] text-white ring-[7px] ring-[var(--journey-soft)] shadow-[0_0_0_1px_var(--journey-accent)]"
-                          : "border-line-strong bg-surface text-muted group-hover:border-[var(--journey-accent)] group-hover:text-[var(--journey-accent)]"
+                          : "border-border-strong bg-card text-muted-foreground group-hover:border-[var(--journey-accent)] group-hover:text-[var(--journey-accent)]"
                     }`}
                   >
                     {completed ? <CheckIcon /> : index + 1}
@@ -101,7 +101,7 @@ export function JourneyStepper<T extends string | number>({
                 </span>
                 <span
                   className={`mt-1 max-w-full text-[10.5px] leading-tight transition-colors ${
-                    active ? "font-semibold text-ink" : completed ? "text-ink-soft" : "text-muted group-hover:text-ink-soft"
+                    active ? "font-semibold text-foreground" : completed ? "text-foreground/80" : "text-muted-foreground group-hover:text-foreground/80"
                   }`}
                   title={step.label}
                 >
@@ -114,7 +114,7 @@ export function JourneyStepper<T extends string | number>({
         </div>
       </div>
 
-      {hint && <div className="mt-2 text-[11px] leading-relaxed text-muted">{hint}</div>}
+      {hint && <div className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{hint}</div>}
     </section>
   );
 }

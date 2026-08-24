@@ -1,27 +1,36 @@
 "use client";
 
+import { Card } from "@/design-system/components/card";
+import { cn } from "@/design-system/lib/utils";
+
 type Tone = "default" | "accent" | "warn" | "danger";
 
-const TONE: Record<Tone, { bg: string; value: string; rail: string }> = {
+/**
+ * The tinted tones read the semantic ramp directly now that it is a real part
+ * of the theme, rather than going through the `.tint-*` helper classes. Each
+ * pairs the ramp's own `-light` step with its `-dark` type on the light sky,
+ * and inverts to a wash on the dark one — the same recipe the toasts use.
+ */
+const TONE: Record<Tone, { surface: string; value: string; rail: string }> = {
   default: {
-    bg: "bg-surface border-line",
-    value: "text-ink",
-    rail: "bg-line-strong",
+    surface: "",
+    value: "text-foreground",
+    rail: "bg-muted-foreground/30",
   },
   accent: {
-    bg: "bg-[color:var(--color-accent-dim)] border-[color:var(--color-accent)]/30",
-    value: "text-accent",
-    rail: "bg-accent",
+    surface: "border-primary/30 bg-primary-tint",
+    value: "text-primary",
+    rail: "bg-primary",
   },
   warn: {
-    bg: "tint-warn border-[color:var(--color-warn)]/30",
-    value: "text-[color:var(--color-warn)]",
-    rail: "bg-[color:var(--color-warn)]",
+    surface: "border-warning/30 bg-warning-light dark:bg-warning/15",
+    value: "text-warning-dark dark:text-warning",
+    rail: "bg-warning",
   },
   danger: {
-    bg: "tint-danger border-[color:var(--color-danger)]/30",
-    value: "text-[color:var(--color-danger)]",
-    rail: "bg-[color:var(--color-danger)]",
+    surface: "border-error/30 bg-error-light dark:bg-error/15",
+    value: "text-error-dark dark:text-error",
+    rail: "bg-error",
   },
 };
 
@@ -38,17 +47,22 @@ export function StatCard({
 }) {
   const t = TONE[tone];
   return (
-    <div
-      className={`relative overflow-hidden rounded-md border px-4 py-3 ${t.bg} transition-colors duration-150`}
+    <Card
+      // A stat tile is denser than the Card default, which is sized for prose:
+      // the gap and vertical padding go, and the radius steps down one.
+      className={cn(
+        "relative gap-0 overflow-hidden rounded-lg px-4 py-3 transition-colors duration-150",
+        t.surface
+      )}
     >
-      <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${t.rail}`} />
-      <div className="text-[10.5px] mono uppercase tracking-[0.14em] text-muted mb-1">
+      <div className={cn("absolute top-0 bottom-0 left-0 w-[2px]", t.rail)} />
+      <div className="mb-1 text-[10.5px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
         {label}
       </div>
-      <div className={`text-[22px] mono tabular-nums leading-none ${t.value}`}>
+      <div className={cn("text-[22px] leading-none tabular-nums", t.value)}>
         {value}
       </div>
-      {hint && <div className="text-[11px] text-muted mt-1">{hint}</div>}
-    </div>
+      {hint && <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>}
+    </Card>
   );
 }

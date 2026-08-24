@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { FactoryDrawer } from "@/app/components/factory-drawer";
 import { useStore } from "@/lib/factories-store";
+import { Button } from "@/design-system/components/button";
 
 export default function CustomerDetailPage() {
   const params = useParams<{ id: string }>();
@@ -13,7 +14,7 @@ export default function CustomerDetailPage() {
 
   if (!factories) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm mono uppercase tracking-wider text-muted">
+      <div className="min-h-screen grid place-items-center text-sm tabular-nums uppercase tracking-wider text-muted-foreground">
         Loading customer…
       </div>
     );
@@ -23,11 +24,10 @@ export default function CustomerDetailPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
-          <h1 className="text-xl font-display text-ink">Customer not found</h1>
-          <button onClick={() => router.push("/customers")}
-            className="mt-4 h-9 px-4 rounded-full bg-accent text-white text-[12.5px] font-medium cursor-pointer">
+          <h1 className="text-title text-foreground">Customer not found</h1>
+          <Button onClick={() => router.push("/customers")} className="mt-4">
             Back to customers
-          </button>
+          </Button>
         </div>
       </div>
     );

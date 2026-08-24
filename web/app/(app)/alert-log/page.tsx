@@ -9,6 +9,8 @@ import {
 } from "@/lib/alert-timeline";
 import { useStore } from "@/lib/factories-store";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
 
 const SOURCE_LABEL: Record<string, string> = {
   scan: "Scan",
@@ -182,8 +184,8 @@ export default function AlertLogPage() {
       />
       <div className="max-w-4xl px-8 py-5">
         {needsMigration && (
-          <div className="mb-3 rounded-md border border-[color:var(--color-warn)]/30 tint-warn px-3 py-2 text-[12px] text-ink-soft">
-            Discord history is temporarily unavailable. Run migrations <code className="mono">037_discord_alert_log.sql</code> and <code className="mono">038_merge_alerts_into_log.sql</code>; in-app alerts remain available below.
+          <div className="mb-3 rounded-md border border-[color:var(--color-warn)]/30 tint-warn px-3 py-2 text-[12px] text-foreground/80">
+            Discord history is temporarily unavailable. Run migrations <code className="tabular-nums">037_discord_alert_log.sql</code> and <code className="tabular-nums">038_merge_alerts_into_log.sql</code>; in-app alerts remain available below.
           </div>
         )}
         {error && (
@@ -192,11 +194,9 @@ export default function AlertLogPage() {
           </div>
         )}
         {rows === null ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">Loading…</div>
+          <Empty className="border bg-card/50 py-16"><EmptyDescription className="text-sm">Loading…</EmptyDescription></Empty>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">
-            No alerts logged yet.
-          </div>
+          <Empty className="border bg-card/50 py-16"><EmptyDescription className="text-sm">No alerts logged yet.</EmptyDescription></Empty>
         ) : (
           <div className="space-y-2">
             {rows.map((row) => (
@@ -243,73 +243,68 @@ function AlertLogItem({
   const when = new Date(row.created_at).toLocaleString();
 
   return (
-    <div className={`rounded-lg border border-line bg-surface px-4 py-3 ${deleted ? "opacity-60" : ""}`}>
+    <div className={`rounded-lg border border-border bg-card px-4 py-3 ${deleted ? "opacity-60" : ""}`}>
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-[220px] flex-1">
-          <div className="text-[13px] text-ink">
+          <div className="text-[13px] text-foreground">
             {row.source && (
-              <span className="mr-2 text-[10px] mono uppercase tracking-wider text-muted">{SOURCE_LABEL[row.source] ?? row.source}</span>
+              <span className="mr-2 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">{SOURCE_LABEL[row.source] ?? row.source}</span>
             )}
             {row.title ?? row.kind ?? "Alert"}{row.detail ? ` — ${row.detail}` : ""}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             {row.owner_name && <span>{row.owner_name}</span>}
-            {row.due_on && <span className="mono">due {row.due_on}</span>}
-            <span className="mono">{when}</span>
+            {row.due_on && <span className="tabular-nums">due {row.due_on}</span>}
+            <span className="tabular-nums">{when}</span>
             {row.summary && (
-              <button
+              <Button
+                variant="link"
+                size="xs"
                 type="button"
                 onClick={() => setShowSummary((current) => !current)}
-                className="cursor-pointer text-accent hover:underline"
+                className="h-auto p-0 text-[inherit]"
               >
                 {showSummary ? "Hide recap" : "AI recap"}
-              </button>
+              </Button>
             )}
-            {row.delivery_state === "pending" && <span className="rounded-full border border-line-strong px-2 py-0.5">Discord pending</span>}
-            {row.delivery_state === "unlogged" && <span className="rounded-full border border-line-strong px-2 py-0.5">No Discord log</span>}
+            {row.delivery_state === "pending" && <span className="rounded-full border border-border-strong px-2 py-0.5">Discord pending</span>}
+            {row.delivery_state === "unlogged" && <span className="rounded-full border border-border-strong px-2 py-0.5">No Discord log</span>}
           </div>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {canOpen && (
-            <button
-              type="button"
-              onClick={onOpen}
-              className="h-7 rounded-full border border-line-strong bg-surface-2 px-3 text-[11px] mono uppercase tracking-wider text-ink-soft hover:bg-surface-3 cursor-pointer"
-            >
+            <Button variant="outline" size="sm" type="button" onClick={onOpen} className="h-7 px-3 text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">
               Open
-            </button>
+            </Button>
           )}
           {done ? (
             <span className="tone rounded-full px-3 py-1 text-[11px] font-medium" data-tone="green">Task done</span>
           ) : (
-            <button
-              type="button"
-              onClick={onComplete}
-              disabled={completing}
-              className="h-7 rounded-full bg-accent px-3 text-[11px] font-medium text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-            >
+            <Button size="sm" type="button" onClick={onComplete} disabled={completing} className="h-7 px-3 text-[11px]">
               {completing ? "Completing…" : "Task Done"}
-            </button>
+            </Button>
           )}
           {deleted ? (
-            <span className="rounded-full border border-line-strong px-3 py-1 text-[11px] mono uppercase text-muted">Discord deleted</span>
+            <span className="rounded-full border border-border-strong px-3 py-1 text-[11px] tabular-nums uppercase text-muted-foreground">Discord deleted</span>
           ) : row.log_id ? (
-            <button
+            <Button
+              variant="destructive"
+              size="sm"
               type="button"
               onClick={onDelete}
               disabled={!deletable || deleting}
               title={deletable ? "Delete this message from Discord" : "No stored Discord message id — can't delete"}
-              className="h-7 rounded-full bg-[color:var(--color-danger)] px-3 text-[11px] font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+              className="h-7 px-3 text-[11px]"
             >
               {deleting ? "Deleting…" : "Delete from Discord"}
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
 
       {showSummary && row.summary && (
-        <p className="mt-3 border-t border-line-soft pt-3 text-[12.5px] leading-relaxed text-ink-soft whitespace-pre-wrap">{row.summary}</p>
+        <p className="mt-3 border-t border-border/60 pt-3 text-[12.5px] leading-relaxed text-foreground/80 whitespace-pre-wrap">{row.summary}</p>
       )}
     </div>
   );

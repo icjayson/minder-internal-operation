@@ -1,13 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { FundraisingTrack, FundraisingWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { DateField } from "./date-field";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/design-system/components/dialog";
+import { SelectField } from "./select-field";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
-  { key: "not_started", label: "Not started", tone: "bg-muted" },
-  { key: "doing", label: "Doing", tone: "bg-accent" },
+  { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
+  { key: "doing", label: "Doing", tone: "bg-primary" },
   { key: "done", label: "Done", tone: "bg-[color:var(--color-info)]" },
 ];
 
@@ -39,9 +50,9 @@ function describeTrigger(triggerOn: string | null, status?: WorkStatus): {
 
 const TRIGGER_TONES: Record<string, string> = {
   overdue: "border-[color:var(--color-danger)]/35 tint-danger text-[color:var(--color-danger)]",
-  today: "border-accent/40 bg-accent/10 text-accent",
+  today: "border-primary/40 bg-primary/10 text-primary",
   soon: "border-[color:var(--color-warn)]/40 text-[color:var(--color-warn)]",
-  later: "border-line text-ink-soft",
+  later: "border-border text-foreground/80",
 };
 
 // The earliest trigger date among open (not-done) work items — the lead's
@@ -181,17 +192,14 @@ export function FundraisingWorkInventory({
     <section>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted font-medium">
+          <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground font-medium">
             Work inventory {items ? `· ${items.length}` : ""}
           </h3>
-          <p className="text-[11.5px] text-muted mt-0.5">Drag cards between stages to update progress.</p>
+          <p className="text-[11.5px] text-muted-foreground mt-0.5">Drag cards between stages to update progress.</p>
         </div>
-        <button
-          onClick={() => setSelected("new")}
-          className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer"
-        >
+        <Button size="sm" onClick={() => setSelected("new")} className="h-7 px-3 text-[11.5px]">
           + Work
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -212,12 +220,12 @@ export function FundraisingWorkInventory({
                 const id = event.dataTransfer.getData("text/work-item");
                 if (id) moveItem(id, col.key);
               }}
-              className="min-h-44 rounded-lg border border-line bg-surface-2/45 p-2.5"
+              className="min-h-44 rounded-lg border border-border bg-muted/45 p-2.5"
             >
               <div className="flex items-center gap-2 px-0.5 mb-2.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${col.tone}`} />
-                <span className="text-[10px] mono uppercase tracking-[0.12em] text-ink-soft">{col.label}</span>
-                <span className="ml-auto text-[10px] mono text-muted">{columnItems.length}</span>
+                <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-foreground/80">{col.label}</span>
+                <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">{columnItems.length}</span>
               </div>
               <div className="space-y-2">
                 {columnItems.map((item) => {
@@ -231,17 +239,17 @@ export function FundraisingWorkInventory({
                         event.dataTransfer.setData("text/work-item", item.id);
                       }}
                       onClick={() => setSelected(item)}
-                      className="rounded-md border border-line bg-surface px-3 py-2.5 hover:border-line-strong hover:bg-surface-3/35 cursor-pointer shadow-sm"
+                      className="rounded-md border border-border bg-card px-3 py-2.5 hover:border-border-strong hover:bg-accent/35 cursor-pointer shadow-sm"
                     >
-                      <h4 className="text-[12.5px] font-medium text-ink leading-snug">{item.title}</h4>
+                      <h4 className="text-[12.5px] font-medium text-foreground leading-snug">{item.title}</h4>
                       {item.body && (
-                        <p className="mt-1 text-[11.5px] leading-relaxed text-ink-soft whitespace-pre-wrap line-clamp-2">
+                        <p className="mt-1 text-[11.5px] leading-relaxed text-foreground/80 whitespace-pre-wrap line-clamp-2">
                           {item.body}
                         </p>
                       )}
                       {trigger && (
                         <div
-                          className={`mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] mono font-medium ${TRIGGER_TONES[trigger.tone]}`}
+                          className={`mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] tabular-nums font-medium ${TRIGGER_TONES[trigger.tone]}`}
                           title={`Next-step trigger · ${item.trigger_on}`}
                         >
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="shrink-0">
@@ -255,7 +263,7 @@ export function FundraisingWorkInventory({
                   );
                 })}
                 {items !== null && columnItems.length === 0 && (
-                  <div className="rounded-md border border-dashed border-line px-2 py-5 text-center text-[10.5px] text-muted">
+                  <div className="rounded-md border border-dashed border-border px-2 py-5 text-center text-[10.5px] text-muted-foreground">
                     No work
                   </div>
                 )}
@@ -322,85 +330,69 @@ function WorkItemModal({
     setSaving(false);
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4">
-      <button onClick={onClose} aria-label="Close work item" className="absolute inset-0 bg-canvas/75 backdrop-blur-sm" />
-      <form
-        onSubmit={submit}
-        role="dialog"
-        aria-modal="true"
-        className="relative z-10 w-full max-w-xl rounded-xl border border-line-strong bg-surface shadow-soft"
-      >
-        <header className="flex items-center justify-between px-5 py-4 border-b border-line">
+  return (
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="gap-0 p-0 sm:max-w-xl" showCloseButton={false}>
+      <form onSubmit={submit}>
+        <DialogHeader className="flex-row items-center justify-between space-y-0 border-b px-5 py-4 text-left">
           <div>
-            <div className="text-[9px] mono uppercase tracking-[0.14em] text-accent">
+            <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">
               {item ? "Work item" : "New work item"}
             </div>
-            <h3 className="text-lg font-display text-ink mt-0.5">{item ? "Details" : "Add to inventory"}</h3>
+            <DialogTitle className="mt-0.5 text-title">{item ? "Details" : "Add to inventory"}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Title, status, next-step trigger and body for this work item.
+            </DialogDescription>
           </div>
-          <button type="button" onClick={onClose}
-            className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+          <Button variant="ghost" size="icon-sm" type="button" onClick={onClose} className="w-7 h-7" aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>
-          </button>
-        </header>
+          </Button>
+        </DialogHeader>
 
         <div className="p-5 space-y-4">
           <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Title</span>
-            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)}
-              placeholder="What needs to be done?"
-              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink focus:border-accent focus:outline-none" />
+            <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Title</span>
+            <Input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What needs to be done?" className="w-full h-10 px-3 text-[13px]" />
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Status</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)}
-                className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-                {COLUMNS.map((col) => <option key={col.key} value={col.key}>{col.label}</option>)}
-              </select>
+              <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Status</span>
+              <SelectField
+            value={status}
+            onChange={(next) => setStatus(next as WorkStatus)}
+            options={COLUMNS.map((col) => ({ value: col.key, label: col.label }))}
+            className="h-10 text-[13px]"
+          />
             </label>
             <label className="block">
-              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Next-step trigger</span>
-              <div className="relative">
-                <input type="date" value={triggerOn} onChange={(event) => setTriggerOn(event.target.value)}
-                  className="w-full h-10 rounded-md border border-line bg-canvas px-3 pr-8 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none" />
-                {triggerOn && (
-                  <button type="button" onClick={() => setTriggerOn("")} aria-label="Clear trigger date"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>
-                  </button>
-                )}
-              </div>
-              <span className="mt-1 block text-[10.5px] text-muted">When this step should be triggered (syncs to next touch).</span>
+              <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next-step trigger</span>
+              <DateField value={triggerOn} onChange={setTriggerOn} className="h-10 text-[13px]" />
+              <span className="mt-1 block text-[10.5px] text-muted-foreground">When this step should be triggered (syncs to next touch).</span>
             </label>
           </div>
           <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Body</span>
-            <textarea value={body} onChange={(event) => setBody(event.target.value)}
-              rows={9} placeholder="Add the detailed work item context…"
-              className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-accent focus:outline-none" />
+            <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">Body</span>
+            <Textarea value={body} onChange={(event) => setBody(event.target.value)} rows={9} placeholder="Add the detailed work item context…" className="w-full px-3 py-2 text-[13px] leading-relaxed resize-y" />
           </label>
         </div>
 
-        <footer className="flex items-center gap-2 px-5 py-3 border-t border-line bg-surface-2/40 rounded-b-xl">
+        <footer className="flex items-center gap-2 px-5 py-3 border-t border-border bg-muted/40 rounded-b-xl">
           {onDelete && (
-            <button type="button" onClick={onDelete}
-              className="h-9 px-4 rounded-full border border-[color:var(--color-danger)]/35 text-[12px] text-[color:var(--color-danger)] hover:tint-danger cursor-pointer">
+            <Button variant="outline" type="button" onClick={onDelete}
+              className="h-9 border-error/35 px-4 text-[12px] text-error hover:bg-error-light hover:text-error-dark">
               Delete
-            </button>
+            </Button>
           )}
           <div className="flex-1" />
-          <button type="button" onClick={onClose}
-            className="h-9 px-4 rounded-full border border-line-strong bg-surface text-[12px] text-ink-soft hover:text-ink cursor-pointer">
+          <Button variant="outline" size="sm" type="button" onClick={onClose} className="h-9 px-4 text-[12px] text-foreground/80 hover:text-foreground">
             Cancel
-          </button>
-          <button type="submit" disabled={saving || !title.trim()}
-            className="h-9 px-5 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[12px] font-medium cursor-pointer">
+          </Button>
+          <Button type="submit" disabled={saving || !title.trim()} className="px-5 text-[12px]">
             {saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </footer>
       </form>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }

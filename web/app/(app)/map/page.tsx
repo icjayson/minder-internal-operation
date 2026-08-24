@@ -42,11 +42,11 @@ export default function MapPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="shrink-0 border-b border-line px-8 py-4 bg-surface/40">
+      <header className="shrink-0 border-b border-border px-8 py-4 bg-card/40">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="mr-auto">
-            <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent">Map · live</div>
-            <h1 className="text-[20px] font-display text-ink leading-tight">Relationship map</h1>
+            <div className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary">Map · live</div>
+            <h1 className="text-title text-foreground">Relationship map</h1>
           </div>
           <SelectControl value={vertical} onChange={setVertical}
             options={[{ value: "All", label: "All verticals" }, ...verticals.map((v) => ({ value: v.id, label: v.name }))]} />
@@ -54,19 +54,19 @@ export default function MapPage() {
             options={[{ value: "All", label: "All grades" }, { value: "A", label: "A-grade" }, { value: "B", label: "B-grade" }, { value: "C", label: "C-grade" }]} />
           <button onClick={() => setShowContacts((s) => !s)}
             className={`h-9 px-4 rounded-full text-[13px] font-medium cursor-pointer border transition-colors ${
-              showContacts ? "bg-accent text-white border-accent" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"
+              showContacts ? "bg-primary text-primary-foreground border-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"
             }`}>
             {showContacts ? "Hide contacts" : "Show contacts"}
           </button>
         </div>
-        <p className="text-[11.5px] text-muted mt-1.5">
+        <p className="text-[11.5px] text-muted-foreground mt-1.5">
           Network → Factory → Contact. Click a node to open it · drag a factory onto a network to link it (onto “Direct” to unlink) · amber dot = open alert.
         </p>
       </header>
 
       <div className="flex-1 min-h-0">
         {loading ? (
-          <div className="h-full grid place-items-center text-sm text-muted mono uppercase tracking-wider">Loading map…</div>
+          <div className="h-full grid place-items-center text-sm text-muted-foreground tabular-nums uppercase tracking-wider">Loading map…</div>
         ) : (
           <MapCanvas
             networks={networks ?? []}

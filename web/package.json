@@ -8,8 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "test": "node scripts/check-retired-tokens.mjs && node --experimental-strip-types --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check:tokens": "node scripts/check-retired-tokens.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

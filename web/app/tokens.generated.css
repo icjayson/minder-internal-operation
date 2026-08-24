@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Minder design tokens — GENERATED, do not edit.
+
+   Source:      app/design-system/general/tokens.ts
+   Regenerate:  node scripts/generate-tokens-css.mjs
+
+   Role assignment (which step is a border, which is a disabled label) lives in
+   app/globals.css and is written in terms of the variables below.
+   ========================================================================== */
+
+:root {
+  /* Primary / brand — Minder blue */
+  --mo-primary-50: #F0F7FD; /* tint background */
+  --mo-primary-100: #DBECFA;
+  --mo-primary-200: #B8D8F6;
+  --mo-primary-300: #85BDEF;
+  --mo-primary-400: #4299E7;
+  --mo-primary-500: #0075DE; /* brand · CTA, link */
+  --mo-primary-600: #005BAB; /* pressed / hover */
+  --mo-primary-700: #114697;
+  --mo-primary-800: #213183; /* deep indigo */
+  --mo-primary-900: #121B48;
+
+  /* Neutral — warm paper greys */
+  --mo-neutral-0: #FFFFFF; /* surface */
+  --mo-neutral-50: #F6F5F4; /* warm paper canvas */
+  --mo-neutral-100: #EDEDEC;
+  --mo-neutral-200: #E6E6E6; /* hairline */
+  --mo-neutral-300: #C8C6C3;
+  --mo-neutral-400: #A39E98; /* ash · disabled text */
+  --mo-neutral-500: #7F7A75;
+  --mo-neutral-600: #615D59; /* stone · secondary text */
+  --mo-neutral-700: #494744;
+  --mo-neutral-800: #31302E; /* warm charcoal */
+  --mo-neutral-900: #161615;
+  --mo-neutral-1000: #000000; /* ink · primary text */
+}
+
+@theme {
+  /* Semantic ramp — status colour, one pairing per state */
+  --color-success-light: #E4F5E7;
+  --color-success: #1AAE39; /* Completed, verified */
+  --color-success-dark: #137D29;
+  --color-warning-light: #FBEBE0;
+  --color-warning: #DD5B00; /* Needs attention */
+  --color-warning-dark: #9F4200;
+  --color-error-light: #FAE9EC;
+  --color-error: #D6455F; /* Failure, destructive */
+  --color-error-dark: #9A3244;
+  --color-info-light: #E0EEFB;
+  --color-info: #0075DE; /* Neutral information */
+  --color-info-dark: #0054A0;
+
+  /* Type scale — Roboto, one family */
+  --text-display-1: 64px;
+  --text-display-1--line-height: 64px;
+  --text-display-1--font-weight: 700;
+  --text-display-1--letter-spacing: -2.125px;
+  --text-display-2: 54px;
+  --text-display-2--line-height: 56px;
+  --text-display-2--font-weight: 700;
+  --text-display-2--letter-spacing: -1.875px;
+  --text-heading-1: 40px;
+  --text-heading-1--line-height: 44px;
+  --text-heading-1--font-weight: 700;
+  --text-heading-1--letter-spacing: -1px;
+  --text-heading-2: 26px;
+  --text-heading-2--line-height: 32px;
+  --text-heading-2--font-weight: 700;
+  --text-heading-2--letter-spacing: -0.625px;
+  --text-heading-3: 22px;
+  --text-heading-3--line-height: 28px;
+  --text-heading-3--font-weight: 700;
+  --text-heading-3--letter-spacing: -0.25px;
+  --text-title: 20px;
+  --text-title--line-height: 28px;
+  --text-title--font-weight: 600;
+  --text-title--letter-spacing: -0.125px;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+  --text-body-md--letter-spacing: 0;
+  --text-body-sm: 15px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+  --text-body-sm--letter-spacing: 0;
+  --text-label: 14px;
+  --text-label--line-height: 20px;
+  --text-label--font-weight: 500;
+  --text-label--letter-spacing: 0;
+  --text-caption: 14px;
+  --text-caption--line-height: 20px;
+  --text-caption--font-weight: 400;
+  --text-caption--letter-spacing: 0;
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 16px;
+  --text-eyebrow--font-weight: 600;
+  --text-eyebrow--letter-spacing: 0.125px;
+
+  /* Elevation */
+  --shadow-mo-soft: 0 .175px 1.041px rgba(0,0,0,.01), 0 .8px 2.925px rgba(0,0,0,.02), 0 2.025px 7.847px rgba(0,0,0,.027), 0 4px 18px rgba(0,0,0,.04); /* cards, menus */
+  --shadow-mo-elevated: 0 .5px 1px rgba(0,0,0,.012), 0 2px 5px rgba(0,0,0,.02), 0 5px 12px rgba(0,0,0,.028), 0 11px 26px rgba(0,0,0,.038), 0 23px 52px rgba(0,0,0,.05); /* modals, popovers */
+}

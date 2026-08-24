@@ -7,202 +7,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@theme {
-  /* ── Celesnity · Cosmos (dark) ──────────────────────────────────── */
-  --color-canvas:      #05060F;      /* cosmic black */
-  --color-surface:     #0e1022;      /* indigo-tinted panel */
-  --color-surface-2:   #16182e;      /* elevated panel */
-  --color-surface-3:   #202340;      /* hover / selected */
-  --color-ink:         #f8f9fe;      /* cloud white — primary text */
-  --color-ink-soft:    #c9cee8;      /* starlight — secondary text */
-  --color-muted:       #868dae;      /* tertiary / meta */
-  --color-line:        #23263f;      /* default borders */
-  --color-line-soft:   #191b30;      /* quieter borders */
-  --color-line-strong: #313552;      /* hover / focused borders */
-
-  /* Accent — Cobalt Blue, with Violet as the gradient partner */
-  --color-accent:      #2d44e0;      /* cobalt blue */
-  --color-accent-2:    #6e1fc6;      /* violet */
-  --color-accent-dim:  #141a3d;      /* dark cobalt tint (chips / active) */
-
-  /* Status */
-  --color-info:   #6f83ff;           /* cobalt light */
-  --color-warn:   #f5b544;           /* amber */
-  --color-danger: #e0607f;           /* rose */
-  --color-violet: #a97fef;
-
-  /* Stage pill fills — indigo → violet → magenta progression */
-  --color-stage-new:      #141a3d;
-  --color-stage-research: #1a1442;
-  --color-stage-contact:  #201640;
-  --color-stage-reply:    #281642;
-  --color-stage-meet:     #2a1540;
-  --color-stage-demo:     #2e1640;
-  --color-stage-proposal: #311842;
-  --color-stage-won:      #10241c;
-  --color-stage-lost:     #2a1520;
-  --color-stage-nurture:  #1c1a38;
-
-  /* Inter everywhere — one family, calm body to confident display */
-  --font-sans:    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono:    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-  /* Rounded — the Celesnity radius scale */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-card: 16px;
-  --radius-lg: 22px;
-
-  /* Elevations + cobalt glow */
-  --shadow-soft: 0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -24px rgba(0,0,0,0.7);
-  --shadow-drawer: -24px 0 60px -24px rgba(0,0,0,0.7);
-  --shadow-glow: 0 10px 40px rgba(45,68,224,0.35);
-}
-
-:root {
-  /* Signature gradients (non-color tokens) */
-  --gradient-brand: linear-gradient(120deg, #2d44e0 0%, #6e1fc6 52%, #b14fd0 100%);
-  --gradient-cosmos: radial-gradient(120% 140% at 18% 0%, #1a1250 0%, #0b0930 42%, #05060f 100%);
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-html, body {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* Cosmos wash — the immersive backdrop, fixed behind all content */
-body {
-  background-image: var(--gradient-cosmos);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-}
-
-h1, h2, h3, h4, .font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-  font-weight: 600;
-}
-
-.mono, .tnum {
-  font-variant-numeric: tabular-nums;
-}
-.mono {
-  font-family: var(--font-mono);
-}
-
-/* scrollbars — thin, cosmic */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: #23263f;
-  border-radius: 8px;
-  border: 2px solid var(--color-canvas);
-}
-::-webkit-scrollbar-thumb:hover { background: #313552; }
-
-/* Focus ring — cobalt */
-*:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-::selection {
-  background: var(--color-accent);
-  color: #ffffff;
-}
-
-/* ── Daybreak · Light theme ─────────────────────────────────────── */
-[data-theme="light"] {
-  --color-canvas:      #f8f9fe;      /* cloud white */
-  --color-surface:     #ffffff;
-  --color-surface-2:   #f4f3fb;
-  --color-surface-3:   #eeecf8;      /* lavender mist */
-  --color-ink:         #1c2240;      /* ink */
-  --color-ink-soft:    rgba(28, 34, 64, 0.80);
-  --color-muted:       rgba(28, 34, 64, 0.55);
-  --color-line:        rgba(28, 34, 64, 0.12);
-  --color-line-soft:   rgba(28, 34, 64, 0.07);
-  --color-line-strong: rgba(28, 34, 64, 0.20);
-  --color-accent:      #2d44e0;      /* cobalt holds up on light */
-  --color-accent-2:    #8739e0;      /* violet-day */
-  --color-accent-dim:  #e7e9fb;      /* light cobalt tint */
-  --color-info:        #2d44e0;
-  --color-warn:        #b47614;      /* darker amber for contrast */
-  --color-danger:      #d6455f;
-  --color-violet:      #7c4dd0;
-  --shadow-soft:   0 1px 2px rgba(28,34,64,0.06), 0 12px 32px -16px rgba(28,34,64,0.18);
-  --shadow-drawer: -24px 0 60px -24px rgba(28,34,64,0.22);
-  --shadow-glow:   0 10px 40px rgba(45,68,224,0.25);
-}
-[data-theme="light"] body {
-  background-image: radial-gradient(120% 140% at 18% 0%, #e7e1fb 0%, #f1edfa 42%, #f8f9fe 100%);
-}
-[data-theme="light"] ::-webkit-scrollbar-thumb { background: #d7d9ea; border-color: var(--color-canvas); }
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #c3c6dd; }
-
-/* ── Tone pills (stage / category) — adapt to either sky ────────── */
-.tone {
-  border: 1px solid color-mix(in srgb, var(--h) 32%, transparent);
-  background: color-mix(in srgb, var(--h) 15%, transparent);
-  color: color-mix(in srgb, var(--h) 55%, #ffffff);   /* pastel on dark */
-}
-[data-theme="light"] .tone {
-  background: color-mix(in srgb, var(--h) 12%, transparent);
-  color: color-mix(in srgb, var(--h) 82%, #000000);   /* deep hue on light */
-}
-[data-tone="cobalt"]  { --h: #2d44e0; }
-[data-tone="indigo"]  { --h: #5b3fd6; }
-[data-tone="violet"]  { --h: #6e1fc6; }
-[data-tone="magenta"] { --h: #b14fd0; }
-[data-tone="amber"]   { --h: #e0951f; }
-[data-tone="green"]   { --h: #12a97a; }
-[data-tone="teal"]    { --h: #0fa3b0; }
-[data-tone="rose"]    { --h: #d6455f; }
-[data-tone="neutral"] { --h: #8891b4; }
-
-/* ── Semantic tinted surfaces — adapt to either sky ─────────────── */
-.tint-warn   { background: color-mix(in srgb, var(--color-warn) 15%, transparent); }
-.tint-danger { background: color-mix(in srgb, var(--color-danger) 14%, transparent); }
-
-.journey-section-icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--journey-accent) 28%, transparent);
-  border-radius: 8px;
-  background: var(--journey-soft);
-  color: var(--journey-accent);
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   shadcn/ui tokens — for the local design-system library
-   -------------------------------------------------------------------
-   Values are the official `neutral` base colour, verbatim from
-   https://ui.shadcn.com/r/colors/neutral.json (cssVarsV4).
-
-   shadcn normally puts these on :root and maps them with `@theme inline`.
-   Here they live on `.shadcn-scope` instead, because two of the names
-   (`accent`, `muted`) already mean something else in the Celesnity
-   palette. The library adds that class to <body> while it is mounted,
-   which is also how portalled overlays inherit the tokens.
-
-   Both spellings are kept in sync: components use `bg-primary` (which
-   Tailwind resolves to `--color-primary`) and, in a few places, bare
-   `var(--primary)` inside a color-mix() or oklch() expression.
-   ═══════════════════════════════════════════════════════════════════ */
+/* The Minder ramps, type scale, and elevation — generated from
+   app/design-system/general/tokens.ts by scripts/generate-tokens-css.mjs.
+   Everything below is written in terms of the `--mo-*` variables it defines,
+   so a value can only be changed in tokens.ts. */
+@import "./tokens.generated.css";
 
 /* Only the component and chart sources carry class names. The generated
    sources.json in the same folder is a 440KB copy of all of them — scanning it
@@ -210,49 +19,236 @@ h1, h2, h3, h4, .font-display {
 @source "../design-system/components";
 @source "../design-system/charts";
 
-/* `dark:` becomes class-driven instead of OS-driven so the library's own
-   light/dark toggle is the single source of truth. Nothing else in the app
-   uses the `dark:` variant. */
-@custom-variant dark (&:where(.dark, .dark *));
+/* ═══════════════════════════════════════════════════════════════════
+   Theming
+   -------------------------------------------------------------------
+   Two markers drive `dark:`, because two surfaces own their own sky:
+   the app toggles `data-theme` on <html> (set pre-paint by the inline
+   script in the root layout), and /design-system toggles `.dark` on
+   <body> from its own switch.
 
-/* Declared so Tailwind generates the utilities; the values that matter are
-   the scoped ones below. `--color-accent` and `--color-muted` are absent on
-   purpose — this @theme block is global, not scoped, and the Celesnity palette
-   above already owns those two names. */
+   They cannot nest: `useShadcnScope` pins <html> to data-theme="light"
+   while the design-system area is mounted, so inside it only the body
+   class is ever live and an app set to dark cannot bleed through.
+   ═══════════════════════════════════════════════════════════════════ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════════
+   The Tailwind utility surface
+   -------------------------------------------------------------------
+   Declared here so Tailwind generates the classes; the values that
+   actually resolve are the per-scope ones further down. Light values
+   live here rather than being repeated in `:root`, so each token is
+   written once.
+   ═══════════════════════════════════════════════════════════════════ */
 @theme {
-   --color-background: oklch(1 0 0);
-   --color-foreground: oklch(0.145 0 0);
-   --color-card: oklch(1 0 0);
-   --color-card-foreground: oklch(0.145 0 0);
-   --color-popover: oklch(1 0 0);
-   --color-popover-foreground: oklch(0.145 0 0);
-   --color-primary: oklch(0.205 0 0);
-   --color-primary-foreground: oklch(0.985 0 0);
-   --color-secondary: oklch(0.97 0 0);
-   --color-secondary-foreground: oklch(0.205 0 0);
-   --color-muted-foreground: oklch(0.556 0 0);
-   --color-accent-foreground: oklch(0.205 0 0);
-   --color-destructive: oklch(0.577 0.245 27.325);
-   --color-border: oklch(0.922 0 0);
-   --color-input: oklch(0.922 0 0);
-   --color-ring: oklch(0.708 0 0);
-   --color-chart-1: var(--color-blue-300);
-   --color-chart-2: var(--color-blue-500);
-   --color-chart-3: var(--color-blue-600);
-   --color-chart-4: var(--color-blue-700);
-   --color-chart-5: var(--color-blue-800);
-   --color-sidebar: oklch(0.985 0 0);
-   --color-sidebar-foreground: oklch(0.145 0 0);
-   --color-sidebar-primary: oklch(0.205 0 0);
-   --color-sidebar-primary-foreground: oklch(0.985 0 0);
-   --color-sidebar-accent: oklch(0.97 0 0);
-   --color-sidebar-accent-foreground: oklch(0.205 0 0);
-   --color-sidebar-border: oklch(0.922 0 0);
-   --color-sidebar-ring: oklch(0.708 0 0);
+   /* ── shadcn's contract ─────────────────────────────────────────── */
+   --color-background: var(--mo-neutral-50);
+   --color-foreground: var(--mo-neutral-1000);
+   --color-card: var(--mo-neutral-0);
+   --color-card-foreground: var(--mo-neutral-1000);
+   --color-popover: var(--mo-neutral-0);
+   --color-popover-foreground: var(--mo-neutral-1000);
+   --color-primary: var(--mo-primary-500);
+   --color-primary-foreground: var(--mo-neutral-0);
+   --color-secondary: var(--mo-neutral-100);
+   --color-secondary-foreground: var(--mo-neutral-1000);
+   /* Two quiet surfaces rather than shadcn's one: `muted` is the passive tone
+      (table headers, zebra, skeletons) and `accent` the interactive one (hover,
+      selected). The platform already drew that distinction and reads better for
+      it, and both steps are on the documented ramp. */
+   --color-muted: var(--mo-neutral-50);
+   --color-muted-foreground: var(--mo-neutral-600);
+   --color-accent: var(--mo-neutral-100);
+   --color-accent-foreground: var(--mo-neutral-1000);
+   --color-destructive: var(--color-error);
+   --color-border: var(--mo-neutral-200);
+   /* A second border weight, for the hairline that has to carry an edge —
+      a focused field, a resize handle, a card that sits on its own. The
+      documented system has one border; the platform has always needed two. */
+   --color-border-strong: var(--mo-neutral-300);
+   --color-input: var(--mo-neutral-200);
+   --color-ring: var(--mo-primary-500);
+
+   /* Minder documents no chart ramp of its own, so the charts read the
+      primary scale — the same move ui.shadcn.com makes with Tailwind blue. */
+   --color-chart-1: var(--mo-primary-300);
+   --color-chart-2: var(--mo-primary-400);
+   --color-chart-3: var(--mo-primary-500);
+   --color-chart-4: var(--mo-primary-600);
+   --color-chart-5: var(--mo-primary-800);
+
+   --color-sidebar: var(--mo-neutral-0);
+   --color-sidebar-foreground: var(--mo-neutral-1000);
+   --color-sidebar-primary: var(--mo-primary-500);
+   --color-sidebar-primary-foreground: var(--mo-neutral-0);
+   --color-sidebar-accent: var(--mo-neutral-100);
+   --color-sidebar-accent-foreground: var(--mo-neutral-1000);
+   --color-sidebar-border: var(--mo-neutral-200);
+   --color-sidebar-ring: var(--mo-primary-500);
+
+   /* Minder's own tint step, for a chip or a selected row that should read
+      as brand-coloured without carrying the full brand fill. */
+   --color-primary-tint: var(--mo-primary-50);
+
+   /* ── Type ──────────────────────────────────────────────────────────
+      One family, per tokens.ts. `--font-mono` is left at Tailwind's own
+      stack: the platform's `.mono` class was never code — it was uppercase
+      tabular meta, and it is `tabular-nums` now — while the chart tooltips
+      that do use `font-mono` want a real monospace.
+      ────────────────────────────────────────────────────────────────── */
+   --font-sans: var(--font-roboto), Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+   --font-display: var(--font-sans);
+
+   /* ── Radius ────────────────────────────────────────────────────────
+      One knob, derived exactly the way the component set derives it. The
+      vendored components were drawn against this scale — Card at
+      `rounded-xl`, Button and Input at `rounded-md` — so deriving it any
+      other way makes the library render at a radius it was not designed
+      for, and makes a hand-authored panel sit at a different corner from
+      the Card beside it.
+      ────────────────────────────────────────────────────────────────── */
+   --radius-sm: calc(var(--radius) - 4px);  /*  6px — chips, small controls */
+   --radius-md: calc(var(--radius) - 2px);  /*  8px — buttons, inputs */
+   --radius-lg: var(--radius);              /* 10px — cards, menus */
+   --radius-xl: calc(var(--radius) + 4px);  /* 14px — panels, dialogs */
+
+   /* ── Elevation ─────────────────────────────────────────────────────
+      `shadow-mo-soft` and `shadow-mo-elevated` come from tokens.ts. The
+      glow is the platform's own and has no counterpart there, because the
+      documented system has nothing that glows.
+      ────────────────────────────────────────────────────────────────── */
+   --shadow-glow: 0 10px 40px rgb(0 117 222 / 22%);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Role assignment — which ramp step plays which part
+   -------------------------------------------------------------------
+   The raw, unprefixed spellings. Both are needed: components mostly use
+   the utilities (`bg-primary`), but a handful reach for bare
+   `var(--primary)` inside a color-mix() or oklch() expression.
+
+   `:root` is the app. `.shadcn-scope.minder-brand` is the design-system
+   page showing the same system — one declaration, so the documentation
+   and the product can never drift.
+   ═══════════════════════════════════════════════════════════════════ */
+:root,
+.shadcn-scope.minder-brand {
+   /* The component set's own value; --radius-* above derive from it. */
+   --radius: 0.625rem;
+
+   --background: var(--mo-neutral-50);
+   --foreground: var(--mo-neutral-1000);
+   --card: var(--mo-neutral-0);
+   --card-foreground: var(--mo-neutral-1000);
+   --popover: var(--mo-neutral-0);
+   --popover-foreground: var(--mo-neutral-1000);
+   --primary: var(--mo-primary-500);
+   --primary-foreground: var(--mo-neutral-0);
+   --secondary: var(--mo-neutral-100);
+   --secondary-foreground: var(--mo-neutral-1000);
+   --muted: var(--mo-neutral-50);
+   --muted-foreground: var(--mo-neutral-600);
+   --accent: var(--mo-neutral-100);
+   --accent-foreground: var(--mo-neutral-1000);
+   --destructive: var(--color-error);
+   --border: var(--mo-neutral-200);
+   --border-strong: var(--mo-neutral-300);
+   --input: var(--mo-neutral-200);
+   --ring: var(--mo-primary-500);
+
+   --chart-1: var(--mo-primary-300);
+   --chart-2: var(--mo-primary-400);
+   --chart-3: var(--mo-primary-500);
+   --chart-4: var(--mo-primary-600);
+   --chart-5: var(--mo-primary-800);
+
+   --sidebar: var(--mo-neutral-0);
+   --sidebar-foreground: var(--mo-neutral-1000);
+   --sidebar-primary: var(--mo-primary-500);
+   --sidebar-primary-foreground: var(--mo-neutral-0);
+   --sidebar-accent: var(--mo-neutral-100);
+   --sidebar-accent-foreground: var(--mo-neutral-1000);
+   --sidebar-border: var(--mo-neutral-200);
+   --sidebar-ring: var(--mo-primary-500);
+
+   /* Status aliases the platform reaches for by name. `--color-info` is
+      already the semantic ramp's own, so it is not restated. */
+   --color-warn: var(--color-warning);
+   --color-danger: var(--color-error);
+   --color-violet: var(--mo-primary-800);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   The dark sky — PROVISIONAL
+   -------------------------------------------------------------------
+   tokens.ts documents a light system only, so unlike everything else on
+   this page these values are derived rather than specified: the neutral
+   ramp read from the other end (50↔900, 0↔800, 600↔400). The brand pair
+   is the exception — #62AEF0 on #06254A is the documented dark brand.
+
+   Treat it as a working default, not as the designed dark system.
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme="dark"],
+.shadcn-scope.minder-brand.dark {
+   --background: var(--mo-neutral-900);
+   --foreground: var(--mo-neutral-0);
+   --card: var(--mo-neutral-800);
+   --card-foreground: var(--mo-neutral-0);
+   --popover: var(--mo-neutral-800);
+   --popover-foreground: var(--mo-neutral-0);
+   --primary: #62aef0;
+   --primary-foreground: #06254a;
+   --secondary: var(--mo-neutral-700);
+   --secondary-foreground: var(--mo-neutral-0);
+   --muted: var(--mo-neutral-700);
+   --muted-foreground: var(--mo-neutral-400);
+   --accent: var(--mo-neutral-700);
+   --accent-foreground: var(--mo-neutral-0);
+   --destructive: var(--color-error);
+   --border: var(--mo-neutral-700);
+   --border-strong: var(--mo-neutral-600);
+   --input: var(--mo-neutral-700);
+   --ring: #62aef0;
+
+   --chart-1: var(--mo-primary-200);
+   --chart-2: var(--mo-primary-300);
+   --chart-3: var(--mo-primary-400);
+   --chart-4: var(--mo-primary-500);
+   --chart-5: var(--mo-primary-600);
+
+   --sidebar: var(--mo-neutral-800);
+   --sidebar-foreground: var(--mo-neutral-0);
+   --sidebar-primary: #62aef0;
+   --sidebar-primary-foreground: #06254a;
+   --sidebar-accent: var(--mo-neutral-700);
+   --sidebar-accent-foreground: var(--mo-neutral-0);
+   --sidebar-border: var(--mo-neutral-700);
+   --sidebar-ring: #62aef0;
+
+   --color-warn: var(--color-warning);
+   --color-danger: var(--color-error);
+   --color-violet: var(--mo-primary-300);
+
+   --color-primary-tint: var(--mo-primary-900);
+   --shadow-glow: 0 10px 40px rgb(98 174 240 / 25%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Stock shadcn — the `neutral` base, verbatim from
+   https://ui.shadcn.com/r/colors/neutral.json (cssVarsV4).
+
+   Only /design-system → "Local component library" wears this: it
+   documents the vendored snapshot as shipped, so it has to render in the
+   registry's own colours rather than Minder's. `useShadcnScope` puts the
+   class on <body>, which is also how portalled overlays inherit it.
+   ═══════════════════════════════════════════════════════════════════ */
 .shadcn-scope {
    --radius: 0.625rem;
+   --radius-sm: calc(var(--radius) - 4px);
+   --radius-md: calc(var(--radius) - 2px);
+   --radius-lg: var(--radius);
+   --radius-xl: calc(var(--radius) + 4px);
    --background: oklch(1 0 0);
    --foreground: oklch(0.145 0 0);
    --card: oklch(1 0 0);
@@ -269,6 +265,7 @@ h1, h2, h3, h4, .font-display {
    --accent-foreground: oklch(0.205 0 0);
    --destructive: oklch(0.577 0.245 27.325);
    --border: oklch(0.922 0 0);
+   --border-strong: oklch(0.87 0 0);
    --input: oklch(0.922 0 0);
    --ring: oklch(0.708 0 0);
    /* The `neutral` base ships a grayscale chart ramp; ui.shadcn.com overrides it
@@ -307,6 +304,7 @@ h1, h2, h3, h4, .font-display {
    --accent-foreground: oklch(0.985 0 0);
    --destructive: oklch(0.704 0.191 22.216);
    --border: oklch(1 0 0 / 10%);
+   --border-strong: oklch(1 0 0 / 20%);
    --input: oklch(1 0 0 / 15%);
    --ring: oklch(0.556 0 0);
    --sidebar: oklch(0.205 0 0);
@@ -319,14 +317,22 @@ h1, h2, h3, h4, .font-display {
    --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Point the Tailwind colour utilities at the raw tokens above — shadcn does
-   this with `@theme inline`, which is not an option here because the mapping
-   has to stay inside the scope. Same effect, same single source. */
-.shadcn-scope {
-   --radius-sm: calc(var(--radius) - 4px);
-   --radius-md: calc(var(--radius) - 2px);
-   --radius-lg: var(--radius);
-   --radius-xl: calc(var(--radius) + 4px);
+/* ═══════════════════════════════════════════════════════════════════
+   Utilities → raw tokens.
+
+   `@theme` emits its values on :root, where a `var()` inside them is
+   substituted once and then inherited frozen — so a scope that redefines
+   `--card` would not move `bg-card` with it. Restating the mapping at
+   every scope root is what makes the utilities follow the scope. shadcn
+   does this with `@theme inline`, which is not available here because the
+   mapping has to exist inside each scope rather than at the top.
+   ═══════════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="dark"],
+.shadcn-scope,
+.shadcn-scope.dark,
+.shadcn-scope.minder-brand,
+.shadcn-scope.minder-brand.dark {
    --color-background: var(--background);
    --color-foreground: var(--foreground);
    --color-card: var(--card);
@@ -343,6 +349,7 @@ h1, h2, h3, h4, .font-display {
    --color-accent-foreground: var(--accent-foreground);
    --color-destructive: var(--destructive);
    --color-border: var(--border);
+   --color-border-strong: var(--border-strong);
    --color-input: var(--input);
    --color-ring: var(--ring);
    --color-chart-1: var(--chart-1);
@@ -360,30 +367,139 @@ h1, h2, h3, h4, .font-display {
    --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* The Minder general design system is the same library re-tokenised to the brand
-   blue. Applied on <body> alongside .shadcn-scope so portalled dialogs and menus
-   pick it up too. */
-.shadcn-scope.minder-brand {
-   --primary: #0075de;
-   --primary-foreground: #ffffff;
-   --ring: #0075de;
-   --sidebar-primary: #0075de;
-   --sidebar-primary-foreground: #ffffff;
+/* ═══════════════════════════════════════════════════════════════════
+   Base elements
+   ═══════════════════════════════════════════════════════════════════ */
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
-   /* Hover skin for the platform's primary and secondary buttons.
+/* The element default for a heading that has not been given a type token.
+   It sits in `base` so a `text-heading-2` — a utility — wins over it: as
+   unlayered CSS it used to beat every utility, which meant a heading on the
+   scale still got this rule's tracking rather than the token's own. */
+@layer base {
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+}
 
-     Kept as values rather than four finished rules because both skies share
-     one structure and differ only here. `-from` doubles as the glow colour:
-     in the source design the inset top glow and the outer bloom are both the
-     gradient's own top stop, so binding them to one token means the glow can
-     never drift from the gradient it comes out of. */
-   /* The gradient starts at the brand colour itself. The source design uses
-     #006AD3 light / #56A5E9 dark, both within ~4% of --primary — close enough
-     that binding to the token instead buys more than it costs: the value is
-     declared once for both skies, the hover can never drift from the resting
-     state it grows out of, and retinting the brand carries the gradient and
-     both glows with it. Only the dark end is a genuinely new value — #010F2E
-     sits below primary-900, past the bottom of the documented ramp. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--mo-neutral-300);
+  border-radius: 8px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--mo-neutral-400); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--mo-neutral-700); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: var(--mo-neutral-600); }
+
+/* The platform's own controls are plain elements and need a ring drawn for
+   them. Every vendored component already draws its own
+   (`focus-visible:border-ring` + `focus-visible:ring-ring/50`), so it opts
+   out below rather than wearing two. */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+[data-slot]:focus-visible,
+[data-slot] *:focus-visible {
+  outline: none;
+}
+
+/* shadcn's base layer. Upstream this is `* { @apply border-border }` on every
+   element in the document; here it reaches only the vendored components, so
+   the platform's own borders stay under the classes that set them. */
+[data-slot],
+[data-slot]::before,
+[data-slot]::after,
+[data-slot] *,
+[data-slot] *::before,
+[data-slot] *::after {
+  border-color: var(--border);
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Tone pills (stage / category)
+   -------------------------------------------------------------------
+   Celesnity ran the pipeline through a cobalt → violet → magenta hue
+   sweep. Minder has one hue plus the semantic ramp, so the progression
+   is carried by depth on the primary scale instead, and the three
+   outcomes (won / lost / dormant) keep their semantic colour.
+   ═══════════════════════════════════════════════════════════════════ */
+.tone {
+  border: 1px solid color-mix(in srgb, var(--h) 32%, transparent);
+  background: color-mix(in srgb, var(--h) 12%, transparent);
+  color: color-mix(in srgb, var(--h) 82%, #000000);
+}
+[data-theme="dark"] .tone {
+  background: color-mix(in srgb, var(--h) 15%, transparent);
+  color: color-mix(in srgb, var(--h) 55%, #ffffff);
+}
+[data-tone="cobalt"]  { --h: var(--mo-primary-500); }
+[data-tone="indigo"]  { --h: var(--mo-primary-600); }
+[data-tone="violet"]  { --h: var(--mo-primary-700); }
+[data-tone="magenta"] { --h: var(--mo-primary-800); }
+[data-tone="teal"]    { --h: var(--mo-primary-400); }
+[data-tone="amber"]   { --h: var(--color-warning); }
+[data-tone="green"]   { --h: var(--color-success); }
+[data-tone="rose"]    { --h: var(--color-error); }
+[data-tone="neutral"] { --h: var(--mo-neutral-500); }
+
+/* Semantic tinted surfaces — the ramp's own light step on the light sky, a
+   wash mixed into the canvas on the dark one. */
+.tint-warn   { background: var(--color-warning-light); }
+.tint-danger { background: var(--color-error-light); }
+[data-theme="dark"] .tint-warn   { background: color-mix(in srgb, var(--color-warning) 15%, transparent); }
+[data-theme="dark"] .tint-danger { background: color-mix(in srgb, var(--color-error) 14%, transparent); }
+
+.journey-section-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--journey-accent) 28%, transparent);
+  border-radius: 8px;
+  background: var(--journey-soft);
+  color: var(--journey-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   The Minder button skin
+   -------------------------------------------------------------------
+   `minder-brand` sits on <body> for the whole app; the library tab is
+   the one place that takes it off, to show stock shadcn.
+
+   Geometry is untouched on purpose — height, radius, padding and type
+   stay on the system's scale and only the surface changes.
+   ═══════════════════════════════════════════════════════════════════ */
+.minder-brand {
+   /* `-from` doubles as the glow colour: in the source design the inset top
+     glow and the outer bloom are both the gradient's own top stop, so binding
+     them to one token means the glow can never drift from the gradient it
+     comes out of. The gradient starts at the brand colour itself — the source
+     design uses #006AD3 light / #56A5E9 dark, both within ~4% of --primary,
+     close enough that binding to the token instead buys more than it costs.
+     Only the dark end is a genuinely new value: #00277C sits below
+     primary-900, past the bottom of the documented ramp. */
    --primary-hover-from: var(--primary);
    --primary-hover-to: #00277c;
    --primary-hover-rim: rgb(255 255 255 / 24%);
@@ -391,24 +507,7 @@ h1, h2, h3, h4, .font-display {
    --secondary-hover: #afd3f2;
    --secondary-hover-foreground: #000000;
 
-   /* Minder's status palette — the same values tokens.ts documents and emits
-     into the downloadable stylesheet. Until now they existed only in that
-     generated file, so nothing on the live page could reach them; declaring
-     them here keeps the documented ramp and the rendered one as one thing. */
-  --color-success-light: #e4f5e7;
-  --color-success: #1aae39;
-  --color-success-dark: #137d29;
-  --color-warning-light: #fbebe0;
-  --color-warning: #dd5b00;
-  --color-warning-dark: #9f4200;
-  --color-error-light: #fae9ec;
-  --color-error: #d6455f;
-  --color-error-dark: #9a3244;
-  --color-info-light: #e0eefb;
-  --color-info: #0075de;
-  --color-info-dark: #0054a0;
-
-  /* The source design is drawn on a ~47px button (12px padding around 18px
+   /* The source design is drawn on a ~47px button (12px padding around 18px
      text at 130%). Ours is 36px on the system's scale, and the lighting is
      specified in fixed pixels — so at full size the two inset glows cover 25
      of those 36px and swallow the gradient they are meant to sit on, which
@@ -418,15 +517,12 @@ h1, h2, h3, h4, .font-display {
    --primary-hover-lift: .77;
 }
 
-.shadcn-scope.minder-brand.dark {
-   --primary: #62aef0;
-   --primary-foreground: #06254a;
-   --ring: #62aef0;
-
-   /* The dark sky inverts the lighting: the gradient runs light-to-lighter and
-     the rim highlight becomes a shadow, so the button still reads as lit from
-     above against a dark canvas. --primary-hover-from is not restated here —
-     it resolves to --primary, which this block has already flipped. */
+/* The dark sky inverts the lighting: the gradient runs light-to-lighter and
+   the rim highlight becomes a shadow, so the button still reads as lit from
+   above against a dark canvas. --primary-hover-from is not restated — it
+   resolves to --primary, which the dark block has already flipped. */
+[data-theme="dark"] .minder-brand,
+.minder-brand.dark {
    --primary-hover-to: #cadbff;
    --primary-hover-rim: rgb(0 0 0 / 50%);
    --primary-hover-foreground: #000000;
@@ -438,15 +534,13 @@ h1, h2, h3, h4, .font-display {
    `background-image` cannot animate from `none`, only from another gradient of
    the same kind. The button already carries `transition-all`, so this is the
    only thing standing between it and a smooth lift. */
-.shadcn-scope.minder-brand [data-slot="button"][data-variant="default"] {
+.minder-brand [data-slot="button"][data-variant="default"] {
    background-image: linear-gradient(180deg, transparent 0%, transparent 100%);
 }
 
-/* Two attributes plus :hover comfortably out-specifies the variant's own
-   `hover:bg-primary/90`, so nothing here needs !important. Geometry is
-   untouched on purpose — height, radius, padding and type stay on the system's
-   scale and only the surface changes. */
-.shadcn-scope.minder-brand [data-slot="button"][data-variant="default"]:hover:not(:disabled) {
+/* One class plus two attributes plus :hover comfortably out-specifies the
+   variant's own `hover:bg-primary/90`, so nothing here needs !important. */
+.minder-brand [data-slot="button"][data-variant="default"]:hover:not(:disabled) {
    background-color: var(--primary-hover-to);
    background-image: linear-gradient(180deg, var(--primary-hover-from) 0%, var(--primary-hover-to) 100%);
    color: var(--primary-hover-foreground);
@@ -456,35 +550,9 @@ h1, h2, h3, h4, .font-display {
       0 calc(4px * var(--primary-hover-lift)) calc(20px * var(--primary-hover-lift)) calc(8px * var(--primary-hover-lift)) color-mix(in srgb, var(--primary-hover-from) 35%, transparent);
 }
 
-.shadcn-scope.minder-brand [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) {
+.minder-brand [data-slot="button"][data-variant="secondary"]:hover:not(:disabled) {
    background-color: var(--secondary-hover);
    color: var(--secondary-hover-foreground);
-}
-
-/* shadcn's base layer, scoped. Upstream this is `* { @apply border-border
-   outline-ring/50 }` on every element in the document. */
-.shadcn-scope [data-slot],
-.shadcn-scope [data-slot]::before,
-.shadcn-scope [data-slot]::after,
-.shadcn-scope [data-slot] *,
-.shadcn-scope [data-slot] *::before,
-.shadcn-scope [data-slot] *::after {
-   border-color: var(--border);
-}
-
-/* The app-wide `*:focus-visible { outline: 2px solid … }` above would paint a
-   second ring on top of the one every shadcn component already draws for
-   itself (`focus-visible:border-ring` + `focus-visible:ring-ring/50`). Upstream
-   only sets an outline *colour* on `*`, never an outline, so suppress it here
-   and let the components own their focus treatment. */
-.shadcn-scope [data-slot]:focus-visible,
-.shadcn-scope [data-slot] *:focus-visible {
-   outline: none;
-}
-
-.shadcn-scope ::selection {
-   background: var(--foreground);
-   color: var(--background);
 }
 
 /* ── Toast status colours ─────────────────────────────────────────────
@@ -493,9 +561,9 @@ h1, h2, h3, h4, .font-display {
    section documents rather than a second, unrelated one.
 
    Specificity has to clear Sonner's own `[data-sonner-toaster][data-sonner-
-   theme="light"]` rules, which sit at two attributes — two classes plus the
-   attribute does it without !important. */
-.shadcn-scope.minder-brand [data-sonner-toaster] {
+   theme="light"]` rules, which sit at two attributes — the element plus the
+   class plus the attribute does it without !important. */
+body.minder-brand [data-sonner-toaster] {
   --success-bg: var(--color-success-light);
   --success-text: var(--color-success-dark);
   --success-border: color-mix(in srgb, var(--color-success) 32%, transparent);
@@ -513,7 +581,8 @@ h1, h2, h3, h4, .font-display {
 /* The dark sky inverts the pairing rather than reusing it: the tint becomes a
    deep wash mixed into the canvas and the type comes up bright, which is the
    only way the same hue stays legible on a near-black surface. */
-.shadcn-scope.minder-brand.dark [data-sonner-toaster] {
+[data-theme="dark"] body.minder-brand [data-sonner-toaster],
+body.minder-brand.dark [data-sonner-toaster] {
   --success-bg: color-mix(in srgb, var(--color-success-dark) 24%, #0b0b0d);
   --success-text: color-mix(in srgb, var(--color-success) 62%, #ffffff);
   --success-border: color-mix(in srgb, var(--color-success-dark) 55%, #0b0b0d);
@@ -533,6 +602,6 @@ h1, h2, h3, h4, .font-display {
    title — but it flattens the plain one, where title and description both land
    on near-black and the hierarchy disappears. Only the untyped toast needs its
    secondary tone handed back. */
-.shadcn-scope.minder-brand [data-sonner-toast]:not([data-type]) [data-description] {
+body.minder-brand [data-sonner-toast]:not([data-type]) [data-description] {
   color: var(--muted-foreground);
 }

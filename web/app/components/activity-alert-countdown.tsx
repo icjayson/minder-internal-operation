@@ -5,6 +5,7 @@ import {
   activityAlertRemainingMs,
   formatActivityAlertCountdown,
 } from "@/lib/activity-alerts";
+import { Button } from "@/design-system/components/button";
 
 export function ActivityRowActions({
   createdAt,
@@ -24,15 +25,9 @@ export function ActivityRowActions({
   return (
     <div className="ml-auto inline-flex shrink-0 items-center gap-2">
       <ActivityAlertCountdown createdAt={createdAt} onWithdraw={remove} />
-      <button
-        type="button"
-        title="Delete activity"
-        aria-label="Delete activity"
-        onClick={remove}
-        className="grid h-6 w-6 place-items-center rounded-md text-muted transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
-      >
+      <Button variant="ghost" size="icon-xs" type="button" title="Delete activity" aria-label="Delete activity" onClick={remove} className="h-6 w-6 hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]">
         <TrashIcon />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -61,7 +56,7 @@ export function ActivityAlertCountdown({
         <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-warn)]" aria-hidden />
         Discord in <span className="min-w-[2.4rem] tabular-nums">{formatActivityAlertCountdown(remaining)}</span>
       </span>
-      <span className="h-3 w-px bg-line" aria-hidden />
+      <span className="h-3 w-px bg-border" aria-hidden />
       <button
         type="button"
         title="Delete this activity and cancel its pending Discord alert"

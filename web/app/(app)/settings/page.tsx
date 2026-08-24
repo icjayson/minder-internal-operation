@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
+import { Button } from "@/design-system/components/button";
+import { Card as DsCard } from "@/design-system/components/card";
 
 function host() {
   const u = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -33,12 +35,12 @@ export default function SettingsPage() {
         <Card
           title="Shared AI context"
           action={
-            <Link href="/ai-context" className="h-7 rounded-full bg-accent px-3 inline-flex items-center text-[11px] font-medium text-white hover:bg-[#3a51ff]">
-              Open context
-            </Link>
+            <Button size="sm" asChild>
+              <Link href="/ai-context">Open context</Link>
+            </Button>
           }
         >
-          <p className="text-[12px] text-ink-soft">
+          <p className="text-[12px] text-foreground/80">
             Product truth, design-partner profile, scoring rubrics, writing guardrails and uploaded shared files
             now live in one editable context layer.
           </p>
@@ -53,32 +55,35 @@ export default function SettingsPage() {
         </Card>
 
         <Card title="Alerts" action={manualScanEnabled ? (
-          <button onClick={runScan} className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11px] font-medium cursor-pointer">Run scan now</button>
+          <Button size="sm" onClick={runScan} className="h-7 px-3 text-[11px]">Run scan now</Button>
         ) : undefined}>
-          <p className="text-[12px] text-ink-soft">Flags anything in Replied → Demo with no update in 3+ days (auto-clears when you act), attaches an AI recap, and pushes one Discord embed per entity (set <code className="mono">DISCORD_WEBHOOK_URL</code>; deep links use <code className="mono">APP_URL</code>). Optional email digest via <code className="mono">RESEND_API_KEY</code> + <code className="mono">ALERT_EMAIL_TO</code>. Vercel Cron hits this daily.</p>
-          {scan && <p className="mt-2 text-[12px] text-accent mono">{scan}</p>}
+          <p className="text-[12px] text-foreground/80">Flags anything in Replied → Demo with no update in 3+ days (auto-clears when you act), attaches an AI recap, and pushes one Discord embed per entity (set <code className="tabular-nums">DISCORD_WEBHOOK_URL</code>; deep links use <code className="tabular-nums">APP_URL</code>). Optional email digest via <code className="tabular-nums">RESEND_API_KEY</code> + <code className="tabular-nums">ALERT_EMAIL_TO</code>. Vercel Cron hits this daily.</p>
+          {scan && <p className="mt-2 text-[12px] text-primary tabular-nums">{scan}</p>}
         </Card>
       </div>
     </>
   );
 }
 
+/* The page's own card shape, on the system's Card. The eyebrow title and the
+   flush density are this page's, so the header keeps its own type rather than
+   using CardTitle, which is sized for prose. */
 function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-line bg-surface p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted">{title}</h3>
+    <DsCard className="gap-0 p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{title}</h3>
         {action}
       </div>
       {children}
-    </section>
+    </DsCard>
   );
 }
 function Row({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-line-soft last:border-0">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted">{label}</span>
-      <span className="text-[13px] text-ink mono">{value}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-border/60 last:border-0">
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+      <span className="text-[13px] text-foreground tabular-nums">{value}</span>
     </div>
   );
 }

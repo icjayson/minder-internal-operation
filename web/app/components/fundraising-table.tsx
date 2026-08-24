@@ -4,6 +4,8 @@ import type { FundraisingLead, FundraisingStage, FundraisingTrack } from "@/lib/
 import { fundraisingStages, fundraisingTypeLabel } from "@/lib/types";
 import { FundStagePill, ResultPill } from "./fund-stage-pill";
 import { DataTable, type Column } from "./data-table";
+import { Button } from "@/design-system/components/button";
+import { StagePillSelect } from "./stage-pill";
 
 type Props = {
   track: FundraisingTrack;
@@ -37,8 +39,8 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
               />
             )}
             <div className="min-w-0">
-              <div className="font-medium truncate text-ink">{l.name}</div>
-              {l.contact_person && <div className="text-[11px] text-muted truncate">{l.contact_person}</div>}
+              <div className="font-medium truncate text-foreground">{l.name}</div>
+              {l.contact_person && <div className="text-[11px] text-muted-foreground truncate">{l.contact_person}</div>}
             </div>
           </div>
         );
@@ -50,7 +52,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       width: 160,
       sortable: true,
       sortValue: (l) => fundraisingTypeLabel(track, l.type),
-      render: (l) => <span className="text-ink-soft truncate block">{fundraisingTypeLabel(track, l.type)}</span>,
+      render: (l) => <span className="text-foreground/80 truncate block">{fundraisingTypeLabel(track, l.type)}</span>,
     },
     {
       key: "amount",
@@ -59,7 +61,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       align: "right",
       sortable: true,
       sortValue: (l) => l.amount_target_or_offered ?? -1,
-      render: (l) => <span className="text-ink-soft mono whitespace-nowrap">{formatAmount(l.amount_target_or_offered)}</span>,
+      render: (l) => <span className="text-foreground/80 tabular-nums whitespace-nowrap">{formatAmount(l.amount_target_or_offered)}</span>,
     },
     {
       key: "stage",
@@ -80,7 +82,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       width: 130,
       sortable: true,
       sortValue: (l) => (l.last_activity_at ? new Date(l.last_activity_at).getTime() : 0),
-      render: (l) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(l.last_activity_at)}</span>,
+      render: (l) => <span className="text-foreground/80 tabular-nums text-[11px] whitespace-nowrap">{formatDate(l.last_activity_at)}</span>,
     },
     {
       key: "next",
@@ -88,7 +90,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       width: 130,
       sortable: true,
       sortValue: (l) => (l.next_touch ? new Date(l.next_touch).getTime() : 0),
-      render: (l) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(l.next_touch)}</span>,
+      render: (l) => <span className="text-foreground/80 tabular-nums text-[11px] whitespace-nowrap">{formatDate(l.next_touch)}</span>,
     },
     {
       key: "actions",
@@ -96,18 +98,11 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
       width: 52,
       minWidth: 44,
       render: (l) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Delete ${l.name}? This can’t be undone.`)) onDelete(l.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
-          aria-label={`Delete ${l.name}`}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${l.name}? This can’t be undone.`)) onDelete(l.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)] transition-all duration-150" aria-label={`Delete ${l.name}`}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
+        </Button>
       ),
     },
   ];
@@ -117,19 +112,9 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
 
 function StageSelect({ stage, stages, onChange }: { stage: FundraisingStage; stages: FundraisingStage[]; onChange: (s: FundraisingStage) => void }) {
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <StagePillSelect value={stage} options={stages} onChange={onChange}>
       <FundStagePill stage={stage} />
-      <select
-        value={stage}
-        onChange={(e) => onChange(e.target.value as FundraisingStage)}
-        className="absolute inset-0 opacity-0 cursor-pointer"
-        aria-label="Change stage"
-      >
-        {stages.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-    </div>
+    </StagePillSelect>
   );
 }
 

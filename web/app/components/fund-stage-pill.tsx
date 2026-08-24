@@ -2,6 +2,8 @@
 
 import type { CompetitionResult, FundraisingStage } from "@/lib/types";
 
+import { TonePill } from "./stage-pill";
+
 const TONE: Record<FundraisingStage, string> = {
   Researching: "cobalt",
   Contacted: "indigo",
@@ -14,14 +16,7 @@ const TONE: Record<FundraisingStage, string> = {
 };
 
 export function FundStagePill({ stage }: { stage: FundraisingStage }) {
-  return (
-    <span
-      data-tone={TONE[stage]}
-      className="tone inline-flex items-center h-5 px-2.5 rounded-full mono text-[10px] uppercase tracking-[0.1em] font-medium whitespace-nowrap"
-    >
-      {stage}
-    </span>
-  );
+  return <TonePill tone={TONE[stage]}>{stage}</TonePill>;
 }
 
 const RESULT_TONE: Record<CompetitionResult, string> = {
@@ -30,12 +25,5 @@ const RESULT_TONE: Record<CompetitionResult, string> = {
 };
 
 export function ResultPill({ result }: { result: CompetitionResult }) {
-  return (
-    <span
-      data-tone={RESULT_TONE[result]}
-      className="tone inline-flex items-center h-5 px-2.5 rounded-full mono text-[10px] uppercase tracking-[0.1em] font-medium whitespace-nowrap"
-    >
-      {result}
-    </span>
-  );
+  return <TonePill tone={RESULT_TONE[result]}>{result}</TonePill>;
 }

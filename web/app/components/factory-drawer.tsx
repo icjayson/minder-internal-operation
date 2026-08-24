@@ -23,6 +23,12 @@ import { WorkInventory } from "./work-inventory";
 import { JourneyOverview } from "./journey-overview";
 import { FactoryNotificationModal } from "./factory-notification-modal";
 import { ActivityRowActions } from "./activity-alert-countdown";
+import { PanelShell } from "./form-drawer";
+import { toast } from "sonner";
+import { Button } from "@/design-system/components/button";
+import { Input } from "@/design-system/components/input";
+import { Textarea } from "@/design-system/components/textarea";
+import { SelectField } from "./select-field";
 
 export function FactoryDrawer({
   factoryId,
@@ -79,18 +85,10 @@ export function FactoryDrawer({
   const [activityContact, setActivityContact] = useState("");
   const [editingProfile, setEditingProfile] = useState(false);
   const [assessmentOpen, setAssessmentOpen] = useState(false);
-  const [journeyNotice, setJourneyNotice] = useState<{ message: string; undo: () => void } | null>(null);
   const [nextWorkItem, setNextWorkItem] = useState<FactoryWorkItem | null>(null);
   const contactSectionRef = useRef<HTMLDivElement>(null);
   const workInventoryRef = useRef<HTMLDivElement>(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
-
-  useEffect(() => {
-    if (variant !== "drawer") return;
-    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose, variant]);
 
   useEffect(() => {
     if (!contactId) return;
@@ -129,12 +127,6 @@ export function FactoryDrawer({
     })();
     return () => { live = false; };
   }, [f?.vertical_id]);
-
-  useEffect(() => {
-    if (!journeyNotice) return;
-    const timeout = window.setTimeout(() => setJourneyNotice(null), 5000);
-    return () => window.clearTimeout(timeout);
-  }, [journeyNotice]);
 
   useEffect(() => {
     const sb = supabase();
@@ -246,12 +238,8 @@ export function FactoryDrawer({
     if (!currentFactory || next === currentFactory.stage) return;
     const previous = currentFactory.stage;
     await setFactoryStage(factoryId, next);
-    setJourneyNotice({
-      message: `Pipeline moved to ${next}`,
-      undo: () => {
-        void setFactoryStage(factoryId, previous);
-        setJourneyNotice(null);
-      },
+    toast.success(`Pipeline moved to ${next}`, {
+      action: { label: "Undo", onClick: () => void setFactoryStage(factoryId, previous) },
     });
   }
 
@@ -260,12 +248,8 @@ export function FactoryDrawer({
     if (!currentFactory || next === currentFactory.ladder_level) return;
     const previous = currentFactory.ladder_level;
     await set({ ladder_level: next });
-    setJourneyNotice({
-      message: `Relationship moved to L${next}`,
-      undo: () => {
-        void set({ ladder_level: previous });
-        setJourneyNotice(null);
-      },
+    toast.success(`Relationship moved to L${next}`, {
+      action: { label: "Undo", onClick: () => void set({ ladder_level: previous }) },
     });
   }
 
@@ -279,17 +263,16 @@ export function FactoryDrawer({
           onClose={() => setNotificationOpen(false)}
         />
       )}
-      {variant === "drawer" && (
-        <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
-      )}
-      <section className={
-        variant === "drawer"
-          ? "fixed right-0 top-0 bottom-0 w-full max-w-[720px] bg-canvas border-l border-line-strong z-50 flex flex-col shadow-drawer"
-          : "min-h-screen w-full bg-surface"
-      }>
+      <PanelShell
+        variant={variant}
+        title={f.name}
+        description="Factory details"
+        width="sm:max-w-[720px]"
+        onClose={onClose}
+      >
         {/* Header */}
-        <header className="relative bg-surface px-5 py-4 border-b border-line sm:px-6">
-          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+        <header className="relative bg-card px-5 py-4 border-b border-border sm:px-6">
+          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="flex items-center gap-3">
             {variant === "drawer" ? (
               <Link
@@ -297,49 +280,30 @@ export function FactoryDrawer({
                 onClick={onClose}
                 title="Open full page"
                 aria-label="Open factory full page"
-                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink shrink-0"
+                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground shrink-0"
               >
                 <ExpandIcon />
               </Link>
             ) : (
-              <button
-                onClick={onClose}
-                title="Back to factories"
-                aria-label="Back to factories"
-                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer shrink-0"
-              >
+              <Button variant="ghost" size="icon-sm" onClick={onClose} title="Back to factories" aria-label="Back to factories" className="mt-0.5 w-7 h-7 shrink-0">
                 <BackIcon />
-              </button>
+              </Button>
             )}
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">
+              <div className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary mb-1">
                 {verticalName(f.vertical_id)}
               </div>
               {editingProfile ? (
-                <input
-                  defaultValue={f.name}
-                  aria-label="Factory name"
-                  onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })}
-                  className="block w-full rounded-md border border-line bg-canvas px-2 py-1 text-[20px] font-display text-ink focus:border-accent focus:outline-none"
-                />
+                <Input defaultValue={f.name} aria-label="Factory name" onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })} className="block w-full px-2 py-1 text-[20px] font-display" />
               ) : (
-                <h1 className="truncate text-[21px] leading-tight font-display text-ink">{f.name}</h1>
+                <h1 className="truncate text-heading-3 text-foreground">{f.name}</h1>
               )}
             </div>
             <div className="hidden items-center gap-2 sm:flex">
               {isCustomerContext && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!confirm(`Move ${f.name} back to the Factory tracker? It will be removed from Customers.`)) return;
-                    await unmarkFactoryAsCustomer(factoryId);
-                    onClose();
-                  }}
-                  title="Undo customer — return this account to the Factory tracker"
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
-                >
+                <Button variant="outline" size="sm" type="button" onClick={async () => { if (!confirm(`Move ${f.name} back to the Factory tracker? It will be removed from Customers.`)) return; await unmarkFactoryAsCustomer(factoryId); onClose(); }} title="Undo customer — return this account to the Factory tracker" className="h-8 gap-1.5 rounded-full px-3.5 text-[11.5px] text-foreground/80 hover:text-foreground">
                   <UndoIcon /> Move to Factories
-                </button>
+                </Button>
               )}
               {!isCustomerContext && (
                 f.is_customer ? (
@@ -347,58 +311,41 @@ export function FactoryDrawer({
                     <Link
                       href={`/customers/${factoryId}`}
                       title="This account is tracked as a customer — open in the Customer tracker"
-                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#0fa79b]/40 bg-[#e6f8f5] px-3 text-[11.5px] font-medium text-[#0b8375]"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-success/40 bg-success-light px-3 text-[11.5px] font-medium text-success-dark"
                     >
                       <CustomerIcon /> Customer
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => { void unmarkFactoryAsCustomer(factoryId); }}
-                      title="Undo — remove from the Customer tracker"
-                      aria-label="Undo mark as customer"
-                      className="grid h-8 w-8 place-items-center rounded-full border border-line-strong bg-surface-2 text-muted hover:text-[color:var(--color-danger)]"
-                    >
+                    <Button variant="ghost" size="icon-sm" type="button" onClick={() => { void unmarkFactoryAsCustomer(factoryId); }} title="Undo — remove from the Customer tracker" aria-label="Undo mark as customer" className="h-8 w-8 rounded-full border border-border-strong bg-muted hover:text-[color:var(--color-danger)]">
                       <UndoIcon />
-                    </button>
+                    </Button>
                   </span>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => { void markFactoryAsCustomer(factoryId); }}
-                    title="Promote this factory to the Customer tracker"
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
-                  >
+                  <Button variant="outline" size="sm" type="button" onClick={() => { void markFactoryAsCustomer(factoryId); }} title="Promote this factory to the Customer tracker" className="h-8 gap-1.5 rounded-full px-3.5 text-[11.5px] text-foreground/80 hover:text-foreground">
                     <CustomerIcon /> Mark as Customer
-                  </button>
+                  </Button>
                 )
               )}
               {showNotifications && (
-                <button
-                  type="button"
-                  onClick={() => setNotificationOpen(true)}
-                  className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
-                >
+                <Button size="sm" type="button" onClick={() => setNotificationOpen(true)} className="px-3.5 text-[11.5px]">
                   Create notification
-                </button>
+                </Button>
               )}
               <button
                 type="button"
                 onClick={() => setEditingProfile((value) => !value)}
-                className={`h-8 rounded-full border px-3.5 text-[11.5px] font-medium ${editingProfile ? "border-accent bg-accent-dim text-accent" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"}`}
+                className={`h-8 rounded-full border px-3.5 text-[11.5px] font-medium ${editingProfile ? "border-primary bg-primary-tint text-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"}`}
               >
                 {editingProfile ? "Done" : "Edit"}
               </button>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button onClick={handleDelete}
-                className="w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/10 cursor-pointer"
-                aria-label="Delete factory" title="Delete factory">
+              <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="w-7 h-7 hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/10" aria-label="Delete factory" title="Delete factory">
                 <DeleteIcon />
-              </button>
+              </Button>
               {variant === "drawer" && (
-                <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+                <Button variant="ghost" size="icon-sm" onClick={onClose} className="w-7 h-7" aria-label="Close">
                   <CloseIcon />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -408,7 +355,7 @@ export function FactoryDrawer({
             <span title="Factory stage"><StagePill stage={f.stage} /></span>
             <Divider />
             <PriorityStars value={f.priority} onChange={(p) => set({ priority: p === f.priority ? 0 : p })} size={14} />
-            <button type="button" onClick={() => { void set({ is_customer: !f.is_customer }); }} className={`h-7 rounded-full border px-2.5 text-[10.5px] font-medium ${f.is_customer ? "border-accent bg-accent-dim text-accent" : "border-line-strong bg-surface-2 text-muted hover:text-ink"}`} title="Customer status">{f.is_customer ? "Customer · FDE KIT" : "Mark as customer"}</button>
+            <button type="button" onClick={() => { void set({ is_customer: !f.is_customer }); }} className={`h-7 rounded-full border px-2.5 text-[10.5px] font-medium ${f.is_customer ? "border-primary bg-primary-tint text-primary" : "border-border-strong bg-muted text-muted-foreground hover:text-foreground"}`} title="Customer status">{f.is_customer ? "Customer · FDE KIT" : "Mark as customer"}</button>
           </div>
         </header>
 
@@ -418,16 +365,8 @@ export function FactoryDrawer({
           </div>
         )}
 
-        {journeyNotice && (
-          <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 text-[12px] text-ink shadow-soft" role="status">
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-white"><CheckIcon /></span>
-            {journeyNotice.message}
-            <button type="button" onClick={journeyNotice.undo} className="font-semibold text-accent hover:underline">Undo</button>
-          </div>
-        )}
-
         <div className={variant === "drawer" ? "flex-1 overflow-y-auto" : ""}>
-          <div className="border-b border-line bg-surface px-4 py-5 sm:px-6 lg:px-8">
+          <div className="border-b border-border bg-card px-4 py-5 sm:px-6 lg:px-8">
             <JourneyOverview
               stage={f.stage}
               ladderLevel={f.ladder_level ?? 0}
@@ -438,17 +377,19 @@ export function FactoryDrawer({
             />
           </div>
 
-          <div className={variant === "drawer" ? "flex flex-col bg-surface px-4 sm:px-6" : "grid grid-cols-1 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"}>
+          <div className={variant === "drawer" ? "flex flex-col bg-card px-4 sm:px-6" : "grid grid-cols-1 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"}>
             <div className={variant === "drawer" ? "contents" : "space-y-0 px-5 sm:px-6 lg:px-8"}>
               {/* Activity first: this is the account's operating narrative. */}
               <Section title={`Activity · ${activities.length}`} className={variant === "drawer" ? "order-[8]" : ""}>
-                <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas p-1.5 transition-colors focus-within:border-line-strong focus-within:bg-surface-2/35">
-                  <select value={activityContact} onChange={(e) => setActivityContact(e.target.value)}
-                    aria-label="Attribute activity to"
-                    className="h-8 shrink-0 max-w-[132px] rounded-md bg-surface-2 px-2 text-[11px] text-ink-soft cursor-pointer focus:outline-none focus-visible:outline-none">
-                    <option value="">Factory</option>
-                    {contacts.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-                  </select>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1.5 transition-colors focus-within:border-border-strong focus-within:bg-muted/35">
+                  <SelectField
+            value={activityContact}
+            onChange={(next) => setActivityContact(next)}
+            options={contacts.map((c) => ({ value: c.id, label: c.full_name }))}
+            emptyLabel="Factory"
+            aria-label="Attribute activity to"
+            className="h-8 shrink-0 max-w-[132px] bg-muted text-[11px] text-foreground/80"
+          />
                   <input
                 value={activityNote}
                     onChange={(e) => setActivityNote(e.target.value)}
@@ -458,40 +399,32 @@ export function FactoryDrawer({
                       setActivityNote("");
                     }}
                     placeholder="Log a call, note, reply or evidence…"
-                    className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-ink focus:outline-none focus-visible:outline-none"
+                    className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-foreground focus:outline-none focus-visible:outline-none"
                   />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!activityNote.trim()) return;
-                      await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null });
-                      setActivityNote("");
-                    }}
-                    className="h-8 rounded-full bg-accent px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff]"
-                  >
+                  <Button size="sm" type="button" onClick={async () => { if (!activityNote.trim()) return; await addActivity(factoryId, { type: "note", body: activityNote.trim(), evidence_level: f.evidence_level, contact_id: activityContact || null }); setActivityNote(""); }} className="px-3 text-[11.5px]">
                     Add
-                  </button>
+                  </Button>
                 </div>
                 {activities.length === 0 ? (
                   <EmptyState title="No activity yet" body="Log the first touchpoint to start this account timeline." />
                 ) : (
-                  <div className="relative ml-2 space-y-0 border-l border-line">
+                  <div className="relative ml-2 space-y-0 border-l border-border">
                     {activities.slice(0, 30).map((a) => {
                       const contactName = contacts.find((c) => c.id === a.contact_id)?.full_name;
                       return (
                         <article key={a.id} className="group relative py-3 pl-6">
-                          <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-accent"><ActivityIcon type={a.type} /></span>
+                          <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-border bg-card text-primary"><ActivityIcon type={a.type} /></span>
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{a.type.replace(/_/g, " ")}</span>
-                            <span className="text-[10px] mono text-muted">{formatTimestamp(a.created_at)}</span>
-                            {a.evidence_level != null && <span className="text-[9px] mono text-muted">E{a.evidence_level}</span>}
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">{a.type.replace(/_/g, " ")}</span>
+                            <span className="text-[10px] tabular-nums text-muted-foreground">{formatTimestamp(a.created_at)}</span>
+                            {a.evidence_level != null && <span className="text-[9px] tabular-nums text-muted-foreground">E{a.evidence_level}</span>}
                             <ActivityRowActions
                               createdAt={a.created_at}
                               onDelete={() => { void deleteActivity(a.id); }}
                             />
                           </div>
-                          <p className="mt-0.5 text-[12px] leading-relaxed text-ink-soft">
-                            <strong className="font-medium text-ink">{contactName ?? "Factory"}: </strong>{a.body ?? "—"}
+                          <p className="mt-0.5 text-[12px] leading-relaxed text-foreground/80">
+                            <strong className="font-medium text-foreground">{contactName ?? "Factory"}: </strong>{a.body ?? "—"}
                           </p>
                         </article>
                       );
@@ -511,8 +444,8 @@ export function FactoryDrawer({
                       disabled={scoring}
                       title={contextStale ? "New context logged since last score" : undefined}
                       className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${contextStale
-                          ? "bg-accent text-white hover:bg-[#3a51ff]"
-                          : "border border-line-strong bg-surface-2 hover:bg-surface-3 text-ink-soft hover:text-ink"
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border-strong bg-muted hover:bg-accent text-foreground/80 hover:text-foreground"
                         }`}
                     >
                       {contextStale && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -521,25 +454,25 @@ export function FactoryDrawer({
                   </div>
                 }
               >
-                <div className="flex items-start gap-3 bg-accent-dim/35 px-3 py-2.5 rounded-xl">
+                <div className="flex items-start gap-3 bg-primary-tint/35 px-3 py-2.5 rounded-xl">
                   <AssessmentScoreBadge score={f.score} grade={f.grade} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12.5px] leading-relaxed text-ink-soft">
+                    <p className="text-[12.5px] leading-relaxed text-foreground/80">
                       {f.score != null
                         ? "Qualification score based on the current factory profile, evidence and context."
                         : "Score this account against the design-partner qualification rubric."}
                     </p>
-                    <button type="button" onClick={() => setAssessmentOpen((value) => !value)} className="mt-2 text-[11px] font-semibold text-accent hover:underline">
+                    <Button variant="link" size="sm" type="button" onClick={() => setAssessmentOpen((value) => !value)} className="mt-2 text-[11px]">
                       {assessmentOpen ? "Hide score details" : "View score details"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 {assessmentOpen && f.score != null && (
-                  <div className="mt-3 border-t border-line-soft pt-3">
+                  <div className="mt-3 border-t border-border/60 pt-3">
                     {contextStale && <p className="mb-2 text-[11.5px] text-[color:var(--color-warn)]">Context changed since last score — re-score to update.</p>}
                     <ScoreBreakdownBars breakdown={f.score_breakdown} />
                     {f.blocker && <p className="mt-3 text-[12px] text-[color:var(--color-warn)]">Blocker: {f.blocker}</p>}
-                    {f.ai_reasoning && <p className="mt-3 text-[12px] leading-relaxed text-ink-soft">{f.ai_reasoning}</p>}
+                    {f.ai_reasoning && <p className="mt-3 text-[12px] leading-relaxed text-foreground/80">{f.ai_reasoning}</p>}
                   </div>
                 )}
               </Section>
@@ -548,22 +481,22 @@ export function FactoryDrawer({
               <Section
                 title="Profile"
                 className={variant === "drawer" ? "order-[3]" : ""}
-                action={<button type="button" onClick={() => setEditingProfile((value) => !value)} className="text-[11px] font-semibold text-accent hover:underline">{editingProfile ? "Done editing" : "Edit profile"}</button>}
+                action={<Button variant="link" size="sm" type="button" onClick={() => setEditingProfile((value) => !value)} className="text-[11px]">{editingProfile ? "Done editing" : "Edit profile"}</Button>}
               >
                 {editingProfile ? <>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <SelectField label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
+                    <LabelledSelect label="Vertical" value={f.vertical_id ?? ""} onChange={(v) => set({ vertical_id: v || null })}
                       options={verticals.map((v) => ({ value: v.id, label: v.name }))} />
-                    <SelectField label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
+                    <LabelledSelect label="Network (source)" value={f.network_id ?? ""} onChange={(v) => set({ network_id: v || null })}
                       placeholder="None"
                       options={(networks ?? []).map((nw) => ({ value: nw.id, label: nw.name }))} />
-                    <SelectField label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
+                    <LabelledSelect label="Geo" value={f.geo_tier ?? ""} onChange={(v) => set({ geo_tier: v || null })}
                       options={GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} />
-                    <SelectField label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
+                    <LabelledSelect label="Frontline workers" value={f.frontline_workers ?? ""} onChange={(v) => set({ frontline_workers: v || null })}
                       options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
                     <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
                     <InputField label="Company website" value={f.website_url ?? f.company_url}
-                      onSave={(v) => set({ website_url: normalizeUrl(v) || null })} mono />
+                      onSave={(v) => set({ website_url: normalizeUrl(v) || null })} tabular />
                   </div>
                   <TextareaField label="Company description" value={f.description} onSave={(v) => set({ description: v })} />
                   <TextareaField label="How to approach / Note" value={f.notes} onSave={(v) => set({ notes: v })} />
@@ -600,13 +533,11 @@ export function FactoryDrawer({
               {/* Latest draft */}
               {draft && (
                 <Section title={`Draft for ${draft.contact}`} className={variant === "drawer" ? "order-[5]" : ""}>
-                  {draft.subject && <div className="text-[12px] text-ink-soft mb-1">Subject: {draft.subject}</div>}
-                  <textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={6}
-                    className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
-                  <button onClick={() => navigator.clipboard.writeText(draft.body)}
-                    className="mt-2 h-6 px-2 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">
+                  {draft.subject && <div className="text-[12px] text-foreground/80 mb-1">Subject: {draft.subject}</div>}
+                  <Textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={6} className="w-full px-3 py-2 text-[13px] leading-relaxed resize-y" />
+                  <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(draft.body)} className="mt-2 h-6 px-2 rounded-full text-[11px] tabular-nums uppercase tracking-wider text-foreground/80">
                     Copy
-                  </button>
+                  </Button>
                 </Section>
               )}
 
@@ -614,9 +545,9 @@ export function FactoryDrawer({
             <div className={
               variant === "drawer"
                 ? "contents"
-                : "space-y-4 border-t border-line px-5 py-5 sm:px-6 lg:px-8 xl:sticky xl:top-0 xl:border-l xl:border-t-0"
+                : "space-y-4 border-t border-border px-5 py-5 sm:px-6 lg:px-8 xl:sticky xl:top-0 xl:border-l xl:border-t-0"
             }>
-              <div className={variant === "drawer" ? "order-[6] border-b border-line-soft py-5" : ""}>
+              <div className={variant === "drawer" ? "order-[6] border-b border-border/60 py-5" : ""}>
                 <NextActionCard
                   item={nextWorkItem}
                   pic={contacts.find((contact) => contact.id === nextWorkItem?.pic_contact_id) ?? null}
@@ -630,11 +561,11 @@ export function FactoryDrawer({
                 />
               </div>
               {/* Inputted context (files + notes, per-factory) */}
-              <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+              <div className={variant === "drawer" ? "order-[7] border-b border-border/60 py-5" : ""}>
                 <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
               </div>
               {f.is_customer && (
-                <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+                <div className={variant === "drawer" ? "order-[7] border-b border-border/60 py-5" : ""}>
                   <FdeDeploymentProgress factoryId={factoryId} />
                 </div>
               )}
@@ -657,7 +588,7 @@ export function FactoryDrawer({
             </div>
           </div>
         </div>
-      </section>
+      </PanelShell>
     </>
   );
 }
@@ -672,23 +603,22 @@ function NextActionCard({
   onViewWork: () => void;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-lg border border-accent/25 bg-accent-dim p-4">
-      <span className="absolute right-0 top-0 h-24 w-24 rounded-full bg-accent/10 blur-2xl" aria-hidden />
+    <section className="relative overflow-hidden rounded-lg border border-primary/25 bg-primary-tint p-4">
+      <span className="absolute right-0 top-0 h-24 w-24 rounded-full bg-primary/10 blur-2xl" aria-hidden />
       <div className="relative flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent text-white shadow-glow"><AlertIcon /></span>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-glow"><AlertIcon /></span>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">Next best action</div>
-          <p className="mt-1 text-[13px] font-medium leading-relaxed text-ink">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Next best action</div>
+          <p className="mt-1 text-[13px] font-medium leading-relaxed text-foreground">
             {item?.title || "No open work item has a next-step trigger."}
           </p>
-          {item?.body && <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-ink-soft">{item.body}</p>}
-          {pic && <p className="mt-1 text-[10.5px] text-muted">PIC: <span className="text-ink-soft">{pic.full_name}</span></p>}
+          {item?.body && <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{item.body}</p>}
+          {pic && <p className="mt-1 text-[10.5px] text-muted-foreground">PIC: <span className="text-foreground/80">{pic.full_name}</span></p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={onViewWork}
-              className="h-8 rounded-full bg-accent px-3.5 text-[11.5px] font-semibold text-white hover:bg-[#3a51ff]">
+            <Button size="sm" type="button" onClick={onViewWork} className="px-3.5 text-[11.5px]">
               {item ? "View work item" : "Open work inventory"}
-            </button>
-            {item?.trigger_on && <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/70 px-2.5 py-1 text-[10.5px] text-ink-soft"><CalendarSmallIcon /> {formatShortDate(item.trigger_on)}</span>}
+            </Button>
+            {item?.trigger_on && <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-2.5 py-1 text-[10.5px] text-foreground/80"><CalendarSmallIcon /> {formatShortDate(item.trigger_on)}</span>}
           </div>
         </div>
       </div>
@@ -707,8 +637,8 @@ function ProfileSummary({ factory, vertical, network }: { factory: Factory; vert
         <ProfileDatum label="Workers" value={factory.frontline_workers ?? "Not set"} />
         <ProfileDatum label="Location" value={factory.hq_location ?? "Not set"} />
         <div>
-          <div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted">Website</div>
-          {website ? <a href={website} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-[12px] text-accent hover:underline">{website.replace(/^https?:\/\//, "")}</a> : <p className="mt-0.5 text-[12px] text-muted">Not set</p>}
+          <div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">Website</div>
+          {website ? <a href={website} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-[12px] text-primary hover:underline">{website.replace(/^https?:\/\//, "")}</a> : <p className="mt-0.5 text-[12px] text-muted-foreground">Not set</p>}
         </div>
       </div>
       {(factory.description || factory.notes) && <div className="grid gap-3 sm:grid-cols-2">
@@ -720,7 +650,7 @@ function ProfileSummary({ factory, vertical, network }: { factory: Factory; vert
 }
 
 function ProfileDatum({ label, value }: { label: string; value: string }) {
-  return <div className="min-w-0"><div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted">{label}</div><div className="mt-0.5 truncate text-[12px] text-ink-soft" title={value}>{value}</div></div>;
+  return <div className="min-w-0"><div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">{label}</div><div className="mt-0.5 truncate text-[12px] text-foreground/80" title={value}>{value}</div></div>;
 }
 
 function ReadBlock({ label, body }: { label: string; body: string }) {
@@ -728,41 +658,32 @@ function ReadBlock({ label, body }: { label: string; body: string }) {
   const isApproach = label === "Approach";
 
   return (
-    <article className="rounded-xl border border-line-soft bg-surface-2/55 p-3.5 shadow-sm transition-colors hover:border-line-strong">
+    <article className="rounded-xl border border-border/60 bg-muted/55 p-3.5 shadow-sm transition-colors hover:border-border-strong">
       <div className="flex items-center gap-2.5">
-        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-[#e6f8f5] text-[#118b7c]" : "bg-accent-dim text-accent"}`}>
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-success-light text-success-dark" : "bg-primary-tint text-primary"}`}>
           <ProfileCardIcon kind={isApproach ? "approach" : "company"} />
         </span>
-        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-ink-soft">{label}</h4>
+        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-foreground/80">{label}</h4>
       </div>
-      <p className={`mt-2.5 text-[12px] leading-[1.55] text-ink-soft ${expanded ? "whitespace-pre-line" : "line-clamp-2"}`}>
+      <p className={`mt-2.5 text-[12px] leading-[1.55] text-foreground/80 ${expanded ? "whitespace-pre-line" : "line-clamp-2"}`}>
         {body}
       </p>
-      <button
-        type="button"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((value) => !value)}
-        className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
-      >
+      <Button variant="link" size="sm" type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="mt-2 gap-1 text-[11px]">
         {expanded ? "Show less" : "Show more"}
         <ChevronIcon expanded={expanded} />
-      </button>
+      </Button>
     </article>
   );
 }
 
 function EmptyState({ title, body }: { title: string; body: string }) {
-  return <div className="border-y border-dashed border-line px-4 py-5 text-center"><div className="text-[12px] font-medium text-ink">{title}</div><p className="mx-auto mt-1 max-w-sm text-[11px] text-muted">{body}</p></div>;
+  return <div className="border-y border-dashed border-border px-4 py-5 text-center"><div className="text-[12px] font-medium text-foreground">{title}</div><p className="mx-auto mt-1 max-w-sm text-[11px] text-muted-foreground">{body}</p></div>;
 }
 
 function ActivityIcon({ type }: { type: string }) {
   if (type.includes("email") || type.includes("message")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16v12H4zM4 7l8 6 8-6" strokeWidth="1.8" strokeLinejoin="round" /></svg>;
   if (type.includes("call")) return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h4l2 5-2.5 1.5a14 14 0 0 0 5 5L15 13l5 2v4c0 1-1 2-2 2C10 20 4 14 3 6c0-1 1-2 2-2Z" strokeWidth="1.6" strokeLinejoin="round" /></svg>;
   return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h12v16H6zM9 8h6m-6 4h6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function CheckIcon() {
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 4 4L19 6" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function AlertIcon() {
@@ -829,39 +750,37 @@ function ContactForm({
   }
 
   return (
-    <div className="mb-3 rounded-md border border-line-strong bg-surface-2/60 p-3 space-y-2">
-      <div className="text-[10px] mono uppercase tracking-[0.12em] text-accent">
+    <div className="mb-3 rounded-md border border-border-strong bg-muted/60 p-3 space-y-2">
+      <div className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-primary">
         {contact ? `Editing contact · ${contact.full_name}` : "New contact"}
       </div>
-      <input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)}
-        className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
+      <Input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)} className="w-full h-8 px-2 text-[13px]" />
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[9px] mono uppercase tracking-wider text-muted block mb-1">Contact stage</span>
-          <select value={stage} onChange={(e) => setStage(e.target.value as Stage)}
-            className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-            {STAGES.map((option) => <option key={option} value={option}>{option}</option>)}
-          </select>
+          <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground block mb-1">Contact stage</span>
+          <SelectField
+            value={stage}
+            onChange={(next) => setStage(next as Stage)}
+            options={STAGES.map((option) => ({ value: option, label: option }))}
+            className="h-8 text-[12px]"
+          />
         </label>
-        <input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)}
-          className="h-8 self-end rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
-        <select value={role_category} onChange={(e) => setCat(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
-          <option value="">Role category…</option>
-          {ROLE_CATEGORIES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
-        </select>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
-        <input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
-        <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
+        <Input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)} className="h-8 self-end px-2 text-[13px]" />
+        <SelectField
+            value={role_category}
+            onChange={(next) => setCat(next)}
+            options={ROLE_CATEGORIES.map((r) => ({ value: r.key, label: r.label }))}
+            emptyLabel="Role category…"
+            className="h-8 text-[12px]"
+          />
+        <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
+        <Input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
+        <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 px-2 text-[13px] tabular-nums" />
       </div>
-      <textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12px] text-ink resize-y focus:border-accent focus:outline-none" />
+      <Textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full px-2 py-1.5 text-[12px] resize-y" />
       <div className="flex gap-2">
-        <button onClick={submit} className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
-        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-line-strong bg-surface text-[11.5px] text-ink-soft cursor-pointer">Cancel</button>
+        <Button size="sm" onClick={submit} className="h-7 px-3 text-[11.5px]">Save</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} className="h-7 px-3 text-[11.5px] text-foreground/80">Cancel</Button>
       </div>
     </div>
   );
@@ -870,16 +789,16 @@ function ContactForm({
 // ── small field helpers ─────────────────────────────────────────────
 function Section({ title, action, children, className = "" }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`border-b border-line-soft py-5 last:border-b-0 ${className}`}>
+    <section className={`border-b border-border/60 py-5 last:border-b-0 ${className}`}>
       <div className="flex items-center justify-between gap-3 mb-3">
-        <h3 className="text-[13px] font-semibold text-ink">{title}</h3>
+        <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
         {action}
       </div>
       <div className="space-y-2.5">{children}</div>
     </section>
   );
 }
-function Divider() { return <span className="h-4 w-px bg-line-strong" />; }
+function Divider() { return <span className="h-4 w-px bg-border-strong" />; }
 function ExpandIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -937,28 +856,30 @@ function formatTimestamp(value: string): string {
   });
 }
 
-function InputField({ label, value, onSave, type = "text", mono = false }: {
-  label: string; value: string | null; onSave: (v: string) => void; type?: string; mono?: boolean;
+function InputField({ label, value, onSave, type = "text", tabular = false }: {
+  label: string; value: string | null; onSave: (v: string) => void; type?: string; tabular?: boolean;
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <input type={type} defaultValue={value ?? ""} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
-        className={`w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-line-strong focus:outline-none ${mono ? "mono" : ""}`} />
+        className={`w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-border-strong focus:outline-none ${tabular ? "tabular-nums" : ""}`} />
     </label>
   );
 }
-function SelectField({ label, value, onChange, options, placeholder = "—" }: {
+function LabelledSelect({ label, value, onChange, options, placeholder = "—" }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; placeholder?: string;
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
-        <option value="">{placeholder}</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
+      <SelectField
+        value={value}
+        onChange={onChange}
+        options={options}
+        emptyLabel={placeholder}
+        className="h-9 text-[13px]"
+      />
     </label>
   );
 }
@@ -967,10 +888,8 @@ function TextareaField({ label, value, onSave, rows = 3 }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
-      <textarea defaultValue={value ?? ""} rows={rows}
-        onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
+      <Textarea defaultValue={value ?? ""} rows={rows} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())} className="w-full px-2 py-1.5 text-[13px] leading-relaxed resize-y" />
     </label>
   );
 }

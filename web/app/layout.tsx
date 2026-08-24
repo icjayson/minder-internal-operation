@@ -37,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
-      <body>{children}</body>
+      {/* `minder-brand` is the app's resting state — the design-system library
+          tab is the one place that takes it off, to show stock shadcn. */}
+      <body className="minder-brand">{children}</body>
     </html>
   );
 }

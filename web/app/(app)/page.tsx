@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useStore } from "@/lib/factories-store";
 import { PageHeader } from "@/app/components/page-header";
 import { StatCard } from "@/app/components/stat-card";
+import { Button } from "@/design-system/components/button";
 
 export default function VerticalsPage() {
   const { verticals, factories, openFactory, openNewFactory } = useStore();
@@ -64,54 +65,53 @@ export default function VerticalsPage() {
       <div className="px-4 py-5 sm:px-6 lg:px-8">
         <section className="mb-7" aria-labelledby="today-heading">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div><h2 id="today-heading" className="text-[15px] font-semibold text-ink">Today</h2><p className="text-[11.5px] text-muted">Start with the accounts that need a decision or follow-up.</p></div>
-            <Link href="/factories?focus=needs_action" className="text-[11.5px] font-semibold text-accent hover:underline">View action queue →</Link>
+            <div><h2 id="today-heading" className="text-[15px] font-semibold text-foreground">Today</h2><p className="text-[11.5px] text-muted-foreground">Start with the accounts that need a decision or follow-up.</p></div>
+            <Link href="/factories?focus=needs_action" className="text-[11.5px] font-semibold text-primary hover:underline">View action queue →</Link>
           </div>
           {priorities.length ? (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {priorities.map((factory) => (
-                <button key={factory.id} type="button" onClick={() => openFactory(factory.id)} className="group rounded-card border border-line bg-surface p-4 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-line-strong">
-                  <div className="flex items-start justify-between gap-3"><span className="line-clamp-2 text-[13px] font-semibold text-ink">{factory.name}</span><span data-tone={factory.grade === "A" ? "green" : factory.grade === "B" ? "amber" : "neutral"} className="tone rounded-full px-2 py-0.5 text-[9px] font-semibold">{factory.score ?? "—"}</span></div>
-                  <p className="mt-2 line-clamp-2 min-h-8 text-[11px] leading-relaxed text-muted">{factory.ai_recommendation || "Review this account and set a clear next action."}</p>
-                  <div className="mt-3 flex items-center justify-between border-t border-line-soft pt-2 text-[10px]"><span className="text-ink-soft">{factory.stage}</span><span className="font-medium text-[color:var(--color-warn)]">Due {formatDue(factory.next_action_due)}</span></div>
+                <button key={factory.id} type="button" onClick={() => openFactory(factory.id)} className="group rounded-lg border border-border bg-card p-4 text-left shadow-mo-soft transition-all hover:-translate-y-0.5 hover:border-border-strong">
+                  <div className="flex items-start justify-between gap-3"><span className="line-clamp-2 text-[13px] font-semibold text-foreground">{factory.name}</span><span data-tone={factory.grade === "A" ? "green" : factory.grade === "B" ? "amber" : "neutral"} className="tone rounded-full px-2 py-0.5 text-[9px] font-semibold">{factory.score ?? "—"}</span></div>
+                  <p className="mt-2 line-clamp-2 min-h-8 text-[11px] leading-relaxed text-muted-foreground">{factory.ai_recommendation || "Review this account and set a clear next action."}</p>
+                  <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 text-[10px]"><span className="text-foreground/80">{factory.stage}</span><span className="font-medium text-[color:var(--color-warn)]">Due {formatDue(factory.next_action_due)}</span></div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="rounded-card border border-dashed border-line bg-surface/60 px-5 py-7 text-center"><div className="text-[13px] font-medium text-ink">You’re caught up</div><p className="mt-1 text-[11px] text-muted">No account actions are due today.</p></div>
+            <div className="rounded-lg border border-dashed border-border bg-card/60 px-5 py-7 text-center"><div className="text-[13px] font-medium text-foreground">You’re caught up</div><p className="mt-1 text-[11px] text-muted-foreground">No account actions are due today.</p></div>
           )}
         </section>
 
         <div className="flex items-center justify-between mb-4">
-          <div><h2 className="text-[15px] font-semibold text-ink">Explore by vertical</h2><p className="text-[11.5px] text-muted">Compare portfolio shape and relationship maturity.</p></div>
-          <button onClick={openNewFactory}
-            className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <div><h2 className="text-[15px] font-semibold text-foreground">Explore by vertical</h2><p className="text-[11.5px] text-muted-foreground">Compare portfolio shape and relationship maturity.</p></div>
+          <Button onClick={openNewFactory} className="px-4 gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New factory
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {perVertical.map(({ v, count, grades, ladder }) => (
             <Link key={v.id} href={`/factories?vertical=${v.id}`}
-              className="rounded-lg border border-line bg-surface hover:bg-surface-2/60 p-5 transition-colors">
-              <div className="text-[15px] font-medium text-ink mb-1">{v.name}</div>
-              {v.wedge_note && <p className="text-[12px] text-muted leading-relaxed line-clamp-2 mb-3">{v.wedge_note}</p>}
+              className="rounded-lg border border-border bg-card hover:bg-muted/60 p-5 transition-colors">
+              <div className="text-[15px] font-medium text-foreground mb-1">{v.name}</div>
+              {v.wedge_note && <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2 mb-3">{v.wedge_note}</p>}
               <div className="flex items-center gap-4">
-                <span className="text-[26px] mono tabular-nums text-ink leading-none">{count}</span>
+                <span className="text-[26px] tabular-nums text-foreground leading-none">{count}</span>
                 <div className="flex gap-1.5">
                   <GradeDot tone="green" n={grades.A} label="A" />
                   <GradeDot tone="amber" n={grades.B} label="B" />
                   <GradeDot tone="neutral" n={grades.C} label="C" />
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-line-soft">
-                <div className="text-[9px] mono uppercase tracking-[0.12em] text-muted mb-1.5">Relationship ladder</div>
+              <div className="mt-4 pt-3 border-t border-border/60">
+                <div className="text-[9px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground mb-1.5">Relationship ladder</div>
                 <div className="grid grid-cols-8 gap-1" title="Factories at ladder levels 0–7">
                   {ladder.map((n, level) => (
                     <div key={level} className="text-center">
-                      <div className={`h-1.5 rounded-full ${n ? "bg-accent" : "bg-surface-3"}`} />
-                      <span className="text-[9px] mono text-muted">L{level}·{n}</span>
+                      <div className={`h-1.5 rounded-full ${n ? "bg-primary" : "bg-accent"}`} />
+                      <span className="text-[9px] tabular-nums text-muted-foreground">L{level}·{n}</span>
                     </div>
                   ))}
                 </div>
@@ -133,7 +133,7 @@ function formatDue(value: string | null): string {
 
 function GradeDot({ tone, n, label }: { tone: string; n: number; label: string }) {
   return (
-    <span data-tone={tone} className="tone inline-flex items-center gap-1 h-5 px-2 rounded-full mono text-[10px] font-medium">
+    <span data-tone={tone} className="tone inline-flex items-center gap-1 h-5 px-2 rounded-full tabular-nums text-[10px] font-medium">
       {label} {n}
     </span>
   );

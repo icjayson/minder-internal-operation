@@ -2,9 +2,10 @@
 
 import type { Network, Stage } from "@/lib/types";
 import { NETWORK_TYPES, STAGES } from "@/lib/types";
-import { StagePill } from "./stage-pill";
+import { StagePill, StagePillSelect } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
 import { DataTable, type Column } from "./data-table";
+import { Button } from "@/design-system/components/button";
 
 type Props = {
   networks: Network[];
@@ -50,8 +51,8 @@ export function NetworkTable({
               />
             )}
             <div className="min-w-0">
-              <div className="font-medium truncate text-ink">{n.name}</div>
-              {n.country && <div className="text-[11px] text-muted truncate">{n.country}</div>}
+              <div className="font-medium truncate text-foreground">{n.name}</div>
+              {n.country && <div className="text-[11px] text-muted-foreground truncate">{n.country}</div>}
             </div>
           </div>
         );
@@ -63,7 +64,7 @@ export function NetworkTable({
       width: 140,
       sortable: true,
       sortValue: (n) => typeLabel(n.type),
-      render: (n) => <span className="text-ink-soft truncate block">{typeLabel(n.type)}</span>,
+      render: (n) => <span className="text-foreground/80 truncate block">{typeLabel(n.type)}</span>,
     },
     {
       key: "score",
@@ -88,7 +89,7 @@ export function NetworkTable({
       align: "center",
       sortable: true,
       sortValue: (n) => factoryCount(n.id),
-      render: (n) => <span className="text-ink-soft mono">{factoryCount(n.id)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums">{factoryCount(n.id)}</span>,
     },
     {
       key: "contacts",
@@ -97,7 +98,7 @@ export function NetworkTable({
       align: "center",
       sortable: true,
       sortValue: (n) => contactCount(n.id),
-      render: (n) => <span className="text-ink-soft mono">{contactCount(n.id)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums">{contactCount(n.id)}</span>,
     },
     {
       key: "last",
@@ -105,7 +106,7 @@ export function NetworkTable({
       width: 130,
       sortable: true,
       sortValue: (n) => (n.last_activity_at ? new Date(n.last_activity_at).getTime() : 0),
-      render: (n) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(n.last_activity_at)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums text-[11px] whitespace-nowrap">{formatDate(n.last_activity_at)}</span>,
     },
     {
       key: "next",
@@ -113,7 +114,7 @@ export function NetworkTable({
       width: 170,
       sortable: true,
       sortValue: (n) => (n.next_action ?? "").toLowerCase(),
-      render: (n) => <span className="text-ink-soft text-[12px] truncate block">{n.next_action ?? "—"}</span>,
+      render: (n) => <span className="text-foreground/80 text-[12px] truncate block">{n.next_action ?? "—"}</span>,
     },
     {
       key: "actions",
@@ -121,18 +122,11 @@ export function NetworkTable({
       width: 52,
       minWidth: 44,
       render: (n) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
-          aria-label={`Delete ${n.name}`}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)] transition-all duration-150" aria-label={`Delete ${n.name}`}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
+        </Button>
       ),
     },
   ];
@@ -142,19 +136,9 @@ export function NetworkTable({
 
 function StageSelect({ stage, onChange }: { stage: Stage; onChange: (s: Stage) => void }) {
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <StagePillSelect value={stage} options={STAGES} onChange={onChange}>
       <StagePill stage={stage} />
-      <select
-        value={stage}
-        onChange={(e) => onChange(e.target.value as Stage)}
-        className="absolute inset-0 opacity-0 cursor-pointer"
-        aria-label="Change stage"
-      >
-        {STAGES.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-    </div>
+    </StagePillSelect>
   );
 }
 

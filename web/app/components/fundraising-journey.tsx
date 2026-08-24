@@ -30,7 +30,7 @@ export function FundraisingJourney({
   const displayedStage = pipeline.includes(stage) ? stage : null;
 
   return (
-    <section className="bg-surface" aria-labelledby="fundraising-journey-title">
+    <section className="bg-card" aria-labelledby="fundraising-journey-title">
       <JourneyStepper
         label="Fundraising pipeline"
         current={displayedStage}
@@ -38,9 +38,9 @@ export function FundraisingJourney({
         onChange={onStageChange}
         compact={compact}
         meta={
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas px-2 py-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2 py-1">
             <CalendarIcon />
-            <span className="text-[10.5px] text-ink-soft">{formatTouchDate(nextTouch)}</span>
+            <span className="text-[10.5px] text-foreground/80">{formatTouchDate(nextTouch)}</span>
           </span>
         }
         hint={
@@ -56,7 +56,7 @@ export function FundraisingJourney({
                     onClick={() => onStageChange(terminal)}
                     className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${stage === terminal
                         ? "border-[color:var(--color-warn)]/50 tint-warn text-[color:var(--color-warn)]"
-                        : "border-line text-muted hover:border-line-strong hover:text-ink-soft"
+                        : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground/80"
                       }`}
                   >
                     {terminal}
@@ -78,7 +78,7 @@ export function FundraisingJourney({
                       data-tone={active ? tone : undefined}
                       className={`rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] transition-colors ${active
                           ? "tone border-transparent"
-                          : "border-line text-muted hover:border-line-strong hover:text-ink-soft"
+                          : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground/80"
                         }`}
                     >
                       {r}

@@ -39,8 +39,8 @@ export function PriorityStars({ value, onChange, size = 13, readOnly = false }: 
               width={size}
               height={size}
               viewBox="0 0 24 24"
-              fill={filled ? "var(--color-accent)" : "none"}
-              stroke={filled ? "var(--color-accent)" : "var(--color-muted)"}
+              fill={filled ? "var(--color-primary)" : "none"}
+              stroke={filled ? "var(--color-primary)" : "var(--color-muted-foreground)"}
               strokeWidth="1.6"
               strokeLinejoin="round"
             >

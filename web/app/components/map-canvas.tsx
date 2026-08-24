@@ -19,6 +19,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import type { Contact, Factory, Network, Stage } from "@/lib/types";
 import { StagePill } from "./stage-pill";
+import { Button } from "@/design-system/components/button";
 
 type Kind = "root" | "network" | "factory" | "contact";
 type NodeData = {
@@ -200,7 +201,7 @@ function MapCanvasInner({
 
   if (!layoutNodes.length) {
     return (
-      <div className="h-full grid place-items-center text-sm text-muted">
+      <div className="h-full grid place-items-center text-sm text-muted-foreground">
         Nothing to map yet. Add a network or a factory, or relax the filters.
       </div>
     );
@@ -228,10 +229,9 @@ function MapCanvasInner({
       }}
     >
       <Panel position="top-right">
-        <button onClick={resetLayout}
-          className="h-8 px-3 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[11.5px] font-medium text-ink-soft hover:text-ink cursor-pointer shadow-drawer">
+        <Button variant="outline" size="sm" onClick={resetLayout} className="h-8 px-3 text-[11.5px] text-foreground/80 hover:text-foreground shadow-mo-elevated">
           Reset layout
-        </button>
+        </Button>
       </Panel>
       <Background gap={22} />
       <Controls showInteractive={false} />
@@ -241,42 +241,50 @@ function MapCanvasInner({
 }
 
 function miniColor(kind?: Kind): string {
-  return kind === "network" ? "#2d44e0" : kind === "factory" ? "#8b93a7" : kind === "contact" ? "#5468ff" : "#6b7488";
+  // The map distinguishes three kinds, and the system has one hue — so depth on
+  // the primary ramp carries network vs contact, and the neutrals carry the rest.
+  return kind === "network"
+    ? "var(--mo-primary-500)"
+    : kind === "factory"
+      ? "var(--mo-neutral-400)"
+      : kind === "contact"
+        ? "var(--mo-primary-300)"
+        : "var(--mo-neutral-500)";
 }
 
 function EntityNode({ data }: NodeProps) {
   const d = data as NodeData;
   const isRoot = d.kind === "root";
   const border =
-    d.kind === "network" ? "border-l-accent" : d.kind === "contact" ? "border-l-[color:var(--color-accent-2)]" : "border-l-line-strong";
+    d.kind === "network" ? "border-l-primary" : d.kind === "contact" ? "border-l-[color:var(--mo-primary-800)]" : "border-l-border-strong";
 
   return (
     <div
-      className={`relative rounded-lg border border-line bg-surface shadow-drawer px-3 py-2 min-w-[230px] max-w-[320px] cursor-grab active:cursor-grabbing hover:border-line-strong ${
-        isRoot ? "border-dashed bg-surface-2/60" : `border-l-[3px] ${border}`
+      className={`relative rounded-lg border border-border bg-card shadow-mo-elevated px-3 py-2 min-w-[230px] max-w-[320px] cursor-grab active:cursor-grabbing hover:border-border-strong ${
+        isRoot ? "border-dashed bg-muted/60" : `border-l-[3px] ${border}`
       }`}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
 
       {d.alert && (
-        <span title="Open alert" className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[color:var(--color-warn)] ring-2 ring-canvas" />
+        <span title="Open alert" className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[color:var(--color-warn)] ring-2 ring-background" />
       )}
 
       {/* Row 1: kind (+ target) · status */}
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[9px] mono uppercase tracking-[0.12em] text-muted">{d.kind}</span>
-          {d.target && <span className="text-[8px] mono uppercase tracking-wider text-accent shrink-0">target</span>}
+          <span className="text-[9px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground">{d.kind}</span>
+          {d.target && <span className="text-[8px] tabular-nums uppercase tracking-wider text-primary shrink-0">target</span>}
         </span>
         {d.stage && <span className="shrink-0"><StagePill stage={d.stage} /></span>}
       </div>
 
       {/* Row 2: full name (no truncation) · location */}
       <div className="flex items-start justify-between gap-2.5 mt-1">
-        <div className="flex-1 min-w-0 text-[13px] font-medium text-ink leading-snug break-words">{d.label}</div>
+        <div className="flex-1 min-w-0 text-[13px] font-medium text-foreground leading-snug break-words">{d.label}</div>
         {d.sub && (
-          <div className="shrink-0 max-w-[44%] text-[10.5px] text-muted text-right leading-snug break-words">{d.sub}</div>
+          <div className="shrink-0 max-w-[44%] text-[10.5px] text-muted-foreground text-right leading-snug break-words">{d.sub}</div>
         )}
       </div>
     </div>

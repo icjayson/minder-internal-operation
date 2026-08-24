@@ -12,6 +12,9 @@ import { FactoryTable } from "@/app/components/factory-table";
 import { FactoryTree } from "@/app/components/factory-tree";
 import { useFdeDeploymentProgressByFactory } from "@/app/components/fde-deployment-progress";
 import { SearchInput, SelectControl } from "@/app/components/controls";
+import { Button } from "@/design-system/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/design-system/components/empty";
+import { Toggle } from "@/design-system/components/toggle";
 
 type SavedView = "all" | "needs_action" | "high_potential" | "stalled";
 
@@ -118,7 +121,7 @@ function CustomersInner() {
 
       <div className="px-4 py-5 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved customer views">
-          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
+          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Focus</span>
           <SavedViewButton label="All customers" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
           <SavedViewButton label="Next-action needed" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
           <SavedViewButton label="High potential" count={savedViewCounts.high_potential} active={savedView === "high_potential"} onClick={() => setSavedView("high_potential")} />
@@ -126,7 +129,7 @@ function CustomersInner() {
         </div>
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Table / Tree view toggle */}
-          <div className="inline-flex items-center rounded-full border border-line-strong bg-surface-2 p-0.5 shrink-0">
+          <div className="inline-flex items-center rounded-full border border-border-strong bg-muted p-0.5 shrink-0">
             <ViewBtn active={view === "table"} onClick={() => setView("table")} label="Table">
               <path d="M3 5h18M3 12h18M3 19h18" strokeWidth="1.7" strokeLinecap="round" />
             </ViewBtn>
@@ -145,20 +148,21 @@ function CustomersInner() {
           <SelectControl value={geoTier} onChange={setGeoTier}
             options={[{ value: "All", label: "All geos" }, ...GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))]} />
           <div className="flex-1" />
-          <button onClick={openNewCustomer}
-            className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+          <Button onClick={openNewCustomer} className="px-4 gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New customer
-          </button>
+          </Button>
         </div>
 
         {!rows ? (
           <FactoryTableSkeleton />
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
-            <div className="text-lg font-display mb-2">No customers yet</div>
-            <p className="text-sm text-ink-soft max-w-md mx-auto">Mark a factory as a customer from its page, or add one directly.</p>
-          </div>
+          <Empty className="border bg-card/50 py-16">
+            <EmptyHeader>
+              <EmptyTitle className="font-display text-lg">No customers yet</EmptyTitle>
+              <EmptyDescription className="text-sm">Mark a factory as a customer from its page, or add one directly.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : view === "tree" ? (
           <FactoryTree
             verticals={verticals}
@@ -188,20 +192,25 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
     ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]"
     : tone === "danger"
       ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
-      : "border-accent/40 bg-accent-dim text-accent";
+      : "border-primary/40 bg-primary-tint text-primary";
   return (
-    <button type="button" onClick={onClick} aria-pressed={active}
-      className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink"}`}>
-      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span>
-    </button>
+    <Toggle
+      variant="outline"
+      size="sm"
+      pressed={active}
+      onPressedChange={onClick}
+      className={`h-8 shrink-0 gap-2 rounded-full px-3 text-[11px] ${active ? activeTone : "border-border bg-card text-foreground/80 hover:border-border-strong hover:text-foreground"}`}
+    >
+      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span>
+    </Toggle>
   );
 }
 
 function FactoryTableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface" aria-label="Loading customers">
-      <div className="h-10 animate-pulse border-b border-line bg-surface-2/60" />
-      {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-line-soft px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-surface-3" /><span className="h-3 w-20 animate-pulse rounded bg-surface-3" /><span className="h-3 w-32 animate-pulse rounded bg-surface-3" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-surface-3" /></div>)}
+    <div className="overflow-hidden rounded-lg border border-border bg-card" aria-label="Loading customers">
+      <div className="h-10 animate-pulse border-b border-border bg-muted/60" />
+      {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-border/60 px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-accent" /><span className="h-3 w-20 animate-pulse rounded bg-accent" /><span className="h-3 w-32 animate-pulse rounded bg-accent" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-accent" /></div>)}
     </div>
   );
 }
@@ -210,13 +219,16 @@ function ViewBtn({ active, onClick, label, children }: {
   active: boolean; onClick: () => void; label: string; children: React.ReactNode;
 }) {
   return (
-    <button onClick={onClick} title={`${label} view`}
-      className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer inline-flex items-center gap-1.5 transition-colors ${
-        active ? "bg-accent text-white" : "text-ink-soft hover:text-ink"
-      }`}>
+    <Toggle
+      size="sm"
+      pressed={active}
+      onPressedChange={onClick}
+      title={`${label} view`}
+      className="h-8 gap-1.5 rounded-full px-3 text-[12px] text-foreground/80 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+    >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">{children}</svg>
       {label}
-    </button>
+    </Toggle>
   );
 }
 
