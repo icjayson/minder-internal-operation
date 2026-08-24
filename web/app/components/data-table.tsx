@@ -2,6 +2,16 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/design-system/components/table";
+import { cn } from "@/design-system/lib/utils";
+
 export type Column<T> = {
   key: string;
   header: string;
@@ -19,6 +29,9 @@ type SortState = { key: string; dir: "asc" | "desc" } | null;
 // Reusable table with click-to-sort headers (asc → desc → default) and
 // drag-to-resize columns (persisted per `storageKey`). Fixed layout so widths
 // are honoured; the container scrolls horizontally.
+//
+// The markup is the design system's Table; the sort and resize behaviour is
+// this component's own, since the system has no equivalent.
 export function DataTable<T extends { id: string }>({
   columns,
   rows,
@@ -107,10 +120,12 @@ export function DataTable<T extends { id: string }>({
   };
 
   const total = columns.reduce((s, c) => s + colWidth(c), 0);
+  const alignOf = (c: Column<T>) =>
+    c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : "";
 
   return (
-    <div className="rounded-lg border border-line bg-surface overflow-x-auto">
-      <table
+    <div className="overflow-hidden rounded-lg border bg-card">
+      <Table
         className="text-[13px]"
         style={{ tableLayout: "fixed", width: "100%", minWidth: total }}
       >
@@ -119,17 +134,23 @@ export function DataTable<T extends { id: string }>({
             <col key={c.key} style={{ width: colWidth(c) }} />
           ))}
         </colgroup>
-        <thead>
-          <tr className="border-b border-line text-muted-foreground bg-surface-2/40">
+        <TableHeader>
+          {/* Headers are a static strip, so the row's own hover tint is off. */}
+          <TableRow className="bg-muted/40 hover:bg-muted/40">
             {columns.map((c) => {
               const active = sort?.key === c.key;
               return (
-                <th
+                <TableHead
                   key={c.key}
                   onClick={() => toggleSort(c)}
-                  className={`relative text-left mono font-medium uppercase tracking-[0.12em] text-[10px] px-4 py-2.5 select-none ${
-                    c.sortable ? "cursor-pointer hover:text-ink-soft" : ""
-                  } ${c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : ""}`}
+                  aria-sort={
+                    active ? (sort!.dir === "asc" ? "ascending" : "descending") : undefined
+                  }
+                  className={cn(
+                    "relative h-auto px-4 py-2.5 text-[10px] tracking-[0.12em] text-muted-foreground uppercase select-none",
+                    c.sortable && "cursor-pointer hover:text-foreground",
+                    alignOf(c),
+                  )}
                 >
                   <span className="inline-flex items-center gap-1">
                     <span className="truncate">{c.header}</span>
@@ -144,34 +165,36 @@ export function DataTable<T extends { id: string }>({
                     className="absolute top-0 right-0 h-full w-2 cursor-col-resize touch-none hover:bg-primary/30"
                     aria-hidden
                   />
-                </th>
+                </TableHead>
               );
             })}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {sorted.map((row) => (
-            <tr
+            <TableRow
               key={row.id}
               onClick={() => onRowClick?.(row)}
-              className={`group border-t border-line-soft transition-colors duration-150 ${
-                onRowClick ? "hover:bg-surface-2/60 cursor-pointer" : ""
-              }`}
+              className={cn("group", onRowClick ? "cursor-pointer" : "hover:bg-transparent")}
             >
               {columns.map((c) => (
-                <td
+                <TableCell
                   key={c.key}
-                  className={`px-4 py-3 align-middle overflow-hidden ${
-                    c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : ""
-                  } ${c.cellClassName ?? ""}`}
+                  // Cells wrap and clip rather than running on: the layout is
+                  // fixed, so a long value has to fold inside its own column.
+                  className={cn(
+                    "overflow-hidden px-4 py-3 whitespace-normal",
+                    alignOf(c),
+                    c.cellClassName,
+                  )}
                 >
                   {c.render(row)}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -184,7 +207,11 @@ function SortArrow({ dir }: { dir: "asc" | "desc" | null }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      className={`shrink-0 transition-transform ${dir === "desc" ? "rotate-180" : ""} ${dir ? "text-primary" : "text-muted-foreground/40"}`}
+      className={cn(
+        "shrink-0 transition-transform",
+        dir === "desc" && "rotate-180",
+        dir ? "text-primary" : "text-muted-foreground/40",
+      )}
     >
       <path d="M12 5v14M6 11l6-6 6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>

@@ -3,6 +3,9 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { FactoriesProvider, useStore } from "@/lib/factories-store";
+import { Toaster } from "@/design-system/components/sonner";
+import { TooltipProvider } from "@/design-system/components/tooltip";
+import { AppThemeProvider, useAppTheme } from "./theme";
 import { Sidebar } from "./sidebar";
 import { FactoryDrawer } from "./factory-drawer";
 import { NewFactoryDrawer } from "./new-factory-drawer";
@@ -13,17 +16,31 @@ import { NewFundraisingDrawer } from "./new-fundraising-drawer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <FactoriesProvider>
-      <div className="flex min-h-screen bg-canvas text-ink">
-        <Sidebar />
-        <main className="flex-1 min-w-0">{children}</main>
-        <GlobalDrawers />
-        <Suspense fallback={null}>
-          <DeepLinkOpener />
-        </Suspense>
-      </div>
-    </FactoriesProvider>
+    <AppThemeProvider>
+      <TooltipProvider>
+        <FactoriesProvider>
+          <div className="flex min-h-screen bg-canvas text-ink">
+            <Sidebar />
+            <main className="flex-1 min-w-0">{children}</main>
+            <GlobalDrawers />
+            <AppToaster />
+            <Suspense fallback={null}>
+              <DeepLinkOpener />
+            </Suspense>
+          </div>
+        </FactoriesProvider>
+      </TooltipProvider>
+    </AppThemeProvider>
   );
+}
+
+/* The vendored Toaster reads its sky from next-themes, which this app does not
+   use — left alone it falls back to "system" and can paint dark-theme text onto
+   a light toast. Handing it the app's own sky fixes that; the component spreads
+   props last, so this wins without touching the vendored source. */
+function AppToaster() {
+  const { theme } = useAppTheme();
+  return <Toaster theme={theme} richColors position="bottom-right" />;
 }
 
 function GlobalDrawers() {
