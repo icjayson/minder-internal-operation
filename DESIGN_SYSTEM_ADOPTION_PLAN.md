@@ -334,6 +334,7 @@ Phase 1 alone already delivers a Minder-branded ops platform. Phases 2–4 are w
 | `252bb6c` | **Element audit** — toggles, chips, the remaining buttons |
 | `758759a` | **Element audit** — the last hand-picked colours onto the ramps |
 | `4987196` | **/analytics** — onto the vendored chart blocks |
+| `4d9591c` | **Type scale** — headings onto `text-heading-2` and friends |
 
 What landed, against what the plan assumed:
 
@@ -479,8 +480,24 @@ ramp.
 > only paints after the first animation frame lands. Worth knowing before adding
 > any more chart blocks.
 
+### The type scale
+
+Done in `4d9591c`. Page titles are `text-heading-2`, panel and drawer titles
+`text-heading-3`, the 20px headings `text-title` — each an exact size match to
+what it replaced, so the sizes land on the scale without the pages moving.
+
+> **The `h1–h4` element defaults had to move into `@layer base` first.** As
+> unlayered CSS they beat every Tailwind utility, so a heading given
+> `text-heading-2` still took the blanket `-0.02em` tracking and 700 weight
+> instead of the token's. Anything else added to `globals.css` outside a layer
+> will do the same thing to the utility that is meant to override it.
+
+Left alone on purpose: the sidebar brand (a 13px wordmark, not a heading), the
+10px uppercase card eyebrows (`eyebrow` is 12px at +0.125px tracking — moving
+them would grow every card label and tighten it), and the 12.5–15px semibold
+section headings (the scale has no 15px-semibold step, and `body-sm` at 400 or
+`label` at 500 would change weight to fit a token rather than meaning).
+
 ### Still open
 
-**Headings onto the type scale.** `text-heading-2` and friends exist and are
-generated from tokens.ts, but adopting them changes type sizes and therefore
-layout. One commit whenever the layout can move.
+Nothing. Every phase and both deferred items are done.
