@@ -5,7 +5,7 @@ import type { Contact, Network, Stage } from "@/lib/types";
 import { NETWORK_SCORE_DIMENSIONS, NETWORK_TYPES, ROLE_CATEGORIES, STAGES, VERTICALS } from "@/lib/types";
 import { useStore } from "@/lib/factories-store";
 import { effectiveContactRoleLevel } from "@/lib/contact-role";
-import { StagePill } from "./stage-pill";
+import { StagePill, StagePillSelect } from "./stage-pill";
 import { ScoreChip, ScoreBreakdownBars } from "./score-bars";
 import { PriorityStars } from "./priority-stars";
 import { ContextPanel } from "./context-panel";
@@ -289,14 +289,13 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                       <span className="text-[13px] text-foreground truncate block">{c.full_name}</span>
                       {c.role_title && <span className="text-[11px] text-muted-foreground truncate block">{c.role_title}</span>}
                     </button>
-                    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                    <StagePillSelect
+                      value={c.stage}
+                      options={STAGES}
+                      onChange={(next) => updateContact(c.id, { stage: next, last_activity_at: new Date().toISOString() })}
+                    >
                       <StagePill stage={c.stage} />
-                      <select value={c.stage}
-                        onChange={(e) => updateContact(c.id, { stage: e.target.value as Stage, last_activity_at: new Date().toISOString() })}
-                        className="absolute inset-0 opacity-0 cursor-pointer" aria-label="Change stage">
-                        {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
+                    </StagePillSelect>
                     <Button variant="ghost" size="icon-sm" onClick={() => { if (confirm(`Delete ${c.full_name}?`)) deleteContact(c.id); }} className="opacity-0 group-hover:opacity-100 w-7 h-7 hover:text-[color:var(--color-danger)]" aria-label="Delete contact">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Button>

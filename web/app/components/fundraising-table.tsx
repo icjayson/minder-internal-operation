@@ -5,6 +5,7 @@ import { fundraisingStages, fundraisingTypeLabel } from "@/lib/types";
 import { FundStagePill, ResultPill } from "./fund-stage-pill";
 import { DataTable, type Column } from "./data-table";
 import { Button } from "@/design-system/components/button";
+import { StagePillSelect } from "./stage-pill";
 
 type Props = {
   track: FundraisingTrack;
@@ -111,19 +112,9 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
 
 function StageSelect({ stage, stages, onChange }: { stage: FundraisingStage; stages: FundraisingStage[]; onChange: (s: FundraisingStage) => void }) {
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <StagePillSelect value={stage} options={stages} onChange={onChange}>
       <FundStagePill stage={stage} />
-      <select
-        value={stage}
-        onChange={(e) => onChange(e.target.value as FundraisingStage)}
-        className="absolute inset-0 opacity-0 cursor-pointer"
-        aria-label="Change stage"
-      >
-        {stages.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-    </div>
+    </StagePillSelect>
   );
 }
 

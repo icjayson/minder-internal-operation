@@ -4,7 +4,7 @@ import type { Contact, RoleLevel, Stage } from "@/lib/types";
 import { ROLE_CATEGORIES, ROLE_LEVELS, STAGES } from "@/lib/types";
 import { isTopLevelContactTitle } from "@/lib/contact-role";
 import { normalizeUrl } from "@/lib/import-normalization";
-import { StagePill } from "./stage-pill";
+import { StagePill, StagePillSelect } from "./stage-pill";
 import { Button } from "@/design-system/components/button";
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -148,19 +148,9 @@ function ContactRow({
         </div>
       </button>
 
-      <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <StagePillSelect value={c.stage} options={STAGES} onChange={(next) => onStageChange(c.id, next)}>
         <StagePill stage={c.stage} />
-        <select
-          value={c.stage}
-          onChange={(e) => onStageChange(c.id, e.target.value as Stage)}
-          className="absolute inset-0 opacity-0 cursor-pointer"
-          aria-label="Change stage"
-        >
-          {STAGES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
+      </StagePillSelect>
 
       {c.linkedin_url && (
         /* A link that acts as a button, so it is a Button that renders an

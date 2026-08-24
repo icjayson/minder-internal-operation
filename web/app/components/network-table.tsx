@@ -2,7 +2,7 @@
 
 import type { Network, Stage } from "@/lib/types";
 import { NETWORK_TYPES, STAGES } from "@/lib/types";
-import { StagePill } from "./stage-pill";
+import { StagePill, StagePillSelect } from "./stage-pill";
 import { ScoreChip } from "./score-bars";
 import { DataTable, type Column } from "./data-table";
 import { Button } from "@/design-system/components/button";
@@ -136,19 +136,9 @@ export function NetworkTable({
 
 function StageSelect({ stage, onChange }: { stage: Stage; onChange: (s: Stage) => void }) {
   return (
-    <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <StagePillSelect value={stage} options={STAGES} onChange={onChange}>
       <StagePill stage={stage} />
-      <select
-        value={stage}
-        onChange={(e) => onChange(e.target.value as Stage)}
-        className="absolute inset-0 opacity-0 cursor-pointer"
-        aria-label="Change stage"
-      >
-        {STAGES.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-    </div>
+    </StagePillSelect>
   );
 }
 
