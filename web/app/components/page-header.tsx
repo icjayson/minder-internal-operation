@@ -19,9 +19,9 @@ export function PageHeader({
     <header className="border-b border-line px-4 pb-4 pt-5 sm:px-6 sm:pt-7 lg:px-8">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1 text-[11px] mono uppercase tracking-[0.14em] text-accent">
-            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-accent">
-              <span className="absolute inset-0 rounded-full bg-accent animate-ping opacity-60" />
+          <div className="flex items-center gap-2 mb-1 text-[11px] mono uppercase tracking-[0.14em] text-primary">
+            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-primary">
+              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
             </span>
             {eyebrow}
           </div>
@@ -31,7 +31,7 @@ export function PageHeader({
           )}
         </div>
         {right && (
-          <div className="flex items-center gap-2 text-[11px] mono text-muted uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-[11px] mono text-muted-foreground uppercase tracking-wider">
             {right}
           </div>
         )}

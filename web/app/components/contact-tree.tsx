@@ -54,7 +54,7 @@ export function ContactTree({
     <div>
       {/* Factory root node */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full bg-accent" />
+        <span className="w-2 h-2 rounded-full bg-primary" />
         <span className="text-[13px] font-medium text-ink truncate">{factoryName}</span>
         <button
           onClick={onAdd}
@@ -65,14 +65,14 @@ export function ContactTree({
       </div>
 
       {contacts.length === 0 && (
-        <p className="text-[13px] text-muted pl-4">No contacts yet — add the owner, MD or plant director.</p>
+        <p className="text-[13px] text-muted-foreground pl-4">No contacts yet — add the owner, MD or plant director.</p>
       )}
 
       <div className="pl-1 border-l border-line ml-1 space-y-4">
         {[...grouped, ...(ungrouped.length ? [{ level: "other", rows: ungrouped }] : [])].map((g) => (
           <div key={g.level} className="pl-4 relative">
             <div className={`text-[10px] mono uppercase tracking-[0.14em] mb-1.5 ${
-              g.level === "high" ? "text-accent font-medium" : "text-muted"
+              g.level === "high" ? "text-primary font-medium" : "text-muted-foreground"
             }`}>
               {LEVEL_LABEL[g.level] ?? "Other"}
             </div>
@@ -115,11 +115,11 @@ function ContactRow({
     <div
       className={`group flex items-center gap-2 rounded-md border px-3 py-2 ${
         isTopLevelTitle
-          ? "border-accent bg-accent-dim shadow-[inset_3px_0_0_var(--color-accent)]"
+          ? "border-primary bg-primary-tint shadow-[inset_3px_0_0_var(--color-primary)]"
           : isHighLevel
-            ? "border-accent/25 bg-accent-dim/45"
+            ? "border-primary/25 bg-primary-tint/45"
             : c.is_primary_target
-              ? "border-accent/40 bg-accent-dim"
+              ? "border-primary/40 bg-primary-tint"
               : "border-line bg-surface-2/40"
       }`}
     >
@@ -131,20 +131,20 @@ function ContactRow({
         title={c.is_primary_target ? "Confirmed primary target — click to remove" : "Confirm as primary target"}
         className={`grid h-7 w-7 shrink-0 place-items-center rounded-full transition-colors ${
           c.is_primary_target
-            ? "bg-accent text-white shadow-glow"
-            : "text-muted hover:bg-accent-dim hover:text-accent"
+            ? "bg-primary text-white shadow-glow"
+            : "text-muted-foreground hover:bg-primary-tint hover:text-primary"
         }`}
       >
         <TargetStarIcon filled={c.is_primary_target} />
       </button>
       <button onClick={() => onEdit?.(c)} className="min-w-0 flex-1 text-left cursor-pointer" title="Edit contact">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-medium text-ink truncate hover:text-accent transition-colors">{c.full_name}</span>
+          <span className="text-[13px] font-medium text-ink truncate hover:text-primary transition-colors">{c.full_name}</span>
           {c.is_primary_target && (
-            <span className="text-[9px] mono uppercase tracking-wider text-accent">target</span>
+            <span className="text-[9px] mono uppercase tracking-wider text-primary">target</span>
           )}
         </div>
-        <div className="text-[11px] text-muted truncate">
+        <div className="text-[11px] text-muted-foreground truncate">
           {c.role_title ?? "—"}
           {c.sequence_id ? ` · ${c.sequence_state.replace(/_/g, " ")} · step ${c.sequence_step}` : ""}
         </div>
@@ -170,7 +170,7 @@ function ContactRow({
           target="_blank"
           rel="noopener noreferrer"
           title="Open LinkedIn in a new tab"
-          className="h-6 px-2 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[10.5px] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+          className="h-6 px-2 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[10.5px] font-medium inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0"
         >
           LinkedIn
           <svg
@@ -190,7 +190,7 @@ function ContactRow({
       )}
       <button
         onClick={() => { if (confirm(`Remove ${c.full_name}?`)) onDelete(c.id); }}
-        className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] cursor-pointer transition-all"
+        className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer transition-all"
         aria-label="Remove contact"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">

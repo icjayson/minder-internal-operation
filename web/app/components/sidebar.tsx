@@ -196,9 +196,9 @@ export function Sidebar() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/minder-lead-logo.png" alt="Minder Ops Platform" className="h-full w-full object-cover" />
-          <span className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-canvas" />
+          <span className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-canvas" />
         </Link>
-        {!collapsed && <div className="min-w-0 max-lg:hidden"><div className="truncate text-[13px] font-semibold text-ink">Minder Ops Platform</div><div className="text-[9px] uppercase tracking-[0.12em] text-muted">Internal operations</div></div>}
+        {!collapsed && <div className="min-w-0 max-lg:hidden"><div className="truncate text-[13px] font-semibold text-ink">Minder Ops Platform</div><div className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Internal operations</div></div>}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -233,7 +233,7 @@ export function Sidebar() {
       <div className="flex-1" />
 
       <div className={`flex items-center px-3 ${collapsed ? "justify-center" : "justify-between max-lg:justify-center"}`}>
-        {!collapsed && <span className="text-[11px] text-muted max-lg:hidden">Appearance</span>}
+        {!collapsed && <span className="text-[11px] text-muted-foreground max-lg:hidden">Appearance</span>}
         <ThemeToggle />
       </div>
 
@@ -247,7 +247,7 @@ export function Sidebar() {
         type="button"
         onClick={toggleCollapsed}
         aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
-        className="mx-3 mt-2 hidden h-8 items-center justify-center gap-2 rounded-md border border-line text-[10.5px] text-muted hover:border-line-strong hover:text-ink-soft lg:flex"
+        className="mx-3 mt-2 hidden h-8 items-center justify-center gap-2 rounded-md border border-line text-[10.5px] text-muted-foreground hover:border-line-strong hover:text-ink-soft lg:flex"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={collapsed ? "rotate-180" : ""}><path d="m15 5-7 7 7 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {!collapsed && <span>Collapse</span>}
@@ -273,7 +273,7 @@ function PartnerNav({ pathname, collapsed, count = 0 }: { pathname: string; coll
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
         className={`group relative flex h-9 w-full items-center transition-colors duration-150 ${open ? "rounded-t-md border-b border-line" : "rounded-md"} ${collapsed ? "justify-center px-0 max-lg:justify-center" : "gap-3 px-3 max-lg:justify-center max-lg:px-0"} ${
-          active ? "bg-accent-dim text-accent" : open ? "bg-surface-2 text-ink-soft" : "text-muted hover:bg-surface-2 hover:text-ink-soft"
+          active ? "bg-primary-tint text-primary" : open ? "bg-surface-2 text-ink-soft" : "text-muted-foreground hover:bg-surface-2 hover:text-ink-soft"
         }`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -329,7 +329,7 @@ function FundraisingNav({ pathname, collapsed, count = 0 }: { pathname: string; 
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
         className={`group relative flex h-9 w-full items-center transition-colors duration-150 ${open ? "rounded-t-md border-b border-line" : "rounded-md"} ${collapsed ? "justify-center px-0 max-lg:justify-center" : "gap-3 px-3 max-lg:justify-center max-lg:px-0"} ${
-          active ? "bg-accent-dim text-accent" : open ? "bg-surface-2 text-ink-soft" : "text-muted hover:bg-surface-2 hover:text-ink-soft"
+          active ? "bg-primary-tint text-primary" : open ? "bg-surface-2 text-ink-soft" : "text-muted-foreground hover:bg-surface-2 hover:text-ink-soft"
         }`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -387,7 +387,7 @@ function PartnerNavIcon({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={`group relative mx-1 flex h-8 items-center rounded-md transition-colors duration-150 ${collapsed ? "justify-center px-0" : "gap-2.5 pl-7 pr-2 max-lg:justify-center max-lg:px-0"} ${
-        active ? "bg-accent-dim text-accent" : "text-muted hover:bg-surface-2 hover:text-ink-soft"
+        active ? "bg-primary-tint text-primary" : "text-muted-foreground hover:bg-surface-2 hover:text-ink-soft"
       }`}
     >
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -403,7 +403,7 @@ function PartnerNavIcon({
 
 function NavCount({ value }: { value: number }) {
   return (
-    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1.5 text-[9px] font-semibold text-muted max-lg:hidden">
+    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1.5 text-[9px] font-semibold text-muted-foreground max-lg:hidden">
       {value}
     </span>
   );
@@ -433,7 +433,7 @@ function NavIcon({
       aria-label={label}
       aria-current={active ? "page" : undefined}
       className={`group relative mx-2 flex h-9 items-center rounded-md cursor-pointer transition-colors duration-150 ${collapsed ? "justify-center px-0 max-lg:justify-center" : "gap-3 px-3 max-lg:justify-center max-lg:px-0"} ${
-        active ? "bg-surface-3 text-accent" : "text-muted hover:bg-surface-2 hover:text-ink-soft"
+        active ? "bg-surface-3 text-primary" : "text-muted-foreground hover:bg-surface-2 hover:text-ink-soft"
       }`}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -441,7 +441,7 @@ function NavIcon({
       </svg>
       {!collapsed && <span className="min-w-0 flex-1 truncate text-[12px] font-medium max-lg:hidden">{label}</span>}
       {!collapsed && badge === 0 && count > 0 && <NavCount value={count} />}
-      {badge > 0 && <span className={`grid min-w-4 h-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-semibold text-white ${collapsed ? "absolute right-0 top-0" : "max-lg:absolute max-lg:right-0 max-lg:top-0"}`}>{badge}</span>}
+      {badge > 0 && <span className={`grid min-w-4 h-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-semibold text-white ${collapsed ? "absolute right-0 top-0" : "max-lg:absolute max-lg:right-0 max-lg:top-0"}`}>{badge}</span>}
       <span className={`absolute left-[52px] z-50 whitespace-nowrap rounded-md border border-line-strong bg-surface-3 px-2 py-1 text-[10px] uppercase tracking-wider text-ink opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 ${collapsed ? "" : "hidden max-lg:block"}`}>
         {label}
       </span>

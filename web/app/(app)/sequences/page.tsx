@@ -101,7 +101,7 @@ export default function SequencesPage() {
           {verticals.map((v) => (
             <button key={v.id} onClick={() => setActive(v.id)}
               className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer transition-colors ${
-                active === v.id ? "bg-accent text-white" : "border border-line-strong bg-surface hover:bg-surface-3 text-ink-soft"
+                active === v.id ? "bg-primary text-white" : "border border-line-strong bg-surface hover:bg-surface-3 text-ink-soft"
               }`}>
               {v.name}
             </button>
@@ -109,9 +109,9 @@ export default function SequencesPage() {
         </div>
 
         <div className="max-w-3xl flex items-center gap-2 mb-3">
-          <span className="text-[10px] mono uppercase tracking-wider text-muted">Preview as</span>
+          <span className="text-[10px] mono uppercase tracking-wider text-muted-foreground">Preview as</span>
           <select value={previewContact} onChange={(e) => setPreviewContact(e.target.value)}
-            className="h-8 min-w-56 rounded-md border border-line bg-surface px-2 text-[12px] text-ink focus:border-accent focus:outline-none">
+            className="h-8 min-w-56 rounded-md border border-line bg-surface px-2 text-[12px] text-ink focus:border-primary focus:outline-none">
             {eligibleContacts.length === 0 && <option value="">No contacts in this vertical</option>}
             {eligibleContacts.map((c) => <option key={c.id} value={c.id}>{c.full_name} · {c.role_title ?? "contact"}</option>)}
           </select>
@@ -128,11 +128,11 @@ export default function SequencesPage() {
           {seqSteps.map((s) => (
             <div key={s.id} className="rounded-lg border border-line bg-surface p-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-accent-dim text-accent mono text-[11px] font-semibold">Day {s.day_offset}</span>
-                <span className="text-[11px] mono uppercase tracking-wider text-muted">{s.intent}</span>
+                <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-primary-tint text-primary mono text-[11px] font-semibold">Day {s.day_offset}</span>
+                <span className="text-[11px] mono uppercase tracking-wider text-muted-foreground">{s.intent}</span>
                 <div className="flex-1" />
                 <button onClick={() => generatePreview(s)} disabled={!previewContact || generatingStep === s.id}
-                  className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[11px] font-medium cursor-pointer">
+                  className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[11px] font-medium cursor-pointer">
                   {generatingStep === s.id ? "Drafting…" : "AI draft this step"}
                 </button>
               </div>
@@ -141,15 +141,15 @@ export default function SequencesPage() {
               <textarea defaultValue={s.body ?? ""} rows={3} onBlur={(e) => saveStep(s.id, { body: e.target.value })}
                 className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[13px] text-ink-soft leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
               {preview[s.id] && (
-                <div className="mt-3 rounded-md border border-accent/30 bg-accent-dim p-3">
-                  <div className="text-[10px] mono uppercase tracking-wider text-accent mb-1">Personalized preview · saved to drafts</div>
+                <div className="mt-3 rounded-md border border-primary/30 bg-primary-tint p-3">
+                  <div className="text-[10px] mono uppercase tracking-wider text-primary mb-1">Personalized preview · saved to drafts</div>
                   <div className="text-[12px] text-ink mb-1">Subject: {preview[s.id].subject}</div>
                   <p className="text-[12px] text-ink-soft leading-relaxed whitespace-pre-wrap">{preview[s.id].body}</p>
                 </div>
               )}
             </div>
           ))}
-          {seqSteps.length === 0 && <p className="text-sm text-muted">No steps — run the SQL seed to create the default cadence.</p>}
+          {seqSteps.length === 0 && <p className="text-sm text-muted-foreground">No steps — run the SQL seed to create the default cadence.</p>}
         </div>
       </div>
     </>

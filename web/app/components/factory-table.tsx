@@ -62,7 +62,7 @@ export function FactoryTable({
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="font-medium truncate text-accent hover:underline block"
+                  className="font-medium truncate text-primary hover:underline block"
                   title={website}
                 >
                   {f.name}
@@ -70,7 +70,7 @@ export function FactoryTable({
               ) : (
                 <div className="font-medium truncate text-ink">{f.name}</div>
               )}
-              <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted">
+              <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10.5px] text-muted-foreground">
                 <span className="truncate">{verticalName(f.vertical_id)}</span>
                 {!customerMode && (f.geo_tier || f.hq_location) && <span aria-hidden>·</span>}
                 {!customerMode && <span className="truncate">{f.geo_tier ?? f.hq_location}</span>}
@@ -131,7 +131,7 @@ export function FactoryTable({
             e.stopPropagation();
             if (confirm(`Delete ${f.name}? This removes its contacts too.`)) onDelete(f.id);
           }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
+          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
           aria-label={`Delete ${f.name}`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -197,22 +197,22 @@ export function FactoryTable({
 }
 
 function FdeProgressCell({ progress }: { progress?: FdeProgressSummary }) {
-  if (!progress) return <span className="text-[11px] text-muted">Not started</span>;
+  if (!progress) return <span className="text-[11px] text-muted-foreground">Not started</span>;
   return (
     <div title={progress.deploymentName}>
       <div className="flex items-center gap-2">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
-          <div className="h-full rounded-full bg-accent" style={{ width: `${progress.percent}%` }} />
+          <div className="h-full rounded-full bg-primary" style={{ width: `${progress.percent}%` }} />
         </div>
         <span className="shrink-0 text-[10.5px] mono text-ink-soft">{progress.done}/{progress.total}</span>
       </div>
-      <div className="mt-1 flex items-center gap-2 truncate text-[9.5px] text-muted">
+      <div className="mt-1 flex items-center gap-2 truncate text-[9.5px] text-muted-foreground">
         <a
           href={`${process.env.NEXT_PUBLIC_FDE_KIT_URL ?? "https://fde-kit-web.vercel.app"}/deployments/${progress.deploymentId}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(event) => event.stopPropagation()}
-          className="rounded-full border border-line-strong px-1.5 py-0.5 mono uppercase hover:border-accent hover:text-accent transition-colors"
+          className="rounded-full border border-line-strong px-1.5 py-0.5 mono uppercase hover:border-primary hover:text-primary transition-colors"
         >
           Details
         </a>
@@ -239,7 +239,7 @@ function RelationshipMini({ level }: { level: number }) {
 }
 
 function DueDate({ value }: { value: string | null }) {
-  if (!value) return <span className="text-[11px] text-muted">Not scheduled</span>;
+  if (!value) return <span className="text-[11px] text-muted-foreground">Not scheduled</span>;
   const today = new Date().toISOString().slice(0, 10);
   const overdue = value < today;
   const dueToday = value === today;

@@ -63,8 +63,8 @@ export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTra
       <button onClick={() => !saving && onClose()} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
       <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[520px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
         <header className="relative px-6 pt-5 pb-4 border-b border-line">
-          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-          <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">New {meta.noun}</div>
+          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="text-[10px] mono uppercase tracking-[0.14em] text-primary mb-1">New {meta.noun}</div>
           <h2 className="text-[22px] font-display text-ink">
             {track === "investor" ? "Add an investor" : "Add a competition or programme"}
           </h2>
@@ -101,7 +101,7 @@ export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTra
         <footer className="px-6 py-3 border-t border-line flex items-center gap-2 bg-surface-2/50">
           <button type="button" onClick={() => !saving && onClose()} className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[12.5px] font-medium text-ink-soft cursor-pointer">Cancel</button>
           <div className="flex-1" />
-          <button type="submit" form="new-fundraising" disabled={saving} className="h-9 px-5 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[12.5px] font-medium cursor-pointer">
+          <button type="submit" form="new-fundraising" disabled={saving} className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[12.5px] font-medium cursor-pointer">
             {saving ? "Saving…" : "Save"}
           </button>
         </footer>
@@ -110,12 +110,12 @@ export function NewFundraisingDrawer({ track, onClose }: { track: FundraisingTra
   );
 }
 
-const inp = "w-full h-9 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink placeholder:text-muted focus:border-line-strong focus:outline-none";
+const inp = "w-full h-9 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink placeholder:text-muted-foreground focus:border-line-strong focus:outline-none";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
+      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       {children}
     </label>
   );

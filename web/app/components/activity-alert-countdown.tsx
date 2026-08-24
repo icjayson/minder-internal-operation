@@ -29,7 +29,7 @@ export function ActivityRowActions({
         title="Delete activity"
         aria-label="Delete activity"
         onClick={remove}
-        className="grid h-6 w-6 place-items-center rounded-md text-muted transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
+        className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
       >
         <TrashIcon />
       </button>

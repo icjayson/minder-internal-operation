@@ -186,10 +186,10 @@ export default function AIContextPage() {
                   active ? "bg-surface-3 text-ink shadow-sm" : "text-ink-soft hover:bg-surface-2"
                 }`}
               >
-                <span className="block text-[10px] mono uppercase tracking-[0.14em] text-accent">
+                <span className="block text-[10px] mono uppercase tracking-[0.14em] text-primary">
                   {item.label}
                 </span>
-                <span className="mt-1 block text-[12px] text-muted">{item.description}</span>
+                <span className="mt-1 block text-[12px] text-muted-foreground">{item.description}</span>
               </button>
             );
           })}
@@ -210,7 +210,7 @@ export default function AIContextPage() {
 
         <section>
           <div className="mb-3">
-            <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted">
+            <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">
               {currentCategory.label} context
             </h2>
             <p className="mt-1 text-[12px] text-ink-soft">
@@ -228,9 +228,9 @@ export default function AIContextPage() {
                       <h3 className="text-[12px] mono font-medium tracking-[0.04em] text-ink">
                         {definition.label}
                       </h3>
-                      <p className="mt-1 text-[11.5px] text-muted">{definition.description}</p>
+                      <p className="mt-1 text-[11.5px] text-muted-foreground">{definition.description}</p>
                     </div>
-                    <label className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted">
+                    <label className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                       <input
                         type="checkbox"
                         checked={context?.active ?? true}
@@ -245,13 +245,13 @@ export default function AIContextPage() {
                     disabled={!context}
                     rows={Math.min(14, Math.max(6, (context?.body ?? definition.defaultBody).split("\n").length + 2))}
                     onChange={(event) => editContext(definition.key, { body: event.target.value })}
-                    className="w-full resize-y rounded-md border border-line bg-canvas px-3 py-2.5 text-[12.5px] leading-relaxed text-ink-soft focus:border-accent focus:outline-none disabled:opacity-60"
+                    className="w-full resize-y rounded-md border border-line bg-canvas px-3 py-2.5 text-[12.5px] leading-relaxed text-ink-soft focus:border-primary focus:outline-none disabled:opacity-60"
                   />
                   <div className="mt-2 flex justify-end">
                     <button
                       onClick={() => saveContext(definition.key)}
                       disabled={!context || saving === definition.key}
-                      className="h-7 min-w-20 rounded-full bg-accent px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
+                      className="h-7 min-w-20 rounded-full bg-primary px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
                     >
                       {saving === definition.key ? "Saving…" : saved === definition.key ? "Saved ✓" : "Save"}
                     </button>
@@ -265,7 +265,7 @@ export default function AIContextPage() {
         <section className="rounded-lg border border-line bg-surface p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted">
+              <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">
                 {currentCategory.label} files
               </h2>
               <p className="mt-1 text-[12px] text-ink-soft">
@@ -275,7 +275,7 @@ export default function AIContextPage() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={schemaMissing || uploading}
-              className="h-8 shrink-0 rounded-full bg-accent px-4 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
+              className="h-8 shrink-0 rounded-full bg-primary px-4 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-60 cursor-pointer"
             >
               {uploading ? "Uploading…" : "Upload context"}
             </button>
@@ -291,7 +291,7 @@ export default function AIContextPage() {
 
           <div className="mt-4 space-y-2">
             {categoryFiles.length === 0 ? (
-              <p className="rounded-md border border-dashed border-line px-3 py-5 text-center text-[12px] text-muted">
+              <p className="rounded-md border border-dashed border-line px-3 py-5 text-center text-[12px] text-muted-foreground">
                 No shared files in this category yet.
               </p>
             ) : (
@@ -325,7 +325,7 @@ function SharedFileRow({
   return (
     <div className="rounded-md border border-line bg-surface-2/40 px-3 py-2.5">
       <div className="flex items-center gap-2">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="shrink-0 text-muted">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="shrink-0 text-muted-foreground">
           <path d="M6 2h8l4 4v16H6V2Z" strokeWidth="1.5" strokeLinejoin="round" />
           <path d="M14 2v5h5" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
@@ -333,13 +333,13 @@ function SharedFileRow({
           <p className="truncate text-[12.5px] font-medium text-ink">
             {file.file_name ?? file.title ?? "Context file"}
           </p>
-          <p className="text-[10px] mono text-muted">{formatBytes(file.byte_size)}</p>
+          <p className="text-[10px] mono text-muted-foreground">{formatBytes(file.byte_size)}</p>
         </div>
         <span className={`text-[10px] mono uppercase ${statusColour(file.extraction_status)}`}>
           {statusLabel(file.extraction_status)}
         </span>
         {retryable && (
-          <button onClick={onRetry} className="text-[10.5px] text-accent hover:underline cursor-pointer">
+          <button onClick={onRetry} className="text-[10.5px] text-primary hover:underline cursor-pointer">
             Retry
           </button>
         )}
@@ -348,7 +348,7 @@ function SharedFileRow({
             {open ? "Hide text" : "View text"}
           </button>
         )}
-        <button onClick={onDelete} className="text-[10.5px] text-muted hover:text-[color:var(--color-danger)] cursor-pointer">
+        <button onClick={onDelete} className="text-[10.5px] text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer">
           Remove
         </button>
       </div>
@@ -382,7 +382,7 @@ function statusLabel(status: SharedContextFile["extraction_status"]): string {
 }
 
 function statusColour(status: SharedContextFile["extraction_status"]): string {
-  if (status === "done") return "text-accent";
+  if (status === "done") return "text-primary";
   if (status === "failed" || status === "unsupported") return "text-[color:var(--color-danger)]";
-  return "text-muted";
+  return "text-muted-foreground";
 }

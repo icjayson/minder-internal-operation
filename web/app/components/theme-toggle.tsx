@@ -37,7 +37,7 @@ export function ThemeToggle() {
       onClick={toggle}
       title={goesLight ? "Light mode" : "Dark mode"}
       aria-label="Toggle theme"
-      className="group relative w-9 h-9 rounded-md grid place-items-center cursor-pointer text-muted hover:bg-surface-2 hover:text-ink-soft transition-colors duration-150"
+      className="group relative w-9 h-9 rounded-md grid place-items-center cursor-pointer text-muted-foreground hover:bg-surface-2 hover:text-ink-soft transition-colors duration-150"
     >
       {/* Render a stable default until mounted to avoid a hydration mismatch. */}
       {showMoon ? (

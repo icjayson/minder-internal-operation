@@ -56,7 +56,7 @@ export function FundraisingJourney({
                     onClick={() => onStageChange(terminal)}
                     className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${stage === terminal
                         ? "border-[color:var(--color-warn)]/50 tint-warn text-[color:var(--color-warn)]"
-                        : "border-line text-muted hover:border-line-strong hover:text-ink-soft"
+                        : "border-line text-muted-foreground hover:border-line-strong hover:text-ink-soft"
                       }`}
                   >
                     {terminal}
@@ -78,7 +78,7 @@ export function FundraisingJourney({
                       data-tone={active ? tone : undefined}
                       className={`rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] transition-colors ${active
                           ? "tone border-transparent"
-                          : "border-line text-muted hover:border-line-strong hover:text-ink-soft"
+                          : "border-line text-muted-foreground hover:border-line-strong hover:text-ink-soft"
                         }`}
                     >
                       {r}

@@ -38,7 +38,7 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
   return (
     <div className="rounded-lg border border-line bg-surface">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-line">
-        <span className="text-[10px] mono uppercase tracking-[0.14em] text-muted mr-auto">
+        <span className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mr-auto">
           {groups.length} verticals · {factories.length} factories
         </span>
         <button onClick={() => setOpenV(new Set(groups.map((g) => g.key)))}
@@ -56,11 +56,11 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
             <div key={g.key}>
               {/* Vertical node */}
               <button onClick={() => toggleV(g.key)}
-                className={`w-full flex items-center gap-2.5 h-10 px-3 rounded-md cursor-pointer transition-colors ${open ? "bg-accent-dim" : "hover:bg-surface-2"}`}>
+                className={`w-full flex items-center gap-2.5 h-10 px-3 rounded-md cursor-pointer transition-colors ${open ? "bg-primary-tint" : "hover:bg-surface-2"}`}>
                 <Chevron open={open} />
-                <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
-                <span className={`text-[14px] font-medium truncate ${open ? "text-accent" : "text-ink"}`}>{g.name}</span>
-                <span className="text-[12px] mono text-muted">{g.rows.length}</span>
+                <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                <span className={`text-[14px] font-medium truncate ${open ? "text-primary" : "text-ink"}`}>{g.name}</span>
+                <span className="text-[12px] mono text-muted-foreground">{g.rows.length}</span>
                 <div className="ml-auto flex items-center gap-1.5">
                   <GradeChip tone="green" label="A" n={grades.A} />
                   <GradeChip tone="amber" label="B" n={grades.B} />
@@ -90,7 +90,7 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
           );
         })}
         {groups.length === 0 && (
-          <p className="px-2 py-8 text-center text-sm text-muted">No factories match the current filter.</p>
+          <p className="px-2 py-8 text-center text-sm text-muted-foreground">No factories match the current filter.</p>
         )}
       </div>
     </div>
@@ -108,18 +108,18 @@ function FactoryNode({
     <div>
       <div className="relative flex items-center gap-2 h-11 pl-1 pr-2 rounded-md hover:bg-surface-2/70 transition-colors before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-line-strong">
         <button onClick={onToggle} disabled={!has}
-          className={`w-5 h-5 grid place-items-center shrink-0 ${has ? "cursor-pointer text-muted hover:text-ink" : "opacity-0"}`}
+          className={`w-5 h-5 grid place-items-center shrink-0 ${has ? "cursor-pointer text-muted-foreground hover:text-ink" : "opacity-0"}`}
           aria-label={open ? "Collapse" : "Expand"}>
           <Chevron open={open} small />
         </button>
         {stale && <span title="No update in 7+ days" className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-warn)] shrink-0" />}
         <button onClick={onOpen} className="min-w-0 flex-1 text-left cursor-pointer group">
-          <span className="text-[13px] font-medium text-ink group-hover:text-accent transition-colors truncate block">{f.name}</span>
-          {f.hq_location && <span className="text-[11px] text-muted truncate block">{f.hq_location}</span>}
+          <span className="text-[13px] font-medium text-ink group-hover:text-primary transition-colors truncate block">{f.name}</span>
+          {f.hq_location && <span className="text-[11px] text-muted-foreground truncate block">{f.hq_location}</span>}
         </button>
         <div className="hidden sm:block"><ScoreChip score={f.score} grade={f.grade} /></div>
         <StagePill stage={f.stage} />
-        <span className="text-[11px] mono text-muted w-20 text-right shrink-0">{contacts.length} contacts</span>
+        <span className="text-[11px] mono text-muted-foreground w-20 text-right shrink-0">{contacts.length} contacts</span>
       </div>
 
       {open && has && (
@@ -127,15 +127,15 @@ function FactoryNode({
           {contacts.map((c) => (
             <div key={c.id}
               className={`relative flex items-center gap-2 h-9 px-2 rounded-md before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-line ${
-                c.is_primary_target ? "bg-accent-dim/60" : "hover:bg-surface-2/50"
+                c.is_primary_target ? "bg-primary-tint/60" : "hover:bg-surface-2/50"
               }`}>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.is_primary_target ? "bg-accent" : "bg-muted"}`} />
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.is_primary_target ? "bg-primary" : "bg-muted-foreground/40"}`} />
               <button onClick={onOpen} className="min-w-0 flex-1 text-left cursor-pointer group">
                 <span className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] text-ink group-hover:text-accent transition-colors truncate">{c.full_name}</span>
-                  {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-accent shrink-0">target</span>}
+                  <span className="text-[12.5px] text-ink group-hover:text-primary transition-colors truncate">{c.full_name}</span>
+                  {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
                 </span>
-                {c.role_title && <span className="text-[10.5px] text-muted truncate block">{c.role_title}</span>}
+                {c.role_title && <span className="text-[10.5px] text-muted-foreground truncate block">{c.role_title}</span>}
               </button>
               <StagePill stage={c.stage} />
             </div>

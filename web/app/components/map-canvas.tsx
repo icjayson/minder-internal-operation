@@ -200,7 +200,7 @@ function MapCanvasInner({
 
   if (!layoutNodes.length) {
     return (
-      <div className="h-full grid place-items-center text-sm text-muted">
+      <div className="h-full grid place-items-center text-sm text-muted-foreground">
         Nothing to map yet. Add a network or a factory, or relax the filters.
       </div>
     );
@@ -248,7 +248,7 @@ function EntityNode({ data }: NodeProps) {
   const d = data as NodeData;
   const isRoot = d.kind === "root";
   const border =
-    d.kind === "network" ? "border-l-accent" : d.kind === "contact" ? "border-l-[color:var(--color-accent-2)]" : "border-l-line-strong";
+    d.kind === "network" ? "border-l-primary" : d.kind === "contact" ? "border-l-[color:var(--color-primary-deep)]" : "border-l-line-strong";
 
   return (
     <div
@@ -266,8 +266,8 @@ function EntityNode({ data }: NodeProps) {
       {/* Row 1: kind (+ target) · status */}
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[9px] mono uppercase tracking-[0.12em] text-muted">{d.kind}</span>
-          {d.target && <span className="text-[8px] mono uppercase tracking-wider text-accent shrink-0">target</span>}
+          <span className="text-[9px] mono uppercase tracking-[0.12em] text-muted-foreground">{d.kind}</span>
+          {d.target && <span className="text-[8px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
         </span>
         {d.stage && <span className="shrink-0"><StagePill stage={d.stage} /></span>}
       </div>
@@ -276,7 +276,7 @@ function EntityNode({ data }: NodeProps) {
       <div className="flex items-start justify-between gap-2.5 mt-1">
         <div className="flex-1 min-w-0 text-[13px] font-medium text-ink leading-snug break-words">{d.label}</div>
         {d.sub && (
-          <div className="shrink-0 max-w-[44%] text-[10.5px] text-muted text-right leading-snug break-words">{d.sub}</div>
+          <div className="shrink-0 max-w-[44%] text-[10.5px] text-muted-foreground text-right leading-snug break-words">{d.sub}</div>
         )}
       </div>
     </div>

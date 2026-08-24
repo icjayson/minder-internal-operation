@@ -123,7 +123,7 @@ function FactoriesInner() {
 
       <div className="px-4 py-5 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved factory views">
-          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
+          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Focus</span>
           <SavedViewButton label="All accounts" count={savedViewCounts.all} active={savedView === "all"} onClick={() => setSavedView("all")} />
           <SavedViewButton label="Next-action needed" count={savedViewCounts.needs_action} active={savedView === "needs_action"} tone="warn" onClick={() => setSavedView("needs_action")} />
           <SavedViewButton label="High potential" count={savedViewCounts.high_potential} active={savedView === "high_potential"} onClick={() => setSavedView("high_potential")} />
@@ -158,7 +158,7 @@ function FactoriesInner() {
             Import CSV
           </Link>
           <button onClick={openNewFactory}
-            className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New factory
           </button>
@@ -200,14 +200,14 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
       ? "border-[color:var(--color-danger)]/40 tint-danger text-[color:var(--color-danger)]"
       : tone === "customer"
         ? "border-[#0fa79b]/45 bg-[#e6f8f5] text-[#0b8375]"
-        : "border-accent/40 bg-accent-dim text-accent";
+        : "border-primary/40 bg-primary-tint text-primary";
   const idleClass = tone === "customer"
     ? "border-[#0fa79b]/35 bg-surface text-[#0b8375] hover:border-[#0fa79b]/55"
     : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink";
   return (
     <button type="button" onClick={onClick} aria-pressed={active}
       className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : idleClass}`}>
-      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span>
+      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted-foreground">{count}</span>
     </button>
   );
 }
@@ -227,7 +227,7 @@ function ViewBtn({ active, onClick, label, children }: {
   return (
     <button onClick={onClick} title={`${label} view`}
       className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer inline-flex items-center gap-1.5 transition-colors ${
-        active ? "bg-accent text-white" : "text-ink-soft hover:text-ink"
+        active ? "bg-primary text-white" : "text-ink-soft hover:text-ink"
       }`}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">{children}</svg>
       {label}

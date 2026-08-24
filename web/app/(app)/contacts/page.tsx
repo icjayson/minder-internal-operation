@@ -68,7 +68,7 @@ export default function ContactsPage() {
       render: (c) => (
         <div className="flex items-center gap-2">
           <span className="font-medium text-ink truncate">{c.full_name}</span>
-          {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-accent shrink-0">target</span>}
+          {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
         </div>
       ),
     },
@@ -91,7 +91,7 @@ export default function ContactsPage() {
         const nm = isNet ? network(c.network_id)?.name : factory(c.factory_id)?.name;
         return (
           <span className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[9px] mono uppercase tracking-wider text-muted shrink-0">{isNet ? "NET" : "FAC"}</span>
+            <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground shrink-0">{isNet ? "NET" : "FAC"}</span>
             <span className="text-ink-soft truncate">{nm ?? "—"}</span>
           </span>
         );
@@ -154,7 +154,7 @@ export default function ContactsPage() {
 
       <div className="px-4 py-5 sm:px-6 lg:px-8">
         {stats && <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Saved contact views">
-          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Focus</span>
+          <span className="mr-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Focus</span>
           <FocusButton label="All contacts" count={stats.total} active={focus === "all"} onClick={() => setFocus("all")} />
           <FocusButton label="Primary targets" count={stats.targets} active={focus === "targets"} onClick={() => setFocus("targets")} />
           <FocusButton label="Engaged" count={stats.engaged} active={focus === "engaged"} onClick={() => setFocus("engaged")} />
@@ -164,14 +164,14 @@ export default function ContactsPage() {
           <div className="flex-1 max-w-md"><SearchInput value={search} onChange={setSearch} placeholder="Search name, role or factory…" /></div>
           <div className="flex-1" />
           <button onClick={() => setShowNew(true)}
-            className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New contact
           </button>
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted text-sm mono uppercase tracking-wider">Loading…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading…</div>
         ) : rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">
             No contacts match. Add one with “New contact” — you can create its factory inline.
@@ -187,11 +187,11 @@ export default function ContactsPage() {
 }
 
 function FocusButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn"; onClick: () => void }) {
-  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-accent/40 bg-accent-dim text-accent" : "border-line bg-surface text-ink-soft hover:border-line-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted">{count}</span></button>;
+  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-primary/40 bg-primary-tint text-primary" : "border-line bg-surface text-ink-soft hover:border-line-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted-foreground">{count}</span></button>;
 }
 
 function FollowUpDate({ value }: { value: string | null }) {
-  if (!value) return <span className="text-[11px] text-muted">Not scheduled</span>;
+  if (!value) return <span className="text-[11px] text-muted-foreground">Not scheduled</span>;
   const today = new Date().toISOString().slice(0, 10);
   const due = value <= today;
   return <span className={`inline-flex rounded-full border px-2 py-1 text-[10.5px] ${due ? "border-[color:var(--color-warn)]/30 tint-warn text-[color:var(--color-warn)]" : "border-line bg-surface-2 text-ink-soft"}`}>{due && value === today ? "Today · " : due ? "Due · " : ""}{formatDate(value)}</span>;

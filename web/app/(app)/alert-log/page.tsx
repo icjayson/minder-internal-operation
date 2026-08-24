@@ -248,11 +248,11 @@ function AlertLogItem({
         <div className="min-w-[220px] flex-1">
           <div className="text-[13px] text-ink">
             {row.source && (
-              <span className="mr-2 text-[10px] mono uppercase tracking-wider text-muted">{SOURCE_LABEL[row.source] ?? row.source}</span>
+              <span className="mr-2 text-[10px] mono uppercase tracking-wider text-muted-foreground">{SOURCE_LABEL[row.source] ?? row.source}</span>
             )}
             {row.title ?? row.kind ?? "Alert"}{row.detail ? ` — ${row.detail}` : ""}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             {row.owner_name && <span>{row.owner_name}</span>}
             {row.due_on && <span className="mono">due {row.due_on}</span>}
             <span className="mono">{when}</span>
@@ -260,7 +260,7 @@ function AlertLogItem({
               <button
                 type="button"
                 onClick={() => setShowSummary((current) => !current)}
-                className="cursor-pointer text-accent hover:underline"
+                className="cursor-pointer text-primary hover:underline"
               >
                 {showSummary ? "Hide recap" : "AI recap"}
               </button>
@@ -287,13 +287,13 @@ function AlertLogItem({
               type="button"
               onClick={onComplete}
               disabled={completing}
-              className="h-7 rounded-full bg-accent px-3 text-[11px] font-medium text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+              className="h-7 rounded-full bg-primary px-3 text-[11px] font-medium text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               {completing ? "Completing…" : "Task Done"}
             </button>
           )}
           {deleted ? (
-            <span className="rounded-full border border-line-strong px-3 py-1 text-[11px] mono uppercase text-muted">Discord deleted</span>
+            <span className="rounded-full border border-line-strong px-3 py-1 text-[11px] mono uppercase text-muted-foreground">Discord deleted</span>
           ) : row.log_id ? (
             <button
               type="button"

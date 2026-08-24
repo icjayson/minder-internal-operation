@@ -9,9 +9,9 @@ const TONE: Record<Tone, { bg: string; value: string; rail: string }> = {
     rail: "bg-line-strong",
   },
   accent: {
-    bg: "bg-[color:var(--color-accent-dim)] border-[color:var(--color-accent)]/30",
-    value: "text-accent",
-    rail: "bg-accent",
+    bg: "bg-[color:var(--color-primary-tint)] border-[color:var(--color-primary)]/30",
+    value: "text-primary",
+    rail: "bg-primary",
   },
   warn: {
     bg: "tint-warn border-[color:var(--color-warn)]/30",
@@ -42,13 +42,13 @@ export function StatCard({
       className={`relative overflow-hidden rounded-md border px-4 py-3 ${t.bg} transition-colors duration-150`}
     >
       <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${t.rail}`} />
-      <div className="text-[10.5px] mono uppercase tracking-[0.14em] text-muted mb-1">
+      <div className="text-[10.5px] mono uppercase tracking-[0.14em] text-muted-foreground mb-1">
         {label}
       </div>
       <div className={`text-[22px] mono tabular-nums leading-none ${t.value}`}>
         {value}
       </div>
-      {hint && <div className="text-[11px] text-muted mt-1">{hint}</div>}
+      {hint && <div className="text-[11px] text-muted-foreground mt-1">{hint}</div>}
     </div>
   );
 }

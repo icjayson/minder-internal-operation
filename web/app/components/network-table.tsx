@@ -51,7 +51,7 @@ export function NetworkTable({
             )}
             <div className="min-w-0">
               <div className="font-medium truncate text-ink">{n.name}</div>
-              {n.country && <div className="text-[11px] text-muted truncate">{n.country}</div>}
+              {n.country && <div className="text-[11px] text-muted-foreground truncate">{n.country}</div>}
             </div>
           </div>
         );
@@ -126,7 +126,7 @@ export function NetworkTable({
             e.stopPropagation();
             if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id);
           }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
+          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
           aria-label={`Delete ${n.name}`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">

@@ -120,7 +120,7 @@ export function DataTable<T extends { id: string }>({
           ))}
         </colgroup>
         <thead>
-          <tr className="border-b border-line text-muted bg-surface-2/40">
+          <tr className="border-b border-line text-muted-foreground bg-surface-2/40">
             {columns.map((c) => {
               const active = sort?.key === c.key;
               return (
@@ -141,7 +141,7 @@ export function DataTable<T extends { id: string }>({
                     onPointerMove={(e) => onMove(e, c)}
                     onPointerUp={onUp}
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute top-0 right-0 h-full w-2 cursor-col-resize touch-none hover:bg-accent/30"
+                    className="absolute top-0 right-0 h-full w-2 cursor-col-resize touch-none hover:bg-primary/30"
                     aria-hidden
                   />
                 </th>
@@ -184,7 +184,7 @@ function SortArrow({ dir }: { dir: "asc" | "desc" | null }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      className={`shrink-0 transition-transform ${dir === "desc" ? "rotate-180" : ""} ${dir ? "text-accent" : "text-muted/40"}`}
+      className={`shrink-0 transition-transform ${dir === "desc" ? "rotate-180" : ""} ${dir ? "text-primary" : "text-muted-foreground/40"}`}
     >
       <path d="M12 5v14M6 11l6-6 6 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>

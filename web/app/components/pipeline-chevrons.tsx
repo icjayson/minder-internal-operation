@@ -31,14 +31,14 @@ export function PipelineChevrons<S extends string>({
             style={{ clipPath: clip, marginLeft: isFirst ? 0 : -10 }}
             className={`relative flex-1 min-w-[130px] h-11 pl-5 pr-3 flex items-center justify-between text-[11px] mono uppercase tracking-[0.1em] cursor-pointer transition-colors duration-150 ${
               active
-                ? "bg-accent-dim text-accent"
+                ? "bg-primary-tint text-primary"
                 : "bg-surface-2 text-ink-soft hover:bg-surface-3"
             }`}
           >
             <span className="truncate">{s}</span>
             <span
               className={`ml-2 min-w-5 h-5 px-1.5 rounded-full grid place-items-center text-[10px] font-medium ${
-                active ? "bg-accent text-white" : "bg-surface-3 text-ink-soft"
+                active ? "bg-primary text-white" : "bg-surface-3 text-ink-soft"
               }`}
             >
               {n}

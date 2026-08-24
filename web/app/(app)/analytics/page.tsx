@@ -71,23 +71,23 @@ export default function AnalyticsPage() {
       </PageHeader>
       <div className="px-8 py-5">
         {!a ? (
-          <div className="py-20 text-center text-muted text-sm mono uppercase tracking-wider">Loading…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading…</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card title="Factory stage funnel"><Bars data={a.factoryStages} color="var(--color-accent)" /></Card>
+            <Card title="Factory stage funnel"><Bars data={a.factoryStages} color="var(--color-primary)" /></Card>
             <Card title="Contact stage funnel"><Bars data={a.contactStages} color="var(--color-info)" /></Card>
             <Card title="Grade mix"><Bars data={a.grades} color="var(--color-warn)" /></Card>
             <Card title="By vertical"><Bars data={a.byVertical} color="var(--color-violet)" /></Card>
-            <Card title="Relationship ladder"><Bars data={a.ladder} color="var(--color-accent)" /></Card>
+            <Card title="Relationship ladder"><Bars data={a.ladder} color="var(--color-primary)" /></Card>
             <Card title="Evidence ladder"><Bars data={a.evidence} color="var(--color-info)" /></Card>
             <div className="lg:col-span-2 rounded-lg border border-line bg-surface overflow-hidden">
               <div className="px-5 py-3 border-b border-line">
-                <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted">Per-vertical drill-down</h3>
+                <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">Per-vertical drill-down</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="bg-surface-2/40 text-muted">
+                    <tr className="bg-surface-2/40 text-muted-foreground">
                       {["Vertical", "Factories", "Contacts", "A-grade", "Avg score", "L7 partners"].map((header) => (
                         <th key={header} className="px-4 py-2 text-left mono uppercase tracking-wider text-[9px]">{header}</th>
                       ))}
@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
                         <td className="px-4 py-2.5 mono text-ink-soft">{row.contacts}</td>
                         <td className="px-4 py-2.5 mono text-ink-soft">{row.aGrade}</td>
                         <td className="px-4 py-2.5 mono text-ink-soft">{row.avgScore ?? "—"}</td>
-                        <td className="px-4 py-2.5 mono text-accent">{row.activePartners}</td>
+                        <td className="px-4 py-2.5 mono text-primary">{row.activePartners}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-line bg-surface p-5">
-      <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted mb-4">{title}</h3>
+      <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-4">{title}</h3>
       <div className="space-y-2">{children}</div>
     </div>
   );

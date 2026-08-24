@@ -60,12 +60,12 @@ export function FactoryNotificationModal({
       <button type="button" aria-label="Close create notification modal" onClick={onClose} disabled={sending} className="absolute inset-0 bg-canvas/75 backdrop-blur-sm" />
       <section role="dialog" aria-modal="true" aria-labelledby="factory-notification-title" className="relative z-10 w-full max-w-[520px] overflow-hidden rounded-2xl border border-line-strong bg-surface shadow-drawer">
         <header className="flex items-start gap-3 border-b border-line-soft px-5 py-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-white shadow-glow"><MegaphoneIcon /></span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-glow"><MegaphoneIcon /></span>
           <div className="min-w-0 flex-1">
             <h2 id="factory-notification-title" className="text-[16px] font-semibold text-ink">Create notification</h2>
-            <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">Creates an in-app alert and sends the same message to Discord.</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground">Creates an in-app alert and sends the same message to Discord.</p>
           </div>
-          <button type="button" onClick={onClose} disabled={sending} aria-label="Close" className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-ink"><CloseModalIcon /></button>
+          <button type="button" onClick={onClose} disabled={sending} aria-label="Close" className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-ink"><CloseModalIcon /></button>
         </header>
 
         {result ? (
@@ -80,30 +80,30 @@ export function FactoryNotificationModal({
                     : "Saved in-app, but Discord rejected the request. The daily scan will retry it."}
               </p>
             </div>
-            <button type="button" onClick={onClose} className="mt-4 h-9 w-full rounded-full bg-accent text-[12px] font-semibold text-white hover:bg-[#3a51ff]">Done</button>
+            <button type="button" onClick={onClose} className="mt-4 h-9 w-full rounded-full bg-primary text-[12px] font-semibold text-white hover:bg-[#3a51ff]">Done</button>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4 px-5 py-5">
             <div className="rounded-xl border border-line-soft bg-surface-2/60 px-3.5 py-3">
-              <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted">Discord destination</div>
+              <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Discord destination</div>
               <div className="mt-1 flex items-center gap-2 text-[12px] font-medium text-ink"><DiscordDestinationIcon /> {destination}</div>
-              <p className="mt-1 text-[10.5px] text-muted">Routing follows the current alert mechanism for {factoryName}.</p>
+              <p className="mt-1 text-[10.5px] text-muted-foreground">Routing follows the current alert mechanism for {factoryName}.</p>
             </div>
 
             <label className="block">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Alert title <span className="text-[color:var(--color-danger)]">*</span></span>
+              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Alert title <span className="text-[color:var(--color-danger)]">*</span></span>
               <input autoFocus required maxLength={120} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Review outreach copy before sending" className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-[13px] text-ink outline-none focus:border-line-strong" />
-              <span className="mt-1 block text-right text-[9.5px] tabular-nums text-muted">{title.length}/120</span>
+              <span className="mt-1 block text-right text-[9.5px] tabular-nums text-muted-foreground">{title.length}/120</span>
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Message <span className="text-[color:var(--color-danger)]">*</span></span>
+              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Message <span className="text-[color:var(--color-danger)]">*</span></span>
               <textarea required maxLength={2000} rows={5} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Add the context, requested action and owner…" className="w-full resize-y rounded-lg border border-line bg-canvas px-3 py-2.5 text-[12.5px] leading-relaxed text-ink outline-none focus:border-line-strong" />
-              <span className="mt-1 block text-right text-[9.5px] tabular-nums text-muted">{message.length}/2000</span>
+              <span className="mt-1 block text-right text-[9.5px] tabular-nums text-muted-foreground">{message.length}/2000</span>
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Due date <span className="font-normal normal-case tracking-normal">· optional</span></span>
+              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Due date <span className="font-normal normal-case tracking-normal">· optional</span></span>
               <input type="date" value={dueOn} onChange={(event) => setDueOn(event.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-[12px] text-ink outline-none focus:border-line-strong" />
             </label>
 
@@ -111,7 +111,7 @@ export function FactoryNotificationModal({
 
             <div className="flex justify-end gap-2 border-t border-line-soft pt-4">
               <button type="button" onClick={onClose} disabled={sending} className="h-9 rounded-full border border-line-strong bg-surface-2 px-4 text-[11.5px] font-medium text-ink-soft hover:text-ink disabled:opacity-50">Cancel</button>
-              <button type="submit" disabled={sending || !title.trim() || !message.trim()} className="inline-flex h-9 items-center gap-2 rounded-full bg-accent px-4 text-[11.5px] font-semibold text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="submit" disabled={sending || !title.trim() || !message.trim()} className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-[11.5px] font-semibold text-white hover:bg-[#3a51ff] disabled:cursor-not-allowed disabled:opacity-50">
                 <SendIcon /> {sending ? "Sending…" : "Create & send"}
               </button>
             </div>

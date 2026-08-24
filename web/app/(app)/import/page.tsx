@@ -349,7 +349,7 @@ export default function ImportPage() {
 
         {/* Step 1: input */}
         <section className="rounded-lg border border-line bg-surface p-5">
-          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted mb-3">1 · Paste or upload CSV</h3>
+          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">1 · Paste or upload CSV</h3>
           <div className="flex items-center gap-2 mb-3">
             <label className="h-8 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[12px] font-medium text-ink-soft cursor-pointer inline-flex items-center">
               Upload .csv
@@ -371,7 +371,7 @@ export default function ImportPage() {
             rows={5} placeholder="…or paste CSV text here (first line = headers)"
             className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[12px] text-ink mono leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
           <button onClick={analyze} disabled={!headers.length || !!busy}
-            className="mt-3 h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
+            className="mt-3 h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
             {busy === "Analysing with AI…" ? "Analysing…" : "Analyse with AI"}
           </button>
           {mapping && (
@@ -386,7 +386,7 @@ export default function ImportPage() {
         {/* Step 2: mapping */}
         {mapping && (
           <section className="rounded-lg border border-line bg-surface p-5">
-            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted mb-3">2 · Review the AI mapping</h3>
+            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">2 · Review the AI mapping</h3>
             {mapping.notes && <p className="text-[12px] text-ink-soft mb-3">{mapping.notes}</p>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
               <MapGroup title="Factory">
@@ -412,11 +412,11 @@ export default function ImportPage() {
         {/* Step 3: preview + import */}
         {mapping && (
           <section className="rounded-lg border border-line bg-surface p-5">
-            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted mb-3">3 · Preview & import</h3>
+            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">3 · Preview & import</h3>
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="text-muted">
+                  <tr className="text-muted-foreground">
                     {["Factory", "Vertical", "Contact", "Role", "Email"].map((h) => (
                       <th key={h} className="text-left mono uppercase tracking-wider text-[10px] px-2 py-1">{h}</th>
                     ))}
@@ -440,7 +440,7 @@ export default function ImportPage() {
               </table>
             </div>
             <button onClick={runImport} disabled={!!busy}
-              className="h-9 px-5 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
+              className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
               {busy === "Importing…" ? "Importing…" : `Import ${rows.length} rows`}
             </button>
             {result && (
@@ -476,12 +476,12 @@ function ImportProgress({ current }: { current: number }) {
     <section className="rounded-card border border-line bg-surface px-4 py-4 shadow-soft" aria-label="Import progress">
       <div className="relative grid grid-cols-4">
         <span className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-line-strong" aria-hidden>
-          <span className="block h-full bg-accent transition-[width] duration-300" style={{ width: `${(current / (steps.length - 1)) * 100}%` }} />
+          <span className="block h-full bg-primary transition-[width] duration-300" style={{ width: `${(current / (steps.length - 1)) * 100}%` }} />
         </span>
         {steps.map((step, index) => (
           <div key={step} className="relative z-[1] flex flex-col items-center text-center">
-            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-accent bg-accent text-white" : index === current ? "border-accent bg-accent text-white ring-4 ring-accent-dim" : "border-line-strong bg-surface text-muted"}`}>{index < current ? "✓" : index + 1}</span>
-            <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-ink" : "text-muted"}`}>{step}</span>
+            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-primary bg-primary text-white" : index === current ? "border-primary bg-primary text-white ring-4 ring-primary-tint" : "border-line-strong bg-surface text-muted-foreground"}`}>{index < current ? "✓" : index + 1}</span>
+            <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-ink" : "text-muted-foreground"}`}>{step}</span>
           </div>
         ))}
       </div>
@@ -492,7 +492,7 @@ function ImportProgress({ current }: { current: number }) {
 function MapGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] mono uppercase tracking-wider text-accent mb-1.5">{title}</div>
+      <div className="text-[11px] mono uppercase tracking-wider text-primary mb-1.5">{title}</div>
       <div className="space-y-1.5">{children}</div>
     </div>
   );
@@ -502,7 +502,7 @@ function MapRow({ label, value, headers, onChange }: { label: string; value: str
     <div className="flex items-center gap-2">
       <span className="w-32 shrink-0 text-[11px] text-ink-soft truncate">{label}</span>
       <select value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}
-        className="flex-1 h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
+        className="flex-1 h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
         <option value="">— none —</option>
         {headers.map((h) => <option key={h} value={h}>{h}</option>)}
       </select>
@@ -513,7 +513,7 @@ function MapRow({ label, value, headers, onChange }: { label: string; value: str
 function ResultStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-md border border-line-soft bg-canvas px-2 py-1.5">
-      <div className="mono uppercase tracking-wider text-[9px] text-muted">{label}</div>
+      <div className="mono uppercase tracking-wider text-[9px] text-muted-foreground">{label}</div>
       <div className="mono tabular-nums text-[15px] text-ink">{value}</div>
     </div>
   );

@@ -20,7 +20,7 @@ export function SearchInput({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
       >
         <circle cx="11" cy="11" r="7" strokeWidth="1.6" />
         <path d="m20 20-3.5-3.5" strokeWidth="1.6" strokeLinecap="round" />
@@ -30,7 +30,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-9 pl-9 pr-3 rounded-md bg-surface border border-line text-[13px] text-ink placeholder:text-muted focus:border-line-strong focus:outline-none transition-colors duration-150"
+        className="w-full h-9 pl-9 pr-3 rounded-md bg-surface border border-line text-[13px] text-ink placeholder:text-muted-foreground focus:border-line-strong focus:outline-none transition-colors duration-150"
       />
     </div>
   );
@@ -64,7 +64,7 @@ export function SelectControl({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
       >
         <path
           d="m6 9 6 6 6-6"

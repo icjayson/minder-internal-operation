@@ -59,7 +59,7 @@ export function JourneyOverview({
                   onClick={() => onStageChange(terminal)}
                   className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${stage === terminal
                       ? "border-[color:var(--color-warn)]/50 tint-warn text-[color:var(--color-warn)]"
-                      : "border-line text-muted hover:border-line-strong hover:text-ink-soft"
+                      : "border-line text-muted-foreground hover:border-line-strong hover:text-ink-soft"
                     }`}
                 >
                   {terminal}

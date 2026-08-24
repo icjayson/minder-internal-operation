@@ -6,8 +6,8 @@ import type { Contact, FactoryWorkItem, WorkStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
 const COLUMNS: { key: WorkStatus; label: string; tone: string }[] = [
-  { key: "not_started", label: "Not started", tone: "bg-muted" },
-  { key: "doing", label: "Doing", tone: "bg-accent" },
+  { key: "not_started", label: "Not started", tone: "bg-muted-foreground/40" },
+  { key: "doing", label: "Doing", tone: "bg-primary" },
   { key: "done", label: "Done", tone: "bg-[color:var(--color-info)]" },
 ];
 
@@ -44,7 +44,7 @@ const TRIGGER_TONES: Record<string, string> = {
   overdue:
     "border-[color:var(--color-danger)]/35 tint-danger text-[color:var(--color-danger)]",
   today:
-    "border-accent/40 bg-accent/10 text-accent",
+    "border-primary/40 bg-primary/10 text-primary",
   soon:
     "border-[color:var(--color-warn)]/40 text-[color:var(--color-warn)]",
   later:
@@ -222,14 +222,14 @@ export function WorkInventory({
     <section>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted font-medium">
+          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground font-medium">
             Work inventory {items ? `· ${items.length}` : ""}
           </h3>
-          <p className="text-[11.5px] text-muted mt-0.5">Drag cards between stages to update progress.</p>
+          <p className="text-[11.5px] text-muted-foreground mt-0.5">Drag cards between stages to update progress.</p>
         </div>
         <button
           onClick={() => setSelected("new")}
-          className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer"
+          className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer"
         >
           + Work
         </button>
@@ -260,7 +260,7 @@ export function WorkInventory({
                 <span className="text-[10px] mono uppercase tracking-[0.12em] text-ink-soft">
                   {column.label}
                 </span>
-                <span className="ml-auto text-[10px] mono text-muted">{columnItems.length}</span>
+                <span className="ml-auto text-[10px] mono text-muted-foreground">{columnItems.length}</span>
               </div>
               <div className="space-y-2">
                 {columnItems.map((item) => (
@@ -284,7 +284,7 @@ export function WorkInventory({
                             {item.body}
                           </p>
                         )}
-                        <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted min-w-0">
+                        <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted-foreground min-w-0">
                           <span className="mono uppercase tracking-[0.1em] shrink-0">TO:</span>
                           <span className="truncate text-ink-soft">
                             {pic
@@ -309,7 +309,7 @@ export function WorkInventory({
                   })()
                 ))}
                 {items !== null && columnItems.length === 0 && (
-                  <div className="rounded-md border border-dashed border-line px-2 py-5 text-center text-[10.5px] text-muted">
+                  <div className="rounded-md border border-dashed border-line px-2 py-5 text-center text-[10.5px] text-muted-foreground">
                     No work
                   </div>
                 )}
@@ -393,7 +393,7 @@ function WorkItemModal({
       >
         <header className="flex items-center justify-between px-5 py-4 border-b border-line">
           <div>
-            <div className="text-[9px] mono uppercase tracking-[0.14em] text-accent">
+            <div className="text-[9px] mono uppercase tracking-[0.14em] text-primary">
               {item ? "Work item" : "New work item"}
             </div>
             <h3 id="work-item-modal-title" className="text-lg font-display text-ink mt-0.5">
@@ -401,7 +401,7 @@ function WorkItemModal({
             </h3>
           </div>
           <button type="button" onClick={onClose}
-            className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer"
+            className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink cursor-pointer"
             aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
@@ -411,21 +411,21 @@ function WorkItemModal({
 
         <div className="p-5 space-y-4">
           <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Title</span>
+            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Title</span>
             <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)}
               placeholder="What needs to be done?"
-              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink focus:border-accent focus:outline-none" />
+              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink focus:border-primary focus:outline-none" />
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Status</span>
+              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Status</span>
               <select value={status} onChange={(event) => setStatus(event.target.value as WorkStatus)}
-                className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none">
+                className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-primary focus:outline-none">
                 {COLUMNS.map((column) => <option key={column.key} value={column.key}>{column.label}</option>)}
               </select>
             </label>
             <label className="block">
-              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">
+              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">
                 Next-step trigger
               </span>
               <div className="relative">
@@ -433,14 +433,14 @@ function WorkItemModal({
                   type="date"
                   value={triggerOn}
                   onChange={(event) => setTriggerOn(event.target.value)}
-                  className="w-full h-10 rounded-md border border-line bg-canvas px-3 pr-8 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none"
+                  className="w-full h-10 rounded-md border border-line bg-canvas px-3 pr-8 text-[13px] text-ink cursor-pointer focus:border-primary focus:outline-none"
                 />
                 {triggerOn && (
                   <button
                     type="button"
                     onClick={() => setTriggerOn("")}
                     aria-label="Clear trigger date"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink cursor-pointer"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" />
@@ -448,19 +448,19 @@ function WorkItemModal({
                   </button>
                 )}
               </div>
-              <span className="mt-1 block text-[10.5px] text-muted">
+              <span className="mt-1 block text-[10.5px] text-muted-foreground">
                 When this step should be triggered (deadline).
               </span>
             </label>
           </div>
           <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">
+            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">
               PIC
             </span>
             <select
               value={picContactId}
               onChange={(event) => setPicContactId(event.target.value)}
-              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-accent focus:outline-none"
+              className="w-full h-10 rounded-md border border-line bg-canvas px-3 text-[13px] text-ink cursor-pointer focus:border-primary focus:outline-none"
             >
               <option value="">None</option>
               {contacts.map((contact) => (
@@ -470,16 +470,16 @@ function WorkItemModal({
               ))}
             </select>
             {contacts.length === 0 && (
-              <span className="mt-1 block text-[10.5px] text-muted">
+              <span className="mt-1 block text-[10.5px] text-muted-foreground">
                 Add a contact to this factory before assigning a PIC.
               </span>
             )}
           </label>
           <label className="block">
-            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Body</span>
+            <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Body</span>
             <textarea value={body} onChange={(event) => setBody(event.target.value)}
               rows={9} placeholder="Add the detailed work item context…"
-              className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-accent focus:outline-none" />
+              className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-primary focus:outline-none" />
           </label>
         </div>
 
@@ -496,7 +496,7 @@ function WorkItemModal({
             Cancel
           </button>
           <button type="submit" disabled={saving || !title.trim()}
-            className="h-9 px-5 rounded-full bg-accent hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[12px] font-medium cursor-pointer">
+            className="h-9 px-5 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-50 text-white text-[12px] font-medium cursor-pointer">
             {saving ? "Saving…" : "Save"}
           </button>
         </footer>

@@ -111,23 +111,23 @@ export function FdeDeploymentProgress({ factoryId }: { factoryId: string }) {
     <section className="rounded-lg border border-line bg-surface-2/45 p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-accent">FDE KIT deployment</div>
+          <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-primary">FDE KIT deployment</div>
           <h3 className="mt-1 truncate text-[13px] font-medium text-ink">{deployment.name}</h3>
         </div>
         <a
           href={`${process.env.NEXT_PUBLIC_FDE_KIT_URL ?? "https://fde-kit-web.vercel.app"}/deployments/${deployment.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-full border border-line-strong px-2.5 py-1 text-[10px] mono uppercase tracking-wide text-muted hover:border-accent hover:text-accent transition-colors"
+          className="shrink-0 rounded-full border border-line-strong px-2.5 py-1 text-[10px] mono uppercase tracking-wide text-muted-foreground hover:border-primary hover:text-primary transition-colors"
         >
           More details
         </a>
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"><div className="h-full rounded-full bg-accent transition-all" style={{ width: `${percent}%` }} /></div>
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} /></div>
         <span className="text-[11px] mono text-ink-soft">{done}/{tasks.length}</span>
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] text-muted">
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] text-muted-foreground">
         {phaseCounts.filter((row) => row.total > 0).map((row) => <span key={row.phase}>{row.phase}: {row.done}/{row.total}</span>)}
       </div>
     </section>

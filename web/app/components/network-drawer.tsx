@@ -81,10 +81,10 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
       <button onClick={onClose} aria-label="Close" className="fixed inset-0 bg-canvas/70 backdrop-blur-sm z-40" />
       <aside className="fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-surface border-l border-line-strong z-50 flex flex-col shadow-drawer">
         <header className="relative px-6 pt-5 pb-4 border-b border-line">
-          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="flex items-start justify-between mb-3">
             <div className="min-w-0 pr-4">
-              <div className="text-[10px] mono uppercase tracking-[0.14em] text-accent mb-1">
+              <div className="text-[10px] mono uppercase tracking-[0.14em] text-primary mb-1">
                 {NETWORK_TYPES.find((t) => t.key === n.type)?.label ?? "Network"}
               </div>
               <input
@@ -93,7 +93,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 className="block w-full text-[22px] font-display text-ink bg-transparent border-none focus:outline-none"
               />
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+            <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 6 12 12M18 6 6 18" strokeWidth="1.8" strokeLinecap="round" /></svg>
             </button>
           </div>
@@ -123,7 +123,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 title={contextStale ? "New context added since last score" : undefined}
                 className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${
                   contextStale
-                    ? "bg-accent text-white hover:bg-[#3a51ff]"
+                    ? "bg-primary text-white hover:bg-[#3a51ff]"
                     : "border border-line-strong bg-surface-2 hover:bg-surface-3 text-ink-soft hover:text-ink"
                 }`}
               >
@@ -140,10 +140,10 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 <ScoreBreakdownBars breakdown={n.score_breakdown} dimensions={NETWORK_SCORE_DIMENSIONS} />
                 {n.blocker && <p className="mt-3 text-[12px] text-[color:var(--color-warn)]">Blocker: {n.blocker}</p>}
                 {n.ai_reasoning && <p className="mt-2 text-[13px] text-ink-soft leading-relaxed">{n.ai_reasoning}</p>}
-                {n.ai_recommendation && <p className="mt-2 text-[13px] text-accent leading-relaxed">→ {n.ai_recommendation}</p>}
+                {n.ai_recommendation && <p className="mt-2 text-[13px] text-primary leading-relaxed">→ {n.ai_recommendation}</p>}
               </>
             ) : (
-              <p className="text-[13px] text-muted">Not scored. Click Score to rate this network on the 100-pt referral rubric.</p>
+              <p className="text-[13px] text-muted-foreground">Not scored. Click Score to rate this network on the 100-pt referral rubric.</p>
             )}
           </Section>
 
@@ -157,14 +157,14 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
               <InputField label="Website" value={n.website_url} onSave={(v) => set({ website_url: v })} mono />
             </div>
             <div className="mt-1">
-              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Focus verticals</span>
+              <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Focus verticals</span>
               <div className="flex flex-wrap gap-1.5">
                 {VERTICALS.map((v) => {
                   const on = focus.includes(v.key);
                   return (
                     <button key={v.key} type="button" onClick={() => toggleFocus(v.key)}
                       className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer border transition-colors ${
-                        on ? "bg-accent text-white border-accent" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"
+                        on ? "bg-primary text-white border-primary" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"
                       }`}>
                       {v.short}
                     </button>
@@ -179,14 +179,14 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           <Section title="Network pipeline">
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Stage</span>
+                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Stage</span>
                 <select value={n.stage} onChange={(e) => set({ stage: e.target.value as Stage })}
                   className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
                   {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </label>
               <label className="block">
-                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">Next action due</span>
+                <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">Next action due</span>
                 <input type="date" value={n.next_action_due ?? ""} onChange={(e) => set({ next_action_due: e.target.value || null })}
                   className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-line-strong focus:outline-none" />
               </label>
@@ -207,22 +207,22 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                 placeholder="Log a call, note, reply or evidence…"
                 className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-ink focus:outline-none focus-visible:outline-none" />
               <button type="button" onClick={() => { void logActivity(); }} disabled={!activityNote.trim()}
-                className="h-8 rounded-full bg-accent px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-45">
+                className="h-8 rounded-full bg-primary px-3 text-[11.5px] font-medium text-white hover:bg-[#3a51ff] disabled:opacity-45">
                 Add
               </button>
             </div>
             {activities.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-line px-4 py-5 text-center text-[11.5px] text-muted">No network activity yet.</p>
+              <p className="rounded-lg border border-dashed border-line px-4 py-5 text-center text-[11.5px] text-muted-foreground">No network activity yet.</p>
             ) : (
               <div className="relative ml-2 border-l border-line">
                 {activities.slice(0, 30).map((activity) => {
                   const contactName = contacts.find((contact) => contact.id === activity.contact_id)?.full_name;
                   return (
                     <article key={activity.id} className="group relative py-3 pl-6">
-                      <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-accent"><NetworkActivityIcon /></span>
+                      <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-primary"><NetworkActivityIcon /></span>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">{activity.type.replace(/_/g, " ")}</span>
-                        <span className="text-[10px] mono text-muted">{formatActivityTimestamp(activity.created_at)}</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">{activity.type.replace(/_/g, " ")}</span>
+                        <span className="text-[10px] mono text-muted-foreground">{formatActivityTimestamp(activity.created_at)}</span>
                         <ActivityRowActions
                           createdAt={activity.created_at}
                           onDelete={() => { void deleteActivity(activity.id); }}
@@ -239,15 +239,15 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           {/* Sourced factories */}
           <Section title={`Factories sourced · ${factories.length}`}>
             {factories.length === 0 ? (
-              <p className="text-[12px] text-muted">No factories linked yet. Set a factory&apos;s “Network” field to this network.</p>
+              <p className="text-[12px] text-muted-foreground">No factories linked yet. Set a factory&apos;s “Network” field to this network.</p>
             ) : (
               <div className="space-y-1">
                 {factories.map((f) => (
                   <button key={f.id} onClick={() => openFactory(f.id)}
                     className="w-full flex items-center gap-2 h-10 px-3 rounded-md hover:bg-surface-2 cursor-pointer text-left group">
                     <span className="min-w-0 flex-1">
-                      <span className="text-[13px] font-medium text-ink group-hover:text-accent transition-colors truncate block">{f.name}</span>
-                      {f.hq_location && <span className="text-[11px] text-muted truncate block">{f.hq_location}</span>}
+                      <span className="text-[13px] font-medium text-ink group-hover:text-primary transition-colors truncate block">{f.name}</span>
+                      {f.hq_location && <span className="text-[11px] text-muted-foreground truncate block">{f.hq_location}</span>}
                     </span>
                     <ScoreChip score={f.score} grade={f.grade} />
                     <StagePill stage={f.stage} />
@@ -272,22 +272,22 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
               />
             )}
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted">People you work with at this network.</span>
+              <span className="text-[11px] text-muted-foreground">People you work with at this network.</span>
               <button onClick={() => setEditContact("new")}
                 className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11.5px] font-medium text-ink-soft hover:text-ink cursor-pointer">
                 + Contact
               </button>
             </div>
             {contacts.length === 0 ? (
-              <p className="text-[12px] text-muted">No contacts yet.</p>
+              <p className="text-[12px] text-muted-foreground">No contacts yet.</p>
             ) : (
               <div className="space-y-1">
                 {contacts.map((c) => (
                   <div key={c.id} className="group flex items-center gap-2 h-11 px-2 rounded-md hover:bg-surface-2/70">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.is_primary_target ? "bg-accent" : "bg-muted"}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.is_primary_target ? "bg-primary" : "bg-muted-foreground/40"}`} />
                     <button onClick={() => setEditContact(c)} className="min-w-0 flex-1 text-left cursor-pointer">
                       <span className="text-[13px] text-ink truncate block">{c.full_name}</span>
-                      {c.role_title && <span className="text-[11px] text-muted truncate block">{c.role_title}</span>}
+                      {c.role_title && <span className="text-[11px] text-muted-foreground truncate block">{c.role_title}</span>}
                     </button>
                     <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
                       <StagePill stage={c.stage} />
@@ -298,7 +298,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
                       </select>
                     </div>
                     <button onClick={() => { if (confirm(`Delete ${c.full_name}?`)) deleteContact(c.id); }}
-                      className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] cursor-pointer" aria-label="Delete contact">
+                      className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer" aria-label="Delete contact">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </button>
                   </div>
@@ -314,7 +314,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           <Section title="Notes">
             <textarea defaultValue={n.notes ?? ""} onBlur={(e) => e.target.value !== (n.notes ?? "") && set({ notes: e.target.value })}
               rows={4} placeholder="Context, who introduced them, what they can unlock…"
-              className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink placeholder:text-muted resize-y focus:border-line-strong focus:outline-none" />
+              className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink placeholder:text-muted-foreground resize-y focus:border-line-strong focus:outline-none" />
           </Section>
         </div>
 
@@ -327,7 +327,7 @@ export function NetworkDrawer({ networkId, onClose }: { networkId: string; onClo
           )}
           <div className="flex-1" />
           <button onClick={() => { if (confirm(`Delete ${n.name}?`)) { deleteNetwork(networkId); onClose(); } }}
-            className="h-9 w-9 rounded-full border border-line-strong bg-surface hover:bg-[color:var(--color-danger)]/10 text-muted hover:text-[color:var(--color-danger)] cursor-pointer grid place-items-center" aria-label="Delete network">
+            className="h-9 w-9 rounded-full border border-line-strong bg-surface hover:bg-[color:var(--color-danger)]/10 text-muted-foreground hover:text-[color:var(--color-danger)] cursor-pointer grid place-items-center" aria-label="Delete network">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </footer>
@@ -376,39 +376,39 @@ function NetworkContactForm({
 
   return (
     <div className="mb-3 rounded-md border border-line-strong bg-surface-2/60 p-3 space-y-2">
-      <div className="text-[10px] mono uppercase tracking-[0.12em] text-accent">
+      <div className="text-[10px] mono uppercase tracking-[0.12em] text-primary">
         {contact ? `Editing contact · ${contact.full_name}` : "New network contact"}
       </div>
       <input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)}
-        className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
+        className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-primary focus:outline-none" />
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[9px] mono uppercase tracking-wider text-muted block mb-1">Stage</span>
+          <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground block mb-1">Stage</span>
           <select value={stage} onChange={(e) => setStage(e.target.value as Stage)}
-            className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
+            className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
             {STAGES.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
         <input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-accent focus:outline-none" />
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-primary focus:outline-none" />
         <select value={role_category} onChange={(e) => setCat(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-accent focus:outline-none">
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
           <option value="">Role category…</option>
           {ROLE_CATEGORIES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
         </select>
         <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
         <input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
         <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-accent focus:outline-none" />
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
         <input type="date" title="Next follow-up" value={next_follow_up} onChange={(e) => setNextFollowUp(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink mono focus:border-accent focus:outline-none" />
+          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink mono focus:border-primary focus:outline-none" />
       </div>
       <textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12px] text-ink resize-y focus:border-accent focus:outline-none" />
+        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12px] text-ink resize-y focus:border-primary focus:outline-none" />
       <div className="flex gap-2">
-        <button onClick={submit} className="h-7 px-3 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
+        <button onClick={submit} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
         <button onClick={onCancel} className="h-7 px-3 rounded-full border border-line-strong bg-surface text-[11.5px] text-ink-soft cursor-pointer">Cancel</button>
       </div>
     </div>
@@ -420,7 +420,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   return (
     <section>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted font-medium">{title}</h3>
+        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground font-medium">{title}</h3>
         {action}
       </div>
       <div className="space-y-2.5">{children}</div>
@@ -444,7 +444,7 @@ function InputField({ label, value, onSave, mono = false }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
+      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <input defaultValue={value ?? ""} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
         className={`w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-line-strong focus:outline-none ${mono ? "mono" : ""}`} />
     </label>
@@ -455,7 +455,7 @@ function SelectField({ label, value, onChange, options }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted block mb-1">{label}</span>
+      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
         <option value="">—</option>

@@ -38,7 +38,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
             )}
             <div className="min-w-0">
               <div className="font-medium truncate text-ink">{l.name}</div>
-              {l.contact_person && <div className="text-[11px] text-muted truncate">{l.contact_person}</div>}
+              {l.contact_person && <div className="text-[11px] text-muted-foreground truncate">{l.contact_person}</div>}
             </div>
           </div>
         );
@@ -101,7 +101,7 @@ export function FundraisingTable({ track, leads, onSelect, onStageChange, onDele
             e.stopPropagation();
             if (confirm(`Delete ${l.name}? This can’t be undone.`)) onDelete(l.id);
           }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
+          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
           aria-label={`Delete ${l.name}`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">

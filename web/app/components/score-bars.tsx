@@ -4,7 +4,7 @@ import { SCORE_DIMENSIONS, type ScoreBreakdown, type ScoreDimension } from "@/li
 
 // Compact 0–100 score chip used in the factory table.
 export function ScoreChip({ score, grade }: { score: number | null; grade: string | null }) {
-  if (score == null) return <span className="text-xs text-muted mono">—</span>;
+  if (score == null) return <span className="text-xs text-muted-foreground mono">—</span>;
   const tone = grade === "A" ? "green" : grade === "B" ? "amber" : "neutral";
   return (
     <span className="inline-flex items-center gap-2 w-24">
@@ -38,7 +38,7 @@ export function AssessmentScoreBadge({ score, grade }: { score: number | null; g
 
   return (
     <div className="relative mb-1 h-12 w-12 shrink-0" aria-label={score == null ? "Not scored" : `Score ${Math.round(score)} out of 100, grade ${grade ?? "ungraded"}`}>
-      <div className={`grid h-12 w-12 place-items-center rounded-full border-[3px] ${score == null ? "border-line-strong bg-surface-2 text-muted" : tone.ring}`}>
+      <div className={`grid h-12 w-12 place-items-center rounded-full border-[3px] ${score == null ? "border-line-strong bg-surface-2 text-muted-foreground" : tone.ring}`}>
         <span className="text-[18px] font-bold leading-none tabular-nums">{score == null ? "—" : Math.round(score)}</span>
       </div>
       {grade && (
@@ -68,7 +68,7 @@ export function ScoreBreakdownBars({
           <div key={d.key} className="flex items-center gap-3">
             <span className="w-40 shrink-0 text-[11px] text-ink-soft truncate">{d.label}</span>
             <div className="flex-1 h-2 rounded-full bg-surface-2 overflow-hidden">
-              <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
             <span className="w-10 shrink-0 text-right mono text-[11px] tabular-nums text-ink-soft">
               {v}/{d.max}

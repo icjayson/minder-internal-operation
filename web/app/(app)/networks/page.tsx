@@ -85,14 +85,14 @@ export default function NetworksPage() {
             options={[{ value: "All", label: "All grades" }, { value: "A", label: "A-grade" }, { value: "B", label: "B-grade" }, { value: "C", label: "C-grade" }]} />
           <div className="flex-1" />
           <button onClick={openNewNetwork}
-            className="h-9 px-4 rounded-full bg-accent hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
+            className="h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[13px] font-medium cursor-pointer inline-flex items-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" strokeWidth="2.2" strokeLinecap="round" /></svg>
             New network
           </button>
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted text-sm mono uppercase tracking-wider">Loading networks…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading networks…</div>
         ) : rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
             <div className="text-lg font-display mb-2">No networks yet</div>
