@@ -10,6 +10,13 @@
 
 export type Swatch = { step: string; value: string; note?: string };
 
+/**
+ * Radius is one knob — `--radius` at 0.625rem — with the rest derived from it,
+ * because that is how the vendored component set derives it and how its
+ * components were drawn. Documenting a second scale beside it is what let the
+ * documented radius and the shipped one drift apart before.
+ */
+
 export const primary: Swatch[] = [
   { step: "50", value: "#F0F7FD", note: "tint background" },
   { step: "100", value: "#DBECFA" },
@@ -103,11 +110,10 @@ export const spacing = [
 ];
 
 export const radii = [
-  { token: "xs", value: "4px", use: "form fields" },
-  { token: "sm", value: "6px", use: "chips" },
-  { token: "md", value: "8px", use: "utility buttons" },
-  { token: "lg", value: "12px", use: "cards" },
-  { token: "xl", value: "16px", use: "panels" },
+  { token: "sm", value: "6px", use: "chips, small controls" },
+  { token: "md", value: "8px", use: "buttons, inputs" },
+  { token: "lg", value: "10px", use: "cards, menus" },
+  { token: "xl", value: "14px", use: "panels, dialogs" },
   { token: "full", value: "9999px", use: "CTAs, badges, avatars" },
 ];
 

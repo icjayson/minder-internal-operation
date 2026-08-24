@@ -67,8 +67,8 @@ export default function ContactsPage() {
       sortValue: (c) => c.full_name.toLowerCase(),
       render: (c) => (
         <div className="flex items-center gap-2">
-          <span className="font-medium text-ink truncate">{c.full_name}</span>
-          {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
+          <span className="font-medium text-foreground truncate">{c.full_name}</span>
+          {c.is_primary_target && <span className="text-[9px] tabular-nums uppercase tracking-wider text-primary shrink-0">target</span>}
         </div>
       ),
     },
@@ -78,7 +78,7 @@ export default function ContactsPage() {
       width: 180,
       sortable: true,
       sortValue: (c) => (c.role_title ?? "").toLowerCase(),
-      render: (c) => <span className="text-ink-soft truncate block">{c.role_title ?? "—"}</span>,
+      render: (c) => <span className="text-foreground/80 truncate block">{c.role_title ?? "—"}</span>,
     },
     {
       key: "parent",
@@ -91,8 +91,8 @@ export default function ContactsPage() {
         const nm = isNet ? network(c.network_id)?.name : factory(c.factory_id)?.name;
         return (
           <span className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground shrink-0">{isNet ? "NET" : "FAC"}</span>
-            <span className="text-ink-soft truncate">{nm ?? "—"}</span>
+            <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground shrink-0">{isNet ? "NET" : "FAC"}</span>
+            <span className="text-foreground/80 truncate">{nm ?? "—"}</span>
           </span>
         );
       },
@@ -103,7 +103,7 @@ export default function ContactsPage() {
       width: 150,
       sortable: true,
       sortValue: (c) => verticalName(factory(c.factory_id)?.vertical_id ?? null),
-      render: (c) => <span className="text-ink-soft truncate block">{verticalName(factory(c.factory_id)?.vertical_id ?? null)}</span>,
+      render: (c) => <span className="text-foreground/80 truncate block">{verticalName(factory(c.factory_id)?.vertical_id ?? null)}</span>,
     },
     {
       key: "stage",
@@ -119,7 +119,7 @@ export default function ContactsPage() {
       width: 140,
       sortable: true,
       sortValue: (c) => (c.last_activity_at ? new Date(c.last_activity_at).getTime() : 0),
-      render: (c) => <span className="mono text-[11px] text-ink-soft">{formatDate(c.last_activity_at)}</span>,
+      render: (c) => <span className="tabular-nums text-[11px] text-foreground/80">{formatDate(c.last_activity_at)}</span>,
     },
     {
       key: "next_follow_up",
@@ -171,9 +171,9 @@ export default function ContactsPage() {
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
             No contacts match. Add one with “New contact” — you can create its factory inline.
           </div>
         ) : (
@@ -187,14 +187,14 @@ export default function ContactsPage() {
 }
 
 function FocusButton({ label, count, active, tone = "default", onClick }: { label: string; count: number; active: boolean; tone?: "default" | "warn"; onClick: () => void }) {
-  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-primary/40 bg-primary-tint text-primary" : "border-line bg-surface text-ink-soft hover:border-line-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted-foreground">{count}</span></button>;
+  return <button type="button" onClick={onClick} aria-pressed={active} className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium ${active ? tone === "warn" ? "border-[color:var(--color-warn)]/40 tint-warn text-[color:var(--color-warn)]" : "border-primary/40 bg-primary-tint text-primary" : "border-border bg-card text-foreground/80 hover:border-border-strong"}`}>{label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span></button>;
 }
 
 function FollowUpDate({ value }: { value: string | null }) {
   if (!value) return <span className="text-[11px] text-muted-foreground">Not scheduled</span>;
   const today = new Date().toISOString().slice(0, 10);
   const due = value <= today;
-  return <span className={`inline-flex rounded-full border px-2 py-1 text-[10.5px] ${due ? "border-[color:var(--color-warn)]/30 tint-warn text-[color:var(--color-warn)]" : "border-line bg-surface-2 text-ink-soft"}`}>{due && value === today ? "Today · " : due ? "Due · " : ""}{formatDate(value)}</span>;
+  return <span className={`inline-flex rounded-full border px-2 py-1 text-[10.5px] ${due ? "border-[color:var(--color-warn)]/30 tint-warn text-[color:var(--color-warn)]" : "border-border bg-muted text-foreground/80"}`}>{due && value === today ? "Today · " : due ? "Due · " : ""}{formatDate(value)}</span>;
 }
 
 function formatDate(d: string | null): string {

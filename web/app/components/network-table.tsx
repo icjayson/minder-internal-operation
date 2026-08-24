@@ -50,7 +50,7 @@ export function NetworkTable({
               />
             )}
             <div className="min-w-0">
-              <div className="font-medium truncate text-ink">{n.name}</div>
+              <div className="font-medium truncate text-foreground">{n.name}</div>
               {n.country && <div className="text-[11px] text-muted-foreground truncate">{n.country}</div>}
             </div>
           </div>
@@ -63,7 +63,7 @@ export function NetworkTable({
       width: 140,
       sortable: true,
       sortValue: (n) => typeLabel(n.type),
-      render: (n) => <span className="text-ink-soft truncate block">{typeLabel(n.type)}</span>,
+      render: (n) => <span className="text-foreground/80 truncate block">{typeLabel(n.type)}</span>,
     },
     {
       key: "score",
@@ -88,7 +88,7 @@ export function NetworkTable({
       align: "center",
       sortable: true,
       sortValue: (n) => factoryCount(n.id),
-      render: (n) => <span className="text-ink-soft mono">{factoryCount(n.id)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums">{factoryCount(n.id)}</span>,
     },
     {
       key: "contacts",
@@ -97,7 +97,7 @@ export function NetworkTable({
       align: "center",
       sortable: true,
       sortValue: (n) => contactCount(n.id),
-      render: (n) => <span className="text-ink-soft mono">{contactCount(n.id)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums">{contactCount(n.id)}</span>,
     },
     {
       key: "last",
@@ -105,7 +105,7 @@ export function NetworkTable({
       width: 130,
       sortable: true,
       sortValue: (n) => (n.last_activity_at ? new Date(n.last_activity_at).getTime() : 0),
-      render: (n) => <span className="text-ink-soft mono text-[11px] whitespace-nowrap">{formatDate(n.last_activity_at)}</span>,
+      render: (n) => <span className="text-foreground/80 tabular-nums text-[11px] whitespace-nowrap">{formatDate(n.last_activity_at)}</span>,
     },
     {
       key: "next",
@@ -113,7 +113,7 @@ export function NetworkTable({
       width: 170,
       sortable: true,
       sortValue: (n) => (n.next_action ?? "").toLowerCase(),
-      render: (n) => <span className="text-ink-soft text-[12px] truncate block">{n.next_action ?? "—"}</span>,
+      render: (n) => <span className="text-foreground/80 text-[12px] truncate block">{n.next_action ?? "—"}</span>,
     },
     {
       key: "actions",
@@ -126,7 +126,7 @@ export function NetworkTable({
             e.stopPropagation();
             if (confirm(`Delete ${n.name}? Its direct contacts are removed; sourced factories are kept (unlinked).`)) onDelete(n.id);
           }}
-          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-surface-3 cursor-pointer transition-all duration-150"
+          className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:text-[color:var(--color-danger)] hover:bg-accent cursor-pointer transition-all duration-150"
           aria-label={`Delete ${n.name}`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">

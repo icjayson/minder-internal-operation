@@ -61,7 +61,7 @@ export function ActivityAlertCountdown({
         <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-warn)]" aria-hidden />
         Discord in <span className="min-w-[2.4rem] tabular-nums">{formatActivityAlertCountdown(remaining)}</span>
       </span>
-      <span className="h-3 w-px bg-line" aria-hidden />
+      <span className="h-3 w-px bg-border" aria-hidden />
       <button
         type="button"
         title="Delete this activity and cancel its pending Discord alert"

@@ -146,12 +146,12 @@ export function ContextPanel({
   return (
     <section>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground font-medium">
+        <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground font-medium">
           Context {items ? `· ${items.length}` : ""}
         </h3>
         <div className="flex items-center gap-1.5">
           <button onClick={() => { setAddingText(true); setEditId(null); }}
-            className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11.5px] font-medium text-ink-soft hover:text-ink cursor-pointer">
+            className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer">
             + Text
           </button>
           <button onClick={() => fileRef.current?.click()} disabled={busy}
@@ -165,7 +165,7 @@ export function ContextPanel({
       </div>
 
       <p className="text-[11px] text-muted-foreground mb-2.5">
-        Files, links &amp; notes for <span className="text-ink-soft">this {entityType}</span> only — feeds its AI scoring &amp; recommendations (from Phase 3). {fileCount} file{fileCount === 1 ? "" : "s"} · {linkCount} link{linkCount === 1 ? "" : "s"} · {textCount} note{textCount === 1 ? "" : "s"}.
+        Files, links &amp; notes for <span className="text-foreground/80">this {entityType}</span> only — feeds its AI scoring &amp; recommendations (from Phase 3). {fileCount} file{fileCount === 1 ? "" : "s"} · {linkCount} link{linkCount === 1 ? "" : "s"} · {textCount} note{textCount === 1 ? "" : "s"}.
       </p>
 
       {error && (
@@ -173,29 +173,29 @@ export function ContextPanel({
       )}
 
       {/* AI summary of this entity's context */}
-      <div className="mb-3 rounded-md border border-line bg-surface-2/50 px-3 py-2.5">
+      <div className="mb-3 rounded-md border border-border bg-muted/50 px-3 py-2.5">
         <div className="flex items-center justify-between mb-1">
-          <div className="text-[9px] mono uppercase tracking-[0.14em] text-primary">✦ Summary</div>
+          <div className="text-[9px] tabular-nums uppercase tracking-[0.14em] text-primary">✦ Summary</div>
           <button onClick={regenerateSummary} disabled={summarizing}
-            className="h-6 px-2.5 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[10.5px] font-medium text-ink-soft hover:text-ink cursor-pointer disabled:opacity-60">
+            className="h-6 px-2.5 rounded-full border border-border-strong bg-card hover:bg-accent text-[10.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer disabled:opacity-60">
             {summarizing ? "Summarising…" : shownSummary ? "Regenerate" : "Generate"}
           </button>
         </div>
         {shownSummary ? (
-          <p className="text-[12.5px] text-ink-soft leading-relaxed whitespace-pre-wrap">{shownSummary}</p>
+          <p className="text-[12.5px] text-foreground/80 leading-relaxed whitespace-pre-wrap">{shownSummary}</p>
         ) : (
           <p className="text-[12px] text-muted-foreground">Generate an AI recap of everything below — what you know, what you&apos;ve done, and the next step.</p>
         )}
       </div>
 
       <div className="mb-2.5 flex flex-wrap items-center justify-end gap-2">
-        <label className="flex items-center gap-1.5 text-[10px] mono uppercase tracking-wider text-muted-foreground">
+        <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Type
           <select
             aria-label="Filter context by type"
             value={typeFilter}
             onChange={(event) => setTypeFilter(event.target.value as ContextTypeFilter)}
-            className="h-8 rounded-md border border-line bg-surface px-2.5 text-[11.5px] normal-case tracking-normal text-ink focus:border-line-strong focus:outline-none"
+            className="h-8 rounded-md border border-border bg-card px-2.5 text-[11.5px] normal-case tracking-normal text-foreground focus:border-border-strong focus:outline-none"
           >
             <option value="all">All</option>
             <option value="file">Files</option>
@@ -203,13 +203,13 @@ export function ContextPanel({
             <option value="text">Notes</option>
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-[10px] mono uppercase tracking-wider text-muted-foreground">
+        <label className="flex items-center gap-1.5 text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground">
           Sort
           <select
             aria-label="Sort context items"
             value={sortOrder}
             onChange={(event) => setSortOrder(event.target.value as ContextSortOrder)}
-            className="h-8 rounded-md border border-line bg-surface px-2.5 text-[11.5px] normal-case tracking-normal text-ink focus:border-line-strong focus:outline-none"
+            className="h-8 rounded-md border border-border bg-card px-2.5 text-[11.5px] normal-case tracking-normal text-foreground focus:border-border-strong focus:outline-none"
           >
             <option value="latest">Latest</option>
             <option value="oldest">Oldest</option>
@@ -259,14 +259,14 @@ function TextForm({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [body, setBody] = useState(initial?.body ?? "");
   return (
-    <div className="mb-2 rounded-md border border-line-strong bg-surface-2/60 p-2.5 space-y-2">
+    <div className="mb-2 rounded-md border border-border-strong bg-muted/60 p-2.5 space-y-2">
       <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional) — e.g. Call 12 Jul, Site audit…"
-        className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[12.5px] text-ink focus:border-primary focus:outline-none" />
+        className="w-full h-8 rounded-md border border-border bg-background px-2 text-[12.5px] text-foreground focus:border-primary focus:outline-none" />
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Paste notes, findings, transcript…"
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12.5px] text-ink leading-relaxed resize-y focus:border-primary focus:outline-none" />
+        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12.5px] text-foreground leading-relaxed resize-y focus:border-primary focus:outline-none" />
       <div className="flex gap-2">
         <button onClick={() => onSave(title, body)} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
-        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-line-strong bg-surface text-[11.5px] text-ink-soft cursor-pointer">Cancel</button>
+        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-border-strong bg-card text-[11.5px] text-foreground/80 cursor-pointer">Cancel</button>
       </div>
     </div>
   );
@@ -274,16 +274,16 @@ function TextForm({
 
 function TextCard({ item, readOnly, onEdit, onDelete }: { item: ContextItem; readOnly?: boolean; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
+    <div className="group rounded-md border border-border bg-card px-3 py-2 hover:border-border-strong">
       <div className="flex items-center gap-2">
         <IconText />
         <button onClick={readOnly ? undefined : onEdit} className="min-w-0 flex-1 text-left cursor-pointer">
-          <span className="text-[12.5px] font-medium text-ink truncate block">{item.title || "Note"}</span>
+          <span className="text-[12.5px] font-medium text-foreground truncate block">{item.title || "Note"}</span>
         </button>
-        <span className="text-[10px] mono text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
-        {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
+        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
+        {readOnly ? <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
-      {item.body && <p className="mt-1 text-[12px] text-ink-soft leading-relaxed line-clamp-3 whitespace-pre-wrap">{item.body}</p>}
+      {item.body && <p className="mt-1 text-[12px] text-foreground/80 leading-relaxed line-clamp-3 whitespace-pre-wrap">{item.body}</p>}
     </div>
   );
 }
@@ -325,18 +325,18 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
   const fileSize = formatBytes(item.byte_size);
   const canToggle = (isImg && !!item.storage_path) || (item.extraction_status === "done" && !!item.body);
   return (
-    <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
+    <div className="group rounded-md border border-border bg-card px-3 py-2 hover:border-border-strong">
       <div className="flex items-center gap-2">
         {isImg ? <IconImage /> : <IconFile />}
         <div className="min-w-0 flex-1">
-          {labels.heading && <span className="text-[12.5px] font-medium text-ink truncate block">{labels.heading}</span>}
-          <span className={`${labels.heading ? "text-[11.5px] text-ink-soft" : "text-[12.5px] font-medium text-ink"} truncate block`}>{labels.fileName}</span>
-          <span className="text-[10px] mono text-muted-foreground">{fileSize}{fileSize ? " - " : ""}{fileFormat}</span>
+          {labels.heading && <span className="text-[12.5px] font-medium text-foreground truncate block">{labels.heading}</span>}
+          <span className={`${labels.heading ? "text-[11.5px] text-foreground/80" : "text-[12.5px] font-medium text-foreground"} truncate block`}>{labels.fileName}</span>
+          <span className="text-[10px] tabular-nums text-muted-foreground">{fileSize}{fileSize ? " - " : ""}{fileFormat}</span>
         </div>
         <StatusBadge status={item.extraction_status} onRetry={onRetry} readOnly={readOnly} />
         {item.storage_path && (
           <button onClick={download} disabled={downloading} title="Download file" aria-label="Download file"
-            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-ink hover:bg-surface-3 cursor-pointer disabled:opacity-50">
+            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer disabled:opacity-50">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         )}
@@ -344,25 +344,25 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
           <button onClick={() => setOpen((o) => !o)}
             title={open ? (isImg ? "Hide preview" : "Hide text") : (isImg ? "Show preview" : "Show extracted text")}
             aria-label={isImg ? "Toggle image preview" : "Toggle extracted text"}
-            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-ink hover:bg-surface-3 cursor-pointer">
+            className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform ${open ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         )}
-        <span className="text-[10px] mono text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
-        {readOnly ? <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
+        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
+        {readOnly ? <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
       {open && isImg && (
         <div className="mt-2">
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt={item.file_name ?? "image preview"} className="max-h-72 w-auto max-w-full rounded border border-line" />
+            <img src={previewUrl} alt={item.file_name ?? "image preview"} className="max-h-72 w-auto max-w-full rounded border border-border" />
           ) : (
             <p className="text-[11px] text-muted-foreground px-1 py-2">{previewError ? "Preview unavailable" : "Loading preview…"}</p>
           )}
         </div>
       )}
       {open && !isImg && item.body && (
-        <pre className="mt-2 max-h-48 overflow-auto rounded bg-canvas border border-line px-2 py-1.5 text-[11px] text-ink-soft leading-relaxed whitespace-pre-wrap font-sans">{item.body.slice(0, 4000)}{item.body.length > 4000 ? "\n…" : ""}</pre>
+        <pre className="mt-2 max-h-48 overflow-auto rounded bg-background border border-border px-2 py-1.5 text-[11px] text-foreground/80 leading-relaxed whitespace-pre-wrap font-sans">{item.body.slice(0, 4000)}{item.body.length > 4000 ? "\n…" : ""}</pre>
       )}
     </div>
   );
@@ -371,16 +371,16 @@ function FileCard({ item, readOnly, onRetry, onDelete }: { item: ContextItem; re
 function LinkCard({ item, onDelete }: { item: ContextItem; onDelete: () => void }) {
   const labels = contextLinkLabels(item);
   return (
-    <div className="group rounded-md border border-line bg-surface px-3 py-2 hover:border-line-strong">
+    <div className="group rounded-md border border-border bg-card px-3 py-2 hover:border-border-strong">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground" aria-hidden="true">↗</span>
         <div className="min-w-0 flex-1">
-          {labels.heading && <span className="text-[12.5px] font-medium text-ink truncate block">{labels.heading}</span>}
+          {labels.heading && <span className="text-[12.5px] font-medium text-foreground truncate block">{labels.heading}</span>}
           <a href={labels.href} target="_blank" rel="noreferrer" className="text-[12px] font-medium text-primary underline underline-offset-2 truncate block">{labels.label}</a>
           {!labels.heading && item.url && item.title && <p className="mt-1 text-[11px] text-muted-foreground truncate">{item.url}</p>}
         </div>
-        <span className="text-[10px] mono text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
-        {item.source === "fde-kit" ? <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
+        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">{relTime(item.updated_at)}</span>
+        {item.source === "fde-kit" ? <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground">synced</span> : <RowDelete onDelete={onDelete} />}
       </div>
     </div>
   );
@@ -388,18 +388,18 @@ function LinkCard({ item, onDelete }: { item: ContextItem; onDelete: () => void 
 
 function StatusBadge({ status, onRetry, readOnly }: { status: ContextItem["extraction_status"]; onRetry: () => void; readOnly?: boolean }) {
   if (status === "pending")
-    return <span className="text-[9.5px] mono uppercase tracking-wider text-[color:var(--color-warn)] animate-pulse shrink-0">extracting…</span>;
+    return <span className="text-[9.5px] tabular-nums uppercase tracking-wider text-[color:var(--color-warn)] animate-pulse shrink-0">extracting…</span>;
   if (status === "done")
-    return <span className="text-[9.5px] mono uppercase tracking-wider text-primary shrink-0" title="Text extracted — feeds the AI">text ✓</span>;
+    return <span className="text-[9.5px] tabular-nums uppercase tracking-wider text-primary shrink-0" title="Text extracted — feeds the AI">text ✓</span>;
   if (status === "failed" && readOnly)
-    return <span className="text-[9.5px] mono uppercase tracking-wider text-[color:var(--color-danger)] shrink-0">failed</span>;
+    return <span className="text-[9.5px] tabular-nums uppercase tracking-wider text-[color:var(--color-danger)] shrink-0">failed</span>;
   if (status === "failed")
     return (
       <button onClick={onRetry} title="Extraction failed — click to retry"
-        className="text-[9.5px] mono uppercase tracking-wider text-[color:var(--color-danger)] shrink-0 cursor-pointer hover:underline">retry</button>
+        className="text-[9.5px] tabular-nums uppercase tracking-wider text-[color:var(--color-danger)] shrink-0 cursor-pointer hover:underline">retry</button>
     );
   if (status === "unsupported")
-    return <span className="text-[9.5px] mono uppercase tracking-wider text-muted-foreground shrink-0" title="No text extracted — add a note describing it">no text</span>;
+    return <span className="text-[9.5px] tabular-nums uppercase tracking-wider text-muted-foreground shrink-0" title="No text extracted — add a note describing it">no text</span>;
   return null;
 }
 

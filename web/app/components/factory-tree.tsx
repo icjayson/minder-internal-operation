@@ -36,15 +36,15 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
   const toggleF = (k: string) => setOpenF((s) => flip(s, k));
 
   return (
-    <div className="rounded-lg border border-line bg-surface">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-line">
-        <span className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mr-auto">
+    <div className="rounded-lg border border-border bg-card">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border">
+        <span className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mr-auto">
           {groups.length} verticals · {factories.length} factories
         </span>
         <button onClick={() => setOpenV(new Set(groups.map((g) => g.key)))}
-          className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">Expand all</button>
+          className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Expand all</button>
         <button onClick={() => { setOpenV(new Set()); setOpenF(new Set()); }}
-          className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">Collapse all</button>
+          className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Collapse all</button>
       </div>
 
       <div className="p-3 space-y-1.5">
@@ -56,11 +56,11 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
             <div key={g.key}>
               {/* Vertical node */}
               <button onClick={() => toggleV(g.key)}
-                className={`w-full flex items-center gap-2.5 h-10 px-3 rounded-md cursor-pointer transition-colors ${open ? "bg-primary-tint" : "hover:bg-surface-2"}`}>
+                className={`w-full flex items-center gap-2.5 h-10 px-3 rounded-md cursor-pointer transition-colors ${open ? "bg-primary-tint" : "hover:bg-muted"}`}>
                 <Chevron open={open} />
                 <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                <span className={`text-[14px] font-medium truncate ${open ? "text-primary" : "text-ink"}`}>{g.name}</span>
-                <span className="text-[12px] mono text-muted-foreground">{g.rows.length}</span>
+                <span className={`text-[14px] font-medium truncate ${open ? "text-primary" : "text-foreground"}`}>{g.name}</span>
+                <span className="text-[12px] tabular-nums text-muted-foreground">{g.rows.length}</span>
                 <div className="ml-auto flex items-center gap-1.5">
                   <GradeChip tone="green" label="A" n={grades.A} />
                   <GradeChip tone="amber" label="B" n={grades.B} />
@@ -70,7 +70,7 @@ export function FactoryTree({ verticals, factories, contactsOf, onOpenFactory }:
 
               {/* Factories */}
               {open && (
-                <div className="ml-[18px] pl-4 border-l border-line-strong mt-1 space-y-1">
+                <div className="ml-[18px] pl-4 border-l border-border-strong mt-1 space-y-1">
                   {g.rows
                     .slice()
                     .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
@@ -106,34 +106,34 @@ function FactoryNode({
   const has = contacts.length > 0;
   return (
     <div>
-      <div className="relative flex items-center gap-2 h-11 pl-1 pr-2 rounded-md hover:bg-surface-2/70 transition-colors before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-line-strong">
+      <div className="relative flex items-center gap-2 h-11 pl-1 pr-2 rounded-md hover:bg-muted/70 transition-colors before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-border-strong">
         <button onClick={onToggle} disabled={!has}
-          className={`w-5 h-5 grid place-items-center shrink-0 ${has ? "cursor-pointer text-muted-foreground hover:text-ink" : "opacity-0"}`}
+          className={`w-5 h-5 grid place-items-center shrink-0 ${has ? "cursor-pointer text-muted-foreground hover:text-foreground" : "opacity-0"}`}
           aria-label={open ? "Collapse" : "Expand"}>
           <Chevron open={open} small />
         </button>
         {stale && <span title="No update in 7+ days" className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-warn)] shrink-0" />}
         <button onClick={onOpen} className="min-w-0 flex-1 text-left cursor-pointer group">
-          <span className="text-[13px] font-medium text-ink group-hover:text-primary transition-colors truncate block">{f.name}</span>
+          <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors truncate block">{f.name}</span>
           {f.hq_location && <span className="text-[11px] text-muted-foreground truncate block">{f.hq_location}</span>}
         </button>
         <div className="hidden sm:block"><ScoreChip score={f.score} grade={f.grade} /></div>
         <StagePill stage={f.stage} />
-        <span className="text-[11px] mono text-muted-foreground w-20 text-right shrink-0">{contacts.length} contacts</span>
+        <span className="text-[11px] tabular-nums text-muted-foreground w-20 text-right shrink-0">{contacts.length} contacts</span>
       </div>
 
       {open && has && (
-        <div className="ml-[10px] pl-4 border-l border-line mt-0.5 mb-1 space-y-0.5">
+        <div className="ml-[10px] pl-4 border-l border-border mt-0.5 mb-1 space-y-0.5">
           {contacts.map((c) => (
             <div key={c.id}
-              className={`relative flex items-center gap-2 h-9 px-2 rounded-md before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-line ${
-                c.is_primary_target ? "bg-primary-tint/60" : "hover:bg-surface-2/50"
+              className={`relative flex items-center gap-2 h-9 px-2 rounded-md before:absolute before:content-[''] before:left-[-16px] before:top-1/2 before:w-3 before:h-px before:bg-border ${
+                c.is_primary_target ? "bg-primary-tint/60" : "hover:bg-muted/50"
               }`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.is_primary_target ? "bg-primary" : "bg-muted-foreground/40"}`} />
               <button onClick={onOpen} className="min-w-0 flex-1 text-left cursor-pointer group">
                 <span className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] text-ink group-hover:text-primary transition-colors truncate">{c.full_name}</span>
-                  {c.is_primary_target && <span className="text-[9px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
+                  <span className="text-[12.5px] text-foreground group-hover:text-primary transition-colors truncate">{c.full_name}</span>
+                  {c.is_primary_target && <span className="text-[9px] tabular-nums uppercase tracking-wider text-primary shrink-0">target</span>}
                 </span>
                 {c.role_title && <span className="text-[10.5px] text-muted-foreground truncate block">{c.role_title}</span>}
               </button>
@@ -165,7 +165,7 @@ function Chevron({ open, small = false }: { open: boolean; small?: boolean }) {
 function GradeChip({ tone, label, n }: { tone: string; label: string; n: number }) {
   return (
     <span data-tone={tone}
-      className={`tone inline-flex items-center gap-1 h-5 px-2 rounded-full mono text-[10px] font-medium ${n === 0 ? "opacity-40" : ""}`}>
+      className={`tone inline-flex items-center gap-1 h-5 px-2 rounded-full tabular-nums text-[10px] font-medium ${n === 0 ? "opacity-40" : ""}`}>
       {label} {n}
     </span>
   );

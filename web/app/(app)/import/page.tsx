@@ -348,10 +348,10 @@ export default function ImportPage() {
         {error && <div className="rounded-md border border-[color:var(--color-danger)]/30 tint-danger px-3 py-2 text-[13px] text-[color:var(--color-danger)]">{error}</div>}
 
         {/* Step 1: input */}
-        <section className="rounded-lg border border-line bg-surface p-5">
-          <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">1 · Paste or upload CSV</h3>
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">1 · Paste or upload CSV</h3>
           <div className="flex items-center gap-2 mb-3">
-            <label className="h-8 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[12px] font-medium text-ink-soft cursor-pointer inline-flex items-center">
+            <label className="h-8 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[12px] font-medium text-foreground/80 cursor-pointer inline-flex items-center">
               Upload .csv
               <input ref={fileInput} type="file" accept=".csv,text/csv" className="hidden"
                 onChange={async (e) => {
@@ -365,11 +365,11 @@ export default function ImportPage() {
                   }
                 }} />
             </label>
-            {headers.length > 0 && <span className="text-[12px] text-ink-soft">{headers.length} columns · {rows.length} rows detected</span>}
+            {headers.length > 0 && <span className="text-[12px] text-foreground/80">{headers.length} columns · {rows.length} rows detected</span>}
           </div>
           <textarea value={text} onChange={(e) => setText(e.target.value)} onBlur={() => text && parse(text)}
             rows={5} placeholder="…or paste CSV text here (first line = headers)"
-            className="w-full rounded-md border border-line bg-canvas px-3 py-2 text-[12px] text-ink mono leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground tabular-nums leading-relaxed resize-y focus:border-border-strong focus:outline-none" />
           <button onClick={analyze} disabled={!headers.length || !!busy}
             className="mt-3 h-9 px-4 rounded-full bg-primary hover:bg-[#3a51ff] disabled:opacity-60 text-white text-[13px] font-medium cursor-pointer">
             {busy === "Analysing with AI…" ? "Analysing…" : "Analyse with AI"}
@@ -377,7 +377,7 @@ export default function ImportPage() {
           {mapping && (
             <button onClick={deleteAnalysis} disabled={!!busy}
               title="Clear the uploaded CSV and its AI mapping. Imported records are not deleted."
-              className="mt-3 ml-2 h-9 px-4 rounded-full border border-[color:var(--color-danger)]/40 bg-surface hover:tint-danger disabled:opacity-60 text-[13px] font-medium text-[color:var(--color-danger)] cursor-pointer">
+              className="mt-3 ml-2 h-9 px-4 rounded-full border border-[color:var(--color-danger)]/40 bg-card hover:tint-danger disabled:opacity-60 text-[13px] font-medium text-[color:var(--color-danger)] cursor-pointer">
               Delete analysis
             </button>
           )}
@@ -385,9 +385,9 @@ export default function ImportPage() {
 
         {/* Step 2: mapping */}
         {mapping && (
-          <section className="rounded-lg border border-line bg-surface p-5">
-            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">2 · Review the AI mapping</h3>
-            {mapping.notes && <p className="text-[12px] text-ink-soft mb-3">{mapping.notes}</p>}
+          <section className="rounded-lg border border-border bg-card p-5">
+            <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">2 · Review the AI mapping</h3>
+            {mapping.notes && <p className="text-[12px] text-foreground/80 mb-3">{mapping.notes}</p>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
               <MapGroup title="Factory">
                 {FACTORY_FIELDS.map((f) => (
@@ -411,14 +411,14 @@ export default function ImportPage() {
 
         {/* Step 3: preview + import */}
         {mapping && (
-          <section className="rounded-lg border border-line bg-surface p-5">
-            <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-3">3 · Preview & import</h3>
+          <section className="rounded-lg border border-border bg-card p-5">
+            <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-3">3 · Preview & import</h3>
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-[12px]">
                 <thead>
                   <tr className="text-muted-foreground">
                     {["Factory", "Vertical", "Contact", "Role", "Email"].map((h) => (
-                      <th key={h} className="text-left mono uppercase tracking-wider text-[10px] px-2 py-1">{h}</th>
+                      <th key={h} className="text-left tabular-nums uppercase tracking-wider text-[10px] px-2 py-1">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -427,12 +427,12 @@ export default function ImportPage() {
                     const t = transform(r);
                     const vName = verticals.find((v) => v.id === t.factory.vertical_id)?.name ?? "—";
                     return (
-                      <tr key={i} className="border-t border-line-soft">
-                        <td className="px-2 py-1.5 text-ink">{String(t.factory.name ?? "—")}</td>
-                        <td className="px-2 py-1.5 text-ink-soft">{vName}</td>
-                        <td className="px-2 py-1.5 text-ink-soft">{String(t.contact.full_name ?? "—")}</td>
-                        <td className="px-2 py-1.5 text-ink-soft">{String(t.contact.role_title ?? "—")}</td>
-                        <td className="px-2 py-1.5 text-ink-soft mono">{String(t.contact.email ?? "—")}</td>
+                      <tr key={i} className="border-t border-border/60">
+                        <td className="px-2 py-1.5 text-foreground">{String(t.factory.name ?? "—")}</td>
+                        <td className="px-2 py-1.5 text-foreground/80">{vName}</td>
+                        <td className="px-2 py-1.5 text-foreground/80">{String(t.contact.full_name ?? "—")}</td>
+                        <td className="px-2 py-1.5 text-foreground/80">{String(t.contact.role_title ?? "—")}</td>
+                        <td className="px-2 py-1.5 text-foreground/80 tabular-nums">{String(t.contact.email ?? "—")}</td>
                       </tr>
                     );
                   })}
@@ -444,7 +444,7 @@ export default function ImportPage() {
               {busy === "Importing…" ? "Importing…" : `Import ${rows.length} rows`}
             </button>
             {result && (
-              <div className="mt-4 rounded-md border border-line bg-surface-2/50 p-3">
+              <div className="mt-4 rounded-md border border-border bg-muted/50 p-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
                   <ResultStat label="Factories created" value={result.factoriesCreated} />
                   <ResultStat label="Factories updated" value={result.factoriesUpdated} />
@@ -456,7 +456,7 @@ export default function ImportPage() {
                 </div>
                 {result.errors.length > 0 && (
                   <button onClick={() => downloadErrors(result.errors)}
-                    className="mt-3 h-7 px-3 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[11px] text-ink-soft cursor-pointer">
+                    className="mt-3 h-7 px-3 rounded-full border border-border-strong bg-card hover:bg-accent text-[11px] text-foreground/80 cursor-pointer">
                     Download row errors (.csv)
                   </button>
                 )}
@@ -473,15 +473,15 @@ export default function ImportPage() {
 function ImportProgress({ current }: { current: number }) {
   const steps = ["Upload", "Map columns", "Review", "Complete"];
   return (
-    <section className="rounded-card border border-line bg-surface px-4 py-4 shadow-soft" aria-label="Import progress">
+    <section className="rounded-lg border border-border bg-card px-4 py-4 shadow-mo-soft" aria-label="Import progress">
       <div className="relative grid grid-cols-4">
-        <span className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-line-strong" aria-hidden>
+        <span className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-border-strong" aria-hidden>
           <span className="block h-full bg-primary transition-[width] duration-300" style={{ width: `${(current / (steps.length - 1)) * 100}%` }} />
         </span>
         {steps.map((step, index) => (
           <div key={step} className="relative z-[1] flex flex-col items-center text-center">
-            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-primary bg-primary text-white" : index === current ? "border-primary bg-primary text-white ring-4 ring-primary-tint" : "border-line-strong bg-surface text-muted-foreground"}`}>{index < current ? "✓" : index + 1}</span>
-            <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-ink" : "text-muted-foreground"}`}>{step}</span>
+            <span className={`grid h-6 w-6 place-items-center rounded-full border text-[10px] font-semibold ${index < current ? "border-primary bg-primary text-white" : index === current ? "border-primary bg-primary text-white ring-4 ring-primary-tint" : "border-border-strong bg-card text-muted-foreground"}`}>{index < current ? "✓" : index + 1}</span>
+            <span className={`mt-2 text-[10.5px] ${index === current ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{step}</span>
           </div>
         ))}
       </div>
@@ -492,7 +492,7 @@ function ImportProgress({ current }: { current: number }) {
 function MapGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] mono uppercase tracking-wider text-primary mb-1.5">{title}</div>
+      <div className="text-[11px] tabular-nums uppercase tracking-wider text-primary mb-1.5">{title}</div>
       <div className="space-y-1.5">{children}</div>
     </div>
   );
@@ -500,9 +500,9 @@ function MapGroup({ title, children }: { title: string; children: React.ReactNod
 function MapRow({ label, value, headers, onChange }: { label: string; value: string | null; headers: string[]; onChange: (v: string | null) => void }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-32 shrink-0 text-[11px] text-ink-soft truncate">{label}</span>
+      <span className="w-32 shrink-0 text-[11px] text-foreground/80 truncate">{label}</span>
       <select value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}
-        className="flex-1 h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
+        className="flex-1 h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
         <option value="">— none —</option>
         {headers.map((h) => <option key={h} value={h}>{h}</option>)}
       </select>
@@ -512,9 +512,9 @@ function MapRow({ label, value, headers, onChange }: { label: string; value: str
 
 function ResultStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-line-soft bg-canvas px-2 py-1.5">
-      <div className="mono uppercase tracking-wider text-[9px] text-muted-foreground">{label}</div>
-      <div className="mono tabular-nums text-[15px] text-ink">{value}</div>
+    <div className="rounded-md border border-border/60 bg-background px-2 py-1.5">
+      <div className="tabular-nums uppercase tracking-wider text-[9px] text-muted-foreground">{label}</div>
+      <div className="tabular-nums text-[15px] text-foreground">{value}</div>
     </div>
   );
 }

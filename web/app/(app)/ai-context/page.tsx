@@ -172,7 +172,7 @@ export default function AIContextPage() {
       />
 
       <div className="max-w-5xl space-y-5 px-8 py-5">
-        <div className="grid grid-cols-2 gap-2 rounded-lg border border-line bg-surface p-1.5">
+        <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-card p-1.5">
           {(Object.entries(SHARED_CONTEXT_CATEGORIES) as [
             SharedContextCategory,
             (typeof SHARED_CONTEXT_CATEGORIES)[SharedContextCategory],
@@ -183,10 +183,10 @@ export default function AIContextPage() {
                 key={key}
                 onClick={() => setCategory(key)}
                 className={`rounded-md px-4 py-3 text-left transition-colors cursor-pointer ${
-                  active ? "bg-surface-3 text-ink shadow-sm" : "text-ink-soft hover:bg-surface-2"
+                  active ? "bg-accent text-foreground shadow-sm" : "text-foreground/80 hover:bg-muted"
                 }`}
               >
-                <span className="block text-[10px] mono uppercase tracking-[0.14em] text-primary">
+                <span className="block text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary">
                   {item.label}
                 </span>
                 <span className="mt-1 block text-[12px] text-muted-foreground">{item.description}</span>
@@ -196,9 +196,9 @@ export default function AIContextPage() {
         </div>
 
         {schemaMissing && (
-          <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[12.5px] text-ink-soft">
+          <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[12.5px] text-foreground/80">
             Shared context tables are not installed yet. Run{" "}
-            <code className="mono text-amber-500">supabase/017_shared_ai_context.sql</code> in the Supabase SQL
+            <code className="tabular-nums text-amber-500">supabase/017_shared_ai_context.sql</code> in the Supabase SQL
             Editor, then reload this page. Until then, AI routes continue using the checked-in defaults.
           </div>
         )}
@@ -210,10 +210,10 @@ export default function AIContextPage() {
 
         <section>
           <div className="mb-3">
-            <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">
+            <h2 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">
               {currentCategory.label} context
             </h2>
-            <p className="mt-1 text-[12px] text-ink-soft">
+            <p className="mt-1 text-[12px] text-foreground/80">
               Changes apply to future AI runs. Disabled blocks fall back to the checked-in default.
             </p>
           </div>
@@ -222,10 +222,10 @@ export default function AIContextPage() {
             {definitions.map((definition) => {
               const context = contexts.find((row) => row.context_key === definition.key);
               return (
-                <article key={definition.key} className="rounded-lg border border-line bg-surface p-4">
+                <article key={definition.key} className="rounded-lg border border-border bg-card p-4">
                   <div className="mb-3 flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-[12px] mono font-medium tracking-[0.04em] text-ink">
+                      <h3 className="text-[12px] tabular-nums font-medium tracking-[0.04em] text-foreground">
                         {definition.label}
                       </h3>
                       <p className="mt-1 text-[11.5px] text-muted-foreground">{definition.description}</p>
@@ -245,7 +245,7 @@ export default function AIContextPage() {
                     disabled={!context}
                     rows={Math.min(14, Math.max(6, (context?.body ?? definition.defaultBody).split("\n").length + 2))}
                     onChange={(event) => editContext(definition.key, { body: event.target.value })}
-                    className="w-full resize-y rounded-md border border-line bg-canvas px-3 py-2.5 text-[12.5px] leading-relaxed text-ink-soft focus:border-primary focus:outline-none disabled:opacity-60"
+                    className="w-full resize-y rounded-md border border-border bg-background px-3 py-2.5 text-[12.5px] leading-relaxed text-foreground/80 focus:border-primary focus:outline-none disabled:opacity-60"
                   />
                   <div className="mt-2 flex justify-end">
                     <button
@@ -262,13 +262,13 @@ export default function AIContextPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-line bg-surface p-4">
+        <section className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">
+              <h2 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">
                 {currentCategory.label} files
               </h2>
-              <p className="mt-1 text-[12px] text-ink-soft">
+              <p className="mt-1 text-[12px] text-foreground/80">
                 Uploaded files are extracted to text and appended to this category in future AI runs.
               </p>
             </div>
@@ -291,7 +291,7 @@ export default function AIContextPage() {
 
           <div className="mt-4 space-y-2">
             {categoryFiles.length === 0 ? (
-              <p className="rounded-md border border-dashed border-line px-3 py-5 text-center text-[12px] text-muted-foreground">
+              <p className="rounded-md border border-dashed border-border px-3 py-5 text-center text-[12px] text-muted-foreground">
                 No shared files in this category yet.
               </p>
             ) : (
@@ -323,19 +323,19 @@ function SharedFileRow({
   const [open, setOpen] = useState(false);
   const retryable = file.extraction_status === "failed" || file.extraction_status === "unsupported";
   return (
-    <div className="rounded-md border border-line bg-surface-2/40 px-3 py-2.5">
+    <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5">
       <div className="flex items-center gap-2">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="shrink-0 text-muted-foreground">
           <path d="M6 2h8l4 4v16H6V2Z" strokeWidth="1.5" strokeLinejoin="round" />
           <path d="M14 2v5h5" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[12.5px] font-medium text-ink">
+          <p className="truncate text-[12.5px] font-medium text-foreground">
             {file.file_name ?? file.title ?? "Context file"}
           </p>
-          <p className="text-[10px] mono text-muted-foreground">{formatBytes(file.byte_size)}</p>
+          <p className="text-[10px] tabular-nums text-muted-foreground">{formatBytes(file.byte_size)}</p>
         </div>
-        <span className={`text-[10px] mono uppercase ${statusColour(file.extraction_status)}`}>
+        <span className={`text-[10px] tabular-nums uppercase ${statusColour(file.extraction_status)}`}>
           {statusLabel(file.extraction_status)}
         </span>
         {retryable && (
@@ -344,7 +344,7 @@ function SharedFileRow({
           </button>
         )}
         {file.body && (
-          <button onClick={() => setOpen((current) => !current)} className="text-[10.5px] text-ink-soft hover:text-ink cursor-pointer">
+          <button onClick={() => setOpen((current) => !current)} className="text-[10.5px] text-foreground/80 hover:text-foreground cursor-pointer">
             {open ? "Hide text" : "View text"}
           </button>
         )}
@@ -353,7 +353,7 @@ function SharedFileRow({
         </button>
       </div>
       {open && file.body && (
-        <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-line bg-canvas p-3 text-[11px] leading-relaxed text-ink-soft">
+        <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-[11px] leading-relaxed text-foreground/80">
           {file.body}
         </pre>
       )}

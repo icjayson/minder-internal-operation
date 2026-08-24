@@ -34,7 +34,7 @@ export default function AlertsPage() {
         right={<><span>{rows.length}</span><span className="opacity-50">unread</span></>} />
       <div className="px-8 py-5 max-w-3xl">
         {rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
             Nothing needs attention. 🎉
           </div>
         ) : (
@@ -56,16 +56,16 @@ function AlertRow({ n, onOpen, onDone }: { n: Notification; onOpen: () => void; 
   const entity = n.network_id ? "network" : n.contact_id ? "contact" : "factory";
 
   return (
-    <div className={`rounded-lg border bg-surface px-4 py-3 ${stale ? "border-l-[3px] border-l-[color:var(--color-warn)] border-line" : "border-line"}`}>
+    <div className={`rounded-lg border bg-card px-4 py-3 ${stale ? "border-l-[3px] border-l-[color:var(--color-warn)] border-border" : "border-border"}`}>
       <div className="flex items-center gap-3">
         <EntityIcon kind={entity} />
         <div className="min-w-0 flex-1">
-          <div className="text-[13px] text-ink">
-            <span className="text-[10px] mono uppercase tracking-wider text-muted-foreground mr-2">{KIND_LABEL[n.kind] ?? n.kind}</span>
+          <div className="text-[13px] text-foreground">
+            <span className="text-[10px] tabular-nums uppercase tracking-wider text-muted-foreground mr-2">{KIND_LABEL[n.kind] ?? n.kind}</span>
             {n.title}{n.detail ? ` — ${n.detail}` : ""}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            {n.due_on && <span className="text-[11px] text-muted-foreground mono">due {n.due_on}</span>}
+            {n.due_on && <span className="text-[11px] text-muted-foreground tabular-nums">due {n.due_on}</span>}
             {n.summary && (
               <button onClick={() => setShowSummary((s) => !s)}
                 className="text-[11px] text-primary hover:underline cursor-pointer">
@@ -76,13 +76,13 @@ function AlertRow({ n, onOpen, onDone }: { n: Notification; onOpen: () => void; 
         </div>
         {canOpen && (
           <button onClick={onOpen}
-            className="h-7 px-3 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">Open</button>
+            className="h-7 px-3 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">Open</button>
         )}
         <button onClick={onDone}
           className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11px] font-medium cursor-pointer">Done</button>
       </div>
       {showSummary && n.summary && (
-        <p className="mt-2 pl-8 text-[12.5px] text-ink-soft leading-relaxed whitespace-pre-wrap">{n.summary}</p>
+        <p className="mt-2 pl-8 text-[12.5px] text-foreground/80 leading-relaxed whitespace-pre-wrap">{n.summary}</p>
       )}
     </div>
   );
@@ -107,7 +107,7 @@ function EntityIcon({ kind }: { kind: "factory" | "network" | "contact" }) {
     ),
   };
   return (
-    <span className="w-7 h-7 rounded-md grid place-items-center bg-surface-2 text-muted-foreground shrink-0">
+    <span className="w-7 h-7 rounded-md grid place-items-center bg-muted text-muted-foreground shrink-0">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">{paths[kind]}</svg>
     </span>
   );

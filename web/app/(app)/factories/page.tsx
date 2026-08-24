@@ -133,7 +133,7 @@ function FactoriesInner() {
         </div>
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Table / Tree view toggle */}
-          <div className="inline-flex items-center rounded-full border border-line-strong bg-surface-2 p-0.5 shrink-0">
+          <div className="inline-flex items-center rounded-full border border-border-strong bg-muted p-0.5 shrink-0">
             <ViewBtn active={view === "table"} onClick={() => setView("table")} label="Table">
               <path d="M3 5h18M3 12h18M3 19h18" strokeWidth="1.7" strokeLinecap="round" />
             </ViewBtn>
@@ -153,7 +153,7 @@ function FactoriesInner() {
             options={[{ value: "All", label: "All geos" }, ...GEO_OPTIONS.map((g) => ({ value: g.key, label: g.label }))]} />
           <div className="flex-1" />
           <Link href="/import"
-            className="h-9 px-4 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[13px] font-medium text-ink-soft hover:text-ink cursor-pointer inline-flex items-center gap-1.5">
+            className="h-9 px-4 rounded-full border border-border-strong bg-card hover:bg-accent text-[13px] font-medium text-foreground/80 hover:text-foreground cursor-pointer inline-flex items-center gap-1.5">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15V3m0 0 4 4m-4-4L8 7M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
             Import CSV
           </Link>
@@ -167,9 +167,9 @@ function FactoriesInner() {
         {!rows ? (
           <FactoryTableSkeleton />
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
             <div className="text-lg font-display mb-2">No factories match</div>
-            <p className="text-sm text-ink-soft max-w-md mx-auto">Add a factory, import a CSV, or clear the filters.</p>
+            <p className="text-sm text-foreground/80 max-w-md mx-auto">Add a factory, import a CSV, or clear the filters.</p>
           </div>
         ) : view === "tree" ? (
           <FactoryTree
@@ -202,21 +202,21 @@ function SavedViewButton({ label, count, active, tone = "default", onClick }: { 
         ? "border-[#0fa79b]/45 bg-[#e6f8f5] text-[#0b8375]"
         : "border-primary/40 bg-primary-tint text-primary";
   const idleClass = tone === "customer"
-    ? "border-[#0fa79b]/35 bg-surface text-[#0b8375] hover:border-[#0fa79b]/55"
-    : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink";
+    ? "border-[#0fa79b]/35 bg-card text-[#0b8375] hover:border-[#0fa79b]/55"
+    : "border-border bg-card text-foreground/80 hover:border-border-strong hover:text-foreground";
   return (
     <button type="button" onClick={onClick} aria-pressed={active}
       className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-[11px] font-medium transition-colors ${active ? activeTone : idleClass}`}>
-      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-surface-3 px-1 text-[9px] text-muted-foreground">{count}</span>
+      {label}<span className="grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] text-muted-foreground">{count}</span>
     </button>
   );
 }
 
 function FactoryTableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface" aria-label="Loading factories">
-      <div className="h-10 animate-pulse border-b border-line bg-surface-2/60" />
-      {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-line-soft px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-surface-3" /><span className="h-3 w-20 animate-pulse rounded bg-surface-3" /><span className="h-3 w-32 animate-pulse rounded bg-surface-3" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-surface-3" /></div>)}
+    <div className="overflow-hidden rounded-lg border border-border bg-card" aria-label="Loading factories">
+      <div className="h-10 animate-pulse border-b border-border bg-muted/60" />
+      {Array.from({ length: 7 }, (_, index) => <div key={index} className="flex h-14 items-center gap-6 border-b border-border/60 px-4 last:border-0"><span className="h-3 w-48 animate-pulse rounded bg-accent" /><span className="h-3 w-20 animate-pulse rounded bg-accent" /><span className="h-3 w-32 animate-pulse rounded bg-accent" /><span className="ml-auto h-3 w-24 animate-pulse rounded bg-accent" /></div>)}
     </div>
   );
 }
@@ -227,7 +227,7 @@ function ViewBtn({ active, onClick, label, children }: {
   return (
     <button onClick={onClick} title={`${label} view`}
       className={`h-8 px-3 rounded-full text-[12px] font-medium cursor-pointer inline-flex items-center gap-1.5 transition-colors ${
-        active ? "bg-primary text-white" : "text-ink-soft hover:text-ink"
+        active ? "bg-primary text-white" : "text-foreground/80 hover:text-foreground"
       }`}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">{children}</svg>
       {label}

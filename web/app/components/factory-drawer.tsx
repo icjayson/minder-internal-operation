@@ -267,7 +267,7 @@ export function FactoryDrawer({
         onClose={onClose}
       >
         {/* Header */}
-        <header className="relative bg-surface px-5 py-4 border-b border-line sm:px-6">
+        <header className="relative bg-card px-5 py-4 border-b border-border sm:px-6">
           <span className="absolute left-0 top-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="flex items-center gap-3">
             {variant === "drawer" ? (
@@ -276,7 +276,7 @@ export function FactoryDrawer({
                 onClick={onClose}
                 title="Open full page"
                 aria-label="Open factory full page"
-                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink shrink-0"
+                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground shrink-0"
               >
                 <ExpandIcon />
               </Link>
@@ -285,13 +285,13 @@ export function FactoryDrawer({
                 onClick={onClose}
                 title="Back to factories"
                 aria-label="Back to factories"
-                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink cursor-pointer shrink-0"
+                className="mt-0.5 w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer shrink-0"
               >
                 <BackIcon />
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] mono uppercase tracking-[0.14em] text-primary mb-1">
+              <div className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-primary mb-1">
                 {verticalName(f.vertical_id)}
               </div>
               {editingProfile ? (
@@ -299,10 +299,10 @@ export function FactoryDrawer({
                   defaultValue={f.name}
                   aria-label="Factory name"
                   onBlur={(e) => e.target.value.trim() && e.target.value !== f.name && set({ name: e.target.value.trim() })}
-                  className="block w-full rounded-md border border-line bg-canvas px-2 py-1 text-[20px] font-display text-ink focus:border-primary focus:outline-none"
+                  className="block w-full rounded-md border border-border bg-background px-2 py-1 text-[20px] font-display text-foreground focus:border-primary focus:outline-none"
                 />
               ) : (
-                <h1 className="truncate text-[21px] leading-tight font-display text-ink">{f.name}</h1>
+                <h1 className="truncate text-[21px] leading-tight font-display text-foreground">{f.name}</h1>
               )}
             </div>
             <div className="hidden items-center gap-2 sm:flex">
@@ -315,7 +315,7 @@ export function FactoryDrawer({
                     onClose();
                   }}
                   title="Undo customer — return this account to the Factory tracker"
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-strong bg-muted px-3.5 text-[11.5px] font-medium text-foreground/80 hover:text-foreground"
                 >
                   <UndoIcon /> Move to Factories
                 </button>
@@ -335,7 +335,7 @@ export function FactoryDrawer({
                       onClick={() => { void unmarkFactoryAsCustomer(factoryId); }}
                       title="Undo — remove from the Customer tracker"
                       aria-label="Undo mark as customer"
-                      className="grid h-8 w-8 place-items-center rounded-full border border-line-strong bg-surface-2 text-muted-foreground hover:text-[color:var(--color-danger)]"
+                      className="grid h-8 w-8 place-items-center rounded-full border border-border-strong bg-muted text-muted-foreground hover:text-[color:var(--color-danger)]"
                     >
                       <UndoIcon />
                     </button>
@@ -345,7 +345,7 @@ export function FactoryDrawer({
                     type="button"
                     onClick={() => { void markFactoryAsCustomer(factoryId); }}
                     title="Promote this factory to the Customer tracker"
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong bg-surface-2 px-3.5 text-[11.5px] font-medium text-ink-soft hover:text-ink"
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-strong bg-muted px-3.5 text-[11.5px] font-medium text-foreground/80 hover:text-foreground"
                   >
                     <CustomerIcon /> Mark as Customer
                   </button>
@@ -363,7 +363,7 @@ export function FactoryDrawer({
               <button
                 type="button"
                 onClick={() => setEditingProfile((value) => !value)}
-                className={`h-8 rounded-full border px-3.5 text-[11.5px] font-medium ${editingProfile ? "border-primary bg-primary-tint text-primary" : "border-line-strong bg-surface-2 text-ink-soft hover:text-ink"}`}
+                className={`h-8 rounded-full border px-3.5 text-[11.5px] font-medium ${editingProfile ? "border-primary bg-primary-tint text-primary" : "border-border-strong bg-muted text-foreground/80 hover:text-foreground"}`}
               >
                 {editingProfile ? "Done" : "Edit"}
               </button>
@@ -375,7 +375,7 @@ export function FactoryDrawer({
                 <DeleteIcon />
               </button>
               {variant === "drawer" && (
-                <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-surface-3 hover:text-ink cursor-pointer" aria-label="Close">
+                <button onClick={onClose} className="w-7 h-7 rounded-md grid place-items-center text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer" aria-label="Close">
                   <CloseIcon />
                 </button>
               )}
@@ -387,7 +387,7 @@ export function FactoryDrawer({
             <span title="Factory stage"><StagePill stage={f.stage} /></span>
             <Divider />
             <PriorityStars value={f.priority} onChange={(p) => set({ priority: p === f.priority ? 0 : p })} size={14} />
-            <button type="button" onClick={() => { void set({ is_customer: !f.is_customer }); }} className={`h-7 rounded-full border px-2.5 text-[10.5px] font-medium ${f.is_customer ? "border-primary bg-primary-tint text-primary" : "border-line-strong bg-surface-2 text-muted-foreground hover:text-ink"}`} title="Customer status">{f.is_customer ? "Customer · FDE KIT" : "Mark as customer"}</button>
+            <button type="button" onClick={() => { void set({ is_customer: !f.is_customer }); }} className={`h-7 rounded-full border px-2.5 text-[10.5px] font-medium ${f.is_customer ? "border-primary bg-primary-tint text-primary" : "border-border-strong bg-muted text-muted-foreground hover:text-foreground"}`} title="Customer status">{f.is_customer ? "Customer · FDE KIT" : "Mark as customer"}</button>
           </div>
         </header>
 
@@ -398,7 +398,7 @@ export function FactoryDrawer({
         )}
 
         <div className={variant === "drawer" ? "flex-1 overflow-y-auto" : ""}>
-          <div className="border-b border-line bg-surface px-4 py-5 sm:px-6 lg:px-8">
+          <div className="border-b border-border bg-card px-4 py-5 sm:px-6 lg:px-8">
             <JourneyOverview
               stage={f.stage}
               ladderLevel={f.ladder_level ?? 0}
@@ -409,14 +409,14 @@ export function FactoryDrawer({
             />
           </div>
 
-          <div className={variant === "drawer" ? "flex flex-col bg-surface px-4 sm:px-6" : "grid grid-cols-1 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"}>
+          <div className={variant === "drawer" ? "flex flex-col bg-card px-4 sm:px-6" : "grid grid-cols-1 items-start xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]"}>
             <div className={variant === "drawer" ? "contents" : "space-y-0 px-5 sm:px-6 lg:px-8"}>
               {/* Activity first: this is the account's operating narrative. */}
               <Section title={`Activity · ${activities.length}`} className={variant === "drawer" ? "order-[8]" : ""}>
-                <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas p-1.5 transition-colors focus-within:border-line-strong focus-within:bg-surface-2/35">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1.5 transition-colors focus-within:border-border-strong focus-within:bg-muted/35">
                   <select value={activityContact} onChange={(e) => setActivityContact(e.target.value)}
                     aria-label="Attribute activity to"
-                    className="h-8 shrink-0 max-w-[132px] rounded-md bg-surface-2 px-2 text-[11px] text-ink-soft cursor-pointer focus:outline-none focus-visible:outline-none">
+                    className="h-8 shrink-0 max-w-[132px] rounded-md bg-muted px-2 text-[11px] text-foreground/80 cursor-pointer focus:outline-none focus-visible:outline-none">
                     <option value="">Factory</option>
                     {contacts.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
                   </select>
@@ -429,7 +429,7 @@ export function FactoryDrawer({
                       setActivityNote("");
                     }}
                     placeholder="Log a call, note, reply or evidence…"
-                    className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-ink focus:outline-none focus-visible:outline-none"
+                    className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[12px] text-foreground focus:outline-none focus-visible:outline-none"
                   />
                   <button
                     type="button"
@@ -446,23 +446,23 @@ export function FactoryDrawer({
                 {activities.length === 0 ? (
                   <EmptyState title="No activity yet" body="Log the first touchpoint to start this account timeline." />
                 ) : (
-                  <div className="relative ml-2 space-y-0 border-l border-line">
+                  <div className="relative ml-2 space-y-0 border-l border-border">
                     {activities.slice(0, 30).map((a) => {
                       const contactName = contacts.find((c) => c.id === a.contact_id)?.full_name;
                       return (
                         <article key={a.id} className="group relative py-3 pl-6">
-                          <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-primary"><ActivityIcon type={a.type} /></span>
+                          <span className="absolute -left-[11px] top-3.5 grid h-5 w-5 place-items-center rounded-full border border-border bg-card text-primary"><ActivityIcon type={a.type} /></span>
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">{a.type.replace(/_/g, " ")}</span>
-                            <span className="text-[10px] mono text-muted-foreground">{formatTimestamp(a.created_at)}</span>
-                            {a.evidence_level != null && <span className="text-[9px] mono text-muted-foreground">E{a.evidence_level}</span>}
+                            <span className="text-[10px] tabular-nums text-muted-foreground">{formatTimestamp(a.created_at)}</span>
+                            {a.evidence_level != null && <span className="text-[9px] tabular-nums text-muted-foreground">E{a.evidence_level}</span>}
                             <ActivityRowActions
                               createdAt={a.created_at}
                               onDelete={() => { void deleteActivity(a.id); }}
                             />
                           </div>
-                          <p className="mt-0.5 text-[12px] leading-relaxed text-ink-soft">
-                            <strong className="font-medium text-ink">{contactName ?? "Factory"}: </strong>{a.body ?? "—"}
+                          <p className="mt-0.5 text-[12px] leading-relaxed text-foreground/80">
+                            <strong className="font-medium text-foreground">{contactName ?? "Factory"}: </strong>{a.body ?? "—"}
                           </p>
                         </article>
                       );
@@ -483,7 +483,7 @@ export function FactoryDrawer({
                       title={contextStale ? "New context logged since last score" : undefined}
                       className={`h-7 px-3 rounded-full text-[11.5px] font-medium cursor-pointer disabled:opacity-60 transition-colors inline-flex items-center gap-1.5 ${contextStale
                           ? "bg-primary text-white hover:bg-[#3a51ff]"
-                          : "border border-line-strong bg-surface-2 hover:bg-surface-3 text-ink-soft hover:text-ink"
+                          : "border border-border-strong bg-muted hover:bg-accent text-foreground/80 hover:text-foreground"
                         }`}
                     >
                       {contextStale && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -495,7 +495,7 @@ export function FactoryDrawer({
                 <div className="flex items-start gap-3 bg-primary-tint/35 px-3 py-2.5 rounded-xl">
                   <AssessmentScoreBadge score={f.score} grade={f.grade} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12.5px] leading-relaxed text-ink-soft">
+                    <p className="text-[12.5px] leading-relaxed text-foreground/80">
                       {f.score != null
                         ? "Qualification score based on the current factory profile, evidence and context."
                         : "Score this account against the design-partner qualification rubric."}
@@ -506,11 +506,11 @@ export function FactoryDrawer({
                   </div>
                 </div>
                 {assessmentOpen && f.score != null && (
-                  <div className="mt-3 border-t border-line-soft pt-3">
+                  <div className="mt-3 border-t border-border/60 pt-3">
                     {contextStale && <p className="mb-2 text-[11.5px] text-[color:var(--color-warn)]">Context changed since last score — re-score to update.</p>}
                     <ScoreBreakdownBars breakdown={f.score_breakdown} />
                     {f.blocker && <p className="mt-3 text-[12px] text-[color:var(--color-warn)]">Blocker: {f.blocker}</p>}
-                    {f.ai_reasoning && <p className="mt-3 text-[12px] leading-relaxed text-ink-soft">{f.ai_reasoning}</p>}
+                    {f.ai_reasoning && <p className="mt-3 text-[12px] leading-relaxed text-foreground/80">{f.ai_reasoning}</p>}
                   </div>
                 )}
               </Section>
@@ -534,7 +534,7 @@ export function FactoryDrawer({
                       options={WORKER_BANDS.map((b) => ({ value: b, label: b }))} />
                     <InputField label="Location" value={f.hq_location} onSave={(v) => set({ hq_location: v || null })} />
                     <InputField label="Company website" value={f.website_url ?? f.company_url}
-                      onSave={(v) => set({ website_url: normalizeUrl(v) || null })} mono />
+                      onSave={(v) => set({ website_url: normalizeUrl(v) || null })} tabular />
                   </div>
                   <TextareaField label="Company description" value={f.description} onSave={(v) => set({ description: v })} />
                   <TextareaField label="How to approach / Note" value={f.notes} onSave={(v) => set({ notes: v })} />
@@ -571,11 +571,11 @@ export function FactoryDrawer({
               {/* Latest draft */}
               {draft && (
                 <Section title={`Draft for ${draft.contact}`} className={variant === "drawer" ? "order-[5]" : ""}>
-                  {draft.subject && <div className="text-[12px] text-ink-soft mb-1">Subject: {draft.subject}</div>}
+                  {draft.subject && <div className="text-[12px] text-foreground/80 mb-1">Subject: {draft.subject}</div>}
                   <textarea value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} rows={6}
-                    className="w-full rounded-md bg-canvas border border-line px-3 py-2 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
+                    className="w-full rounded-md bg-background border border-border px-3 py-2 text-[13px] text-foreground leading-relaxed resize-y focus:border-border-strong focus:outline-none" />
                   <button onClick={() => navigator.clipboard.writeText(draft.body)}
-                    className="mt-2 h-6 px-2 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft cursor-pointer">
+                    className="mt-2 h-6 px-2 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 cursor-pointer">
                     Copy
                   </button>
                 </Section>
@@ -585,9 +585,9 @@ export function FactoryDrawer({
             <div className={
               variant === "drawer"
                 ? "contents"
-                : "space-y-4 border-t border-line px-5 py-5 sm:px-6 lg:px-8 xl:sticky xl:top-0 xl:border-l xl:border-t-0"
+                : "space-y-4 border-t border-border px-5 py-5 sm:px-6 lg:px-8 xl:sticky xl:top-0 xl:border-l xl:border-t-0"
             }>
-              <div className={variant === "drawer" ? "order-[6] border-b border-line-soft py-5" : ""}>
+              <div className={variant === "drawer" ? "order-[6] border-b border-border/60 py-5" : ""}>
                 <NextActionCard
                   item={nextWorkItem}
                   pic={contacts.find((contact) => contact.id === nextWorkItem?.pic_contact_id) ?? null}
@@ -601,11 +601,11 @@ export function FactoryDrawer({
                 />
               </div>
               {/* Inputted context (files + notes, per-factory) */}
-              <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+              <div className={variant === "drawer" ? "order-[7] border-b border-border/60 py-5" : ""}>
                 <ContextPanel entityType="factory" entityId={factoryId} summary={f.context_summary} onStats={setCtxStats} />
               </div>
               {f.is_customer && (
-                <div className={variant === "drawer" ? "order-[7] border-b border-line-soft py-5" : ""}>
+                <div className={variant === "drawer" ? "order-[7] border-b border-border/60 py-5" : ""}>
                   <FdeDeploymentProgress factoryId={factoryId} />
                 </div>
               )}
@@ -649,17 +649,17 @@ function NextActionCard({
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-white shadow-glow"><AlertIcon /></span>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Next best action</div>
-          <p className="mt-1 text-[13px] font-medium leading-relaxed text-ink">
+          <p className="mt-1 text-[13px] font-medium leading-relaxed text-foreground">
             {item?.title || "No open work item has a next-step trigger."}
           </p>
-          {item?.body && <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-ink-soft">{item.body}</p>}
-          {pic && <p className="mt-1 text-[10.5px] text-muted-foreground">PIC: <span className="text-ink-soft">{pic.full_name}</span></p>}
+          {item?.body && <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{item.body}</p>}
+          {pic && <p className="mt-1 text-[10.5px] text-muted-foreground">PIC: <span className="text-foreground/80">{pic.full_name}</span></p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={onViewWork}
               className="h-8 rounded-full bg-primary px-3.5 text-[11.5px] font-semibold text-white hover:bg-[#3a51ff]">
               {item ? "View work item" : "Open work inventory"}
             </button>
-            {item?.trigger_on && <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/70 px-2.5 py-1 text-[10.5px] text-ink-soft"><CalendarSmallIcon /> {formatShortDate(item.trigger_on)}</span>}
+            {item?.trigger_on && <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-2.5 py-1 text-[10.5px] text-foreground/80"><CalendarSmallIcon /> {formatShortDate(item.trigger_on)}</span>}
           </div>
         </div>
       </div>
@@ -691,7 +691,7 @@ function ProfileSummary({ factory, vertical, network }: { factory: Factory; vert
 }
 
 function ProfileDatum({ label, value }: { label: string; value: string }) {
-  return <div className="min-w-0"><div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">{label}</div><div className="mt-0.5 truncate text-[12px] text-ink-soft" title={value}>{value}</div></div>;
+  return <div className="min-w-0"><div className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">{label}</div><div className="mt-0.5 truncate text-[12px] text-foreground/80" title={value}>{value}</div></div>;
 }
 
 function ReadBlock({ label, body }: { label: string; body: string }) {
@@ -699,14 +699,14 @@ function ReadBlock({ label, body }: { label: string; body: string }) {
   const isApproach = label === "Approach";
 
   return (
-    <article className="rounded-xl border border-line-soft bg-surface-2/55 p-3.5 shadow-sm transition-colors hover:border-line-strong">
+    <article className="rounded-xl border border-border/60 bg-muted/55 p-3.5 shadow-sm transition-colors hover:border-border-strong">
       <div className="flex items-center gap-2.5">
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isApproach ? "bg-[#e6f8f5] text-[#118b7c]" : "bg-primary-tint text-primary"}`}>
           <ProfileCardIcon kind={isApproach ? "approach" : "company"} />
         </span>
-        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-ink-soft">{label}</h4>
+        <h4 className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-foreground/80">{label}</h4>
       </div>
-      <p className={`mt-2.5 text-[12px] leading-[1.55] text-ink-soft ${expanded ? "whitespace-pre-line" : "line-clamp-2"}`}>
+      <p className={`mt-2.5 text-[12px] leading-[1.55] text-foreground/80 ${expanded ? "whitespace-pre-line" : "line-clamp-2"}`}>
         {body}
       </p>
       <button
@@ -723,7 +723,7 @@ function ReadBlock({ label, body }: { label: string; body: string }) {
 }
 
 function EmptyState({ title, body }: { title: string; body: string }) {
-  return <div className="border-y border-dashed border-line px-4 py-5 text-center"><div className="text-[12px] font-medium text-ink">{title}</div><p className="mx-auto mt-1 max-w-sm text-[11px] text-muted-foreground">{body}</p></div>;
+  return <div className="border-y border-dashed border-border px-4 py-5 text-center"><div className="text-[12px] font-medium text-foreground">{title}</div><p className="mx-auto mt-1 max-w-sm text-[11px] text-muted-foreground">{body}</p></div>;
 }
 
 function ActivityIcon({ type }: { type: string }) {
@@ -796,39 +796,39 @@ function ContactForm({
   }
 
   return (
-    <div className="mb-3 rounded-md border border-line-strong bg-surface-2/60 p-3 space-y-2">
-      <div className="text-[10px] mono uppercase tracking-[0.12em] text-primary">
+    <div className="mb-3 rounded-md border border-border-strong bg-muted/60 p-3 space-y-2">
+      <div className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-primary">
         {contact ? `Editing contact · ${contact.full_name}` : "New contact"}
       </div>
       <input autoFocus placeholder="Full name *" value={full_name} onChange={(e) => setName(e.target.value)}
-        className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-primary focus:outline-none" />
+        className="w-full h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-primary focus:outline-none" />
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[9px] mono uppercase tracking-wider text-muted-foreground block mb-1">Contact stage</span>
+          <span className="text-[9px] tabular-nums uppercase tracking-wider text-muted-foreground block mb-1">Contact stage</span>
           <select value={stage} onChange={(e) => setStage(e.target.value as Stage)}
-            className="w-full h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
+            className="w-full h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
             {STAGES.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
         <input placeholder="Role title" value={role_title} onChange={(e) => setRole(e.target.value)}
-          className="h-8 self-end rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-primary focus:outline-none" />
+          className="h-8 self-end rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-primary focus:outline-none" />
         <select value={role_category} onChange={(e) => setCat(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[12px] text-ink cursor-pointer focus:border-primary focus:outline-none">
+          className="h-8 rounded-md border border-border bg-background px-2 text-[12px] text-foreground cursor-pointer focus:border-primary focus:outline-none">
           <option value="">Role category…</option>
           {ROLE_CATEGORIES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
         </select>
         <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
+          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
         <input placeholder="LinkedIn URL" value={linkedin_url} onChange={(e) => setLi(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
+          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
         <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-          className="h-8 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink mono focus:border-primary focus:outline-none" />
+          className="h-8 rounded-md border border-border bg-background px-2 text-[13px] text-foreground tabular-nums focus:border-primary focus:outline-none" />
       </div>
       <textarea placeholder="Contact notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[12px] text-ink resize-y focus:border-primary focus:outline-none" />
+        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground resize-y focus:border-primary focus:outline-none" />
       <div className="flex gap-2">
         <button onClick={submit} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Save</button>
-        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-line-strong bg-surface text-[11.5px] text-ink-soft cursor-pointer">Cancel</button>
+        <button onClick={onCancel} className="h-7 px-3 rounded-full border border-border-strong bg-card text-[11.5px] text-foreground/80 cursor-pointer">Cancel</button>
       </div>
     </div>
   );
@@ -837,16 +837,16 @@ function ContactForm({
 // ── small field helpers ─────────────────────────────────────────────
 function Section({ title, action, children, className = "" }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`border-b border-line-soft py-5 last:border-b-0 ${className}`}>
+    <section className={`border-b border-border/60 py-5 last:border-b-0 ${className}`}>
       <div className="flex items-center justify-between gap-3 mb-3">
-        <h3 className="text-[13px] font-semibold text-ink">{title}</h3>
+        <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
         {action}
       </div>
       <div className="space-y-2.5">{children}</div>
     </section>
   );
 }
-function Divider() { return <span className="h-4 w-px bg-line-strong" />; }
+function Divider() { return <span className="h-4 w-px bg-border-strong" />; }
 function ExpandIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -904,14 +904,14 @@ function formatTimestamp(value: string): string {
   });
 }
 
-function InputField({ label, value, onSave, type = "text", mono = false }: {
-  label: string; value: string | null; onSave: (v: string) => void; type?: string; mono?: boolean;
+function InputField({ label, value, onSave, type = "text", tabular = false }: {
+  label: string; value: string | null; onSave: (v: string) => void; type?: string; tabular?: boolean;
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <input type={type} defaultValue={value ?? ""} onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
-        className={`w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink focus:border-line-strong focus:outline-none ${mono ? "mono" : ""}`} />
+        className={`w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground focus:border-border-strong focus:outline-none ${tabular ? "tabular-nums" : ""}`} />
     </label>
   );
 }
@@ -920,9 +920,9 @@ function SelectField({ label, value, onChange, options, placeholder = "—" }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-[13px] text-ink cursor-pointer focus:border-line-strong focus:outline-none">
+        className="w-full h-9 rounded-md border border-border bg-background px-2 text-[13px] text-foreground cursor-pointer focus:border-border-strong focus:outline-none">
         <option value="">{placeholder}</option>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -934,10 +934,10 @@ function TextareaField({ label, value, onSave, rows = 3 }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground block mb-1">{label}</span>
       <textarea defaultValue={value ?? ""} rows={rows}
         onBlur={(e) => e.target.value !== (value ?? "") && onSave(e.target.value.trim())}
-        className="w-full rounded-md border border-line bg-canvas px-2 py-1.5 text-[13px] text-ink leading-relaxed resize-y focus:border-line-strong focus:outline-none" />
+        className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[13px] text-foreground leading-relaxed resize-y focus:border-border-strong focus:outline-none" />
     </label>
   );
 }

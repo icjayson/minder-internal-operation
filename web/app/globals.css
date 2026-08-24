@@ -53,12 +53,20 @@
    --color-primary-foreground: var(--mo-neutral-0);
    --color-secondary: var(--mo-neutral-100);
    --color-secondary-foreground: var(--mo-neutral-1000);
-   --color-muted: var(--mo-neutral-100);
+   /* Two quiet surfaces rather than shadcn's one: `muted` is the passive tone
+      (table headers, zebra, skeletons) and `accent` the interactive one (hover,
+      selected). The platform already drew that distinction and reads better for
+      it, and both steps are on the documented ramp. */
+   --color-muted: var(--mo-neutral-50);
    --color-muted-foreground: var(--mo-neutral-600);
    --color-accent: var(--mo-neutral-100);
    --color-accent-foreground: var(--mo-neutral-1000);
    --color-destructive: var(--color-error);
    --color-border: var(--mo-neutral-200);
+   /* A second border weight, for the hairline that has to carry an edge —
+      a focused field, a resize handle, a card that sits on its own. The
+      documented system has one border; the platform has always needed two. */
+   --color-border-strong: var(--mo-neutral-300);
    --color-input: var(--mo-neutral-200);
    --color-ring: var(--mo-primary-500);
 
@@ -79,64 +87,37 @@
    --color-sidebar-border: var(--mo-neutral-200);
    --color-sidebar-ring: var(--mo-primary-500);
 
-   /* ── Compatibility shim ────────────────────────────────────────────
-      The platform is written against the names the Celesnity palette used
-      (`bg-surface`, `text-ink`, `border-line`, …) — roughly 1,900 usages
-      across 57 files. Pointing those names at Minder values re-skins all
-      of them at once instead of rewriting every class.
-
-      This is scaffolding. As each route moves onto the design system its
-      classes become the shadcn ones, and this block shrinks to nothing.
-
-      Two Celesnity names are *not* here: `accent` and `muted` collide with
-      shadcn's own, so those call sites were renamed to `primary` and
-      `muted-foreground` rather than shimmed. That collision is the reason
-      the design system used to be scoped instead of global.
-      ────────────────────────────────────────────────────────────────── */
-   --color-canvas: var(--mo-neutral-50);      /* the page itself */
-   --color-surface: var(--mo-neutral-0);      /* cards, fields */
-   --color-surface-2: var(--mo-neutral-50);   /* zebra / hover fill */
-   --color-surface-3: var(--mo-neutral-100);  /* selected */
-   --color-ink: var(--mo-neutral-1000);
-   --color-ink-soft: var(--mo-neutral-800);
-   --color-line: var(--mo-neutral-200);
-   --color-line-soft: var(--mo-neutral-100);
-   --color-line-strong: var(--mo-neutral-300);
+   /* Minder's own tint step, for a chip or a selected row that should read
+      as brand-coloured without carrying the full brand fill. */
    --color-primary-tint: var(--mo-primary-50);
-   --color-primary-deep: var(--mo-primary-800);
 
    /* ── Type ──────────────────────────────────────────────────────────
-      One family, per tokens.ts. `--font-mono` is deliberately the same
-      face: the 200-odd `.mono` call sites are uppercase tabular meta, not
-      code, and the Celesnity palette already aliased mono to its body
-      font — switching them to a real monospace here would be a visual
-      change nobody asked for. The `.mono` class is retired route by route
-      in favour of `tabular-nums`.
+      One family, per tokens.ts. `--font-mono` is left at Tailwind's own
+      stack: the platform's `.mono` class was never code — it was uppercase
+      tabular meta, and it is `tabular-nums` now — while the chart tooltips
+      that do use `font-mono` want a real monospace.
       ────────────────────────────────────────────────────────────────── */
    --font-sans: var(--font-roboto), Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
    --font-display: var(--font-sans);
-   --font-mono: var(--font-sans);
 
    /* ── Radius ────────────────────────────────────────────────────────
-      The Minder scale, replacing shadcn's derive-everything-from-one-knob.
-      `rounded-md` is what the vendored buttons and inputs use, so it takes
-      Minder's utility-button radius; `rounded-lg` takes the card radius.
+      One knob, derived exactly the way the component set derives it. The
+      vendored components were drawn against this scale — Card at
+      `rounded-xl`, Button and Input at `rounded-md` — so deriving it any
+      other way makes the library render at a radius it was not designed
+      for, and makes a hand-authored panel sit at a different corner from
+      the Card beside it.
       ────────────────────────────────────────────────────────────────── */
-   --radius-xs: 4px;    /* form fields */
-   --radius-sm: 6px;    /* chips */
-   --radius-md: 8px;    /* utility buttons */
-   --radius-lg: 12px;   /* cards */
-   --radius-xl: 16px;   /* panels */
-   --radius-card: 12px; /* compat — Celesnity's `rounded-card` */
+   --radius-sm: calc(var(--radius) - 4px);  /*  6px — chips, small controls */
+   --radius-md: calc(var(--radius) - 2px);  /*  8px — buttons, inputs */
+   --radius-lg: var(--radius);              /* 10px — cards, menus */
+   --radius-xl: calc(var(--radius) + 4px);  /* 14px — panels, dialogs */
 
    /* ── Elevation ─────────────────────────────────────────────────────
-      `--shadow-mo-soft` / `--shadow-mo-elevated` come from tokens.ts.
-      These three are the platform's own names, kept so the existing call
-      sites resolve; `drawer` and `glow` have no counterpart in tokens.ts
-      because the documented system has no side panel and no glow.
+      `shadow-mo-soft` and `shadow-mo-elevated` come from tokens.ts. The
+      glow is the platform's own and has no counterpart there, because the
+      documented system has nothing that glows.
       ────────────────────────────────────────────────────────────────── */
-   --shadow-soft: var(--shadow-mo-soft);
-   --shadow-drawer: -24px 0 60px -24px rgb(0 0 0 / 18%);
    --shadow-glow: 0 10px 40px rgb(0 117 222 / 22%);
 }
 
@@ -153,7 +134,8 @@
    ═══════════════════════════════════════════════════════════════════ */
 :root,
 .shadcn-scope.minder-brand {
-   --radius: 12px;
+   /* The component set's own value; --radius-* above derive from it. */
+   --radius: 0.625rem;
 
    --background: var(--mo-neutral-50);
    --foreground: var(--mo-neutral-1000);
@@ -165,12 +147,13 @@
    --primary-foreground: var(--mo-neutral-0);
    --secondary: var(--mo-neutral-100);
    --secondary-foreground: var(--mo-neutral-1000);
-   --muted: var(--mo-neutral-100);
+   --muted: var(--mo-neutral-50);
    --muted-foreground: var(--mo-neutral-600);
    --accent: var(--mo-neutral-100);
    --accent-foreground: var(--mo-neutral-1000);
    --destructive: var(--color-error);
    --border: var(--mo-neutral-200);
+   --border-strong: var(--mo-neutral-300);
    --input: var(--mo-neutral-200);
    --ring: var(--mo-primary-500);
 
@@ -224,6 +207,7 @@
    --accent-foreground: var(--mo-neutral-0);
    --destructive: var(--color-error);
    --border: var(--mo-neutral-700);
+   --border-strong: var(--mo-neutral-600);
    --input: var(--mo-neutral-700);
    --ring: #62aef0;
 
@@ -246,21 +230,7 @@
    --color-danger: var(--color-error);
    --color-violet: var(--mo-primary-300);
 
-   /* Shim, dark half */
-   --color-canvas: var(--mo-neutral-900);
-   --color-surface: var(--mo-neutral-800);
-   --color-surface-2: var(--mo-neutral-700);
-   --color-surface-3: var(--mo-neutral-600);
-   --color-ink: var(--mo-neutral-0);
-   --color-ink-soft: var(--mo-neutral-300);
-   --color-line: var(--mo-neutral-700);
-   --color-line-soft: var(--mo-neutral-800);
-   --color-line-strong: var(--mo-neutral-600);
    --color-primary-tint: var(--mo-primary-900);
-   --color-primary-deep: var(--mo-primary-300);
-
-   --shadow-soft: 0 1px 0 rgb(255 255 255 / 3%), 0 18px 48px -24px rgb(0 0 0 / 70%);
-   --shadow-drawer: -24px 0 60px -24px rgb(0 0 0 / 70%);
    --shadow-glow: 0 10px 40px rgb(98 174 240 / 25%);
 }
 
@@ -295,6 +265,7 @@
    --accent-foreground: oklch(0.205 0 0);
    --destructive: oklch(0.577 0.245 27.325);
    --border: oklch(0.922 0 0);
+   --border-strong: oklch(0.87 0 0);
    --input: oklch(0.922 0 0);
    --ring: oklch(0.708 0 0);
    /* The `neutral` base ships a grayscale chart ramp; ui.shadcn.com overrides it
@@ -333,6 +304,7 @@
    --accent-foreground: oklch(0.985 0 0);
    --destructive: oklch(0.704 0.191 22.216);
    --border: oklch(1 0 0 / 10%);
+   --border-strong: oklch(1 0 0 / 20%);
    --input: oklch(1 0 0 / 15%);
    --ring: oklch(0.556 0 0);
    --sidebar: oklch(0.205 0 0);
@@ -377,6 +349,7 @@
    --color-accent-foreground: var(--accent-foreground);
    --color-destructive: var(--destructive);
    --color-border: var(--border);
+   --color-border-strong: var(--border-strong);
    --color-input: var(--input);
    --color-ring: var(--ring);
    --color-chart-1: var(--chart-1);
@@ -414,13 +387,6 @@ h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
   font-weight: 700;
-}
-
-.mono, .tnum {
-  font-variant-numeric: tabular-nums;
-}
-.mono {
-  font-family: var(--font-mono);
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

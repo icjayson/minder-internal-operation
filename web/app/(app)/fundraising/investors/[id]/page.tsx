@@ -13,7 +13,7 @@ export default function InvestorDetailPage() {
 
   if (!fundraisingLeads) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm mono uppercase tracking-wider text-muted-foreground">
+      <div className="min-h-screen grid place-items-center text-sm tabular-nums uppercase tracking-wider text-muted-foreground">
         Loading investor…
       </div>
     );
@@ -23,7 +23,7 @@ export default function InvestorDetailPage() {
     return (
       <div className="min-h-screen grid place-items-center px-6 text-center">
         <div>
-          <h1 className="text-xl font-display text-ink">Investor not found</h1>
+          <h1 className="text-xl font-display text-foreground">Investor not found</h1>
           <button onClick={() => router.push("/fundraising/investors")}
             className="mt-4 h-9 px-4 rounded-full bg-primary text-white text-[12.5px] font-medium cursor-pointer">
             Back to investors

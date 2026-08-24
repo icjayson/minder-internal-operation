@@ -34,7 +34,7 @@ export function JourneyOverview({
   const displayedPipelineStage = PIPELINE_STAGES.includes(stage) ? stage : null;
 
   return (
-    <section className="bg-surface" aria-labelledby="journey-overview-title">
+    <section className="bg-card" aria-labelledby="journey-overview-title">
       <JourneyStepper
         label="Factory pipeline"
         current={displayedPipelineStage}
@@ -42,9 +42,9 @@ export function JourneyOverview({
         onChange={onStageChange}
         compact={compact}
         meta={
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas px-2 py-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2 py-1">
             <CalendarIcon />
-            <span className="text-[10.5px] text-ink-soft">{formatTriggerDate(nextActionDue)}</span>
+            <span className="text-[10.5px] text-foreground/80">{formatTriggerDate(nextActionDue)}</span>
           </span>
         }
         hint={
@@ -59,7 +59,7 @@ export function JourneyOverview({
                   onClick={() => onStageChange(terminal)}
                   className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${stage === terminal
                       ? "border-[color:var(--color-warn)]/50 tint-warn text-[color:var(--color-warn)]"
-                      : "border-line text-muted-foreground hover:border-line-strong hover:text-ink-soft"
+                      : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground/80"
                     }`}
                 >
                   {terminal}
@@ -70,7 +70,7 @@ export function JourneyOverview({
         }
       />
 
-      <div className="my-4 h-px bg-line-soft" />
+      <div className="my-4 h-px bg-border/60" />
 
       <JourneyStepper
         label="Relationship ladder"

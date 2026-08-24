@@ -55,10 +55,10 @@ export function ContactTree({
       {/* Factory root node */}
       <div className="flex items-center gap-2 mb-3">
         <span className="w-2 h-2 rounded-full bg-primary" />
-        <span className="text-[13px] font-medium text-ink truncate">{factoryName}</span>
+        <span className="text-[13px] font-medium text-foreground truncate">{factoryName}</span>
         <button
           onClick={onAdd}
-          className="ml-auto h-6 px-2 rounded-full border border-line-strong bg-surface-2 hover:bg-surface-3 text-[11px] mono uppercase tracking-wider text-ink-soft hover:text-ink cursor-pointer transition-colors"
+          className="ml-auto h-6 px-2 rounded-full border border-border-strong bg-muted hover:bg-accent text-[11px] tabular-nums uppercase tracking-wider text-foreground/80 hover:text-foreground cursor-pointer transition-colors"
         >
           + Contact
         </button>
@@ -68,10 +68,10 @@ export function ContactTree({
         <p className="text-[13px] text-muted-foreground pl-4">No contacts yet — add the owner, MD or plant director.</p>
       )}
 
-      <div className="pl-1 border-l border-line ml-1 space-y-4">
+      <div className="pl-1 border-l border-border ml-1 space-y-4">
         {[...grouped, ...(ungrouped.length ? [{ level: "other", rows: ungrouped }] : [])].map((g) => (
           <div key={g.level} className="pl-4 relative">
-            <div className={`text-[10px] mono uppercase tracking-[0.14em] mb-1.5 ${
+            <div className={`text-[10px] tabular-nums uppercase tracking-[0.14em] mb-1.5 ${
               g.level === "high" ? "text-primary font-medium" : "text-muted-foreground"
             }`}>
               {LEVEL_LABEL[g.level] ?? "Other"}
@@ -120,7 +120,7 @@ function ContactRow({
             ? "border-primary/25 bg-primary-tint/45"
             : c.is_primary_target
               ? "border-primary/40 bg-primary-tint"
-              : "border-line bg-surface-2/40"
+              : "border-border bg-muted/40"
       }`}
     >
       <button
@@ -139,9 +139,9 @@ function ContactRow({
       </button>
       <button onClick={() => onEdit?.(c)} className="min-w-0 flex-1 text-left cursor-pointer" title="Edit contact">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-medium text-ink truncate hover:text-primary transition-colors">{c.full_name}</span>
+          <span className="text-[13px] font-medium text-foreground truncate hover:text-primary transition-colors">{c.full_name}</span>
           {c.is_primary_target && (
-            <span className="text-[9px] mono uppercase tracking-wider text-primary">target</span>
+            <span className="text-[9px] tabular-nums uppercase tracking-wider text-primary">target</span>
           )}
         </div>
         <div className="text-[11px] text-muted-foreground truncate">

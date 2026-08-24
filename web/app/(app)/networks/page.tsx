@@ -92,11 +92,11 @@ export default function NetworksPage() {
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading networks…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading networks…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
             <div className="text-lg font-display mb-2">No networks yet</div>
-            <p className="text-sm text-ink-soft max-w-md mx-auto">Add the associations, accelerators and institutes that introduce factories to you.</p>
+            <p className="text-sm text-foreground/80 max-w-md mx-auto">Add the associations, accelerators and institutes that introduce factories to you.</p>
           </div>
         ) : (
           <NetworkTable

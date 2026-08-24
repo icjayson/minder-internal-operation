@@ -64,21 +64,21 @@ export default function MessagesPage() {
           </div>
         )}
         {!messages ? (
-          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : messages.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center text-sm text-ink-soft">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center text-sm text-foreground/80">
             No drafts yet. Open a factory, pick a contact and click <span className="text-primary">Draft</span>.
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {messages.map((m) => (
-              <div key={m.id} className="rounded-lg border border-line bg-surface flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-line-soft">
+              <div key={m.id} className="rounded-lg border border-border bg-card flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border/60">
                   <button onClick={() => { const fid = contactFactory(m.contact_id); if (fid) openFactory(fid); }}
-                    className="text-[13px] font-medium text-ink hover:text-primary truncate cursor-pointer">
+                    className="text-[13px] font-medium text-foreground hover:text-primary truncate cursor-pointer">
                     {contactName(m.contact_id)}
                   </button>
-                  <span className={`text-[10px] mono uppercase tracking-wider ${m.status === "sent" ? "text-primary" : "text-muted-foreground"}`}>{m.status}</span>
+                  <span className={`text-[10px] tabular-nums uppercase tracking-wider ${m.status === "sent" ? "text-primary" : "text-muted-foreground"}`}>{m.status}</span>
                 </div>
                 <input
                   value={m.subject ?? ""}
@@ -86,7 +86,7 @@ export default function MessagesPage() {
                   onBlur={(e) => saveDraft(m.id, { subject: e.target.value })}
                   disabled={m.status === "sent"}
                   placeholder="Subject"
-                  className="mx-4 mt-2 h-8 bg-transparent border-b border-line-soft text-[12px] text-ink-soft focus:border-primary focus:outline-none disabled:opacity-70"
+                  className="mx-4 mt-2 h-8 bg-transparent border-b border-border/60 text-[12px] text-foreground/80 focus:border-primary focus:outline-none disabled:opacity-70"
                 />
                 <textarea
                   value={m.body ?? ""}
@@ -94,14 +94,14 @@ export default function MessagesPage() {
                   onBlur={(e) => saveDraft(m.id, { body: e.target.value })}
                   disabled={m.status === "sent"}
                   rows={7}
-                  className="px-4 py-2 bg-transparent text-[13px] text-ink-soft leading-relaxed resize-y flex-1 focus:outline-none disabled:opacity-70"
+                  className="px-4 py-2 bg-transparent text-[13px] text-foreground/80 leading-relaxed resize-y flex-1 focus:outline-none disabled:opacity-70"
                 />
-                <div className="flex items-center gap-2 px-4 py-2.5 border-t border-line-soft bg-surface-2/40">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-t border-border/60 bg-muted/40">
                   <button onClick={() => navigator.clipboard.writeText(m.body ?? "")}
                     className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11.5px] font-medium cursor-pointer">Copy</button>
                   {m.status !== "sent" && (
                     <button onClick={() => markSent(m)} disabled={sendingId === m.id}
-                      className="h-7 px-3 rounded-full border border-line-strong bg-surface hover:bg-surface-3 disabled:opacity-60 text-[11.5px] font-medium text-ink-soft cursor-pointer">
+                      className="h-7 px-3 rounded-full border border-border-strong bg-card hover:bg-accent disabled:opacity-60 text-[11.5px] font-medium text-foreground/80 cursor-pointer">
                       {sendingId === m.id ? "Saving…" : "Mark sent"}
                     </button>
                   )}

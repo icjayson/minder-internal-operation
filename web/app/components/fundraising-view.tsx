@@ -101,13 +101,13 @@ export function FundraisingView({ track }: { track: FundraisingTrack }) {
         </div>
 
         {!rows ? (
-          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading {meta.label.toLowerCase()}…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading {meta.label.toLowerCase()}…</div>
         ) : rows.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface/50 px-8 py-16 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 px-8 py-16 text-center">
             <div className="text-lg font-display mb-2">
               {track === "investor" ? "No investors yet" : "No competitions or programmes yet"}
             </div>
-            <p className="text-sm text-ink-soft max-w-md mx-auto">
+            <p className="text-sm text-foreground/80 max-w-md mx-auto">
               {track === "investor"
                 ? "Add the angels, VCs, accelerators and family offices you’re raising from."
                 : "Add the grants, competitions, awards, credits and programmes you’re pursuing."}

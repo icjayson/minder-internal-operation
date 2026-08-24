@@ -229,7 +229,7 @@ function MapCanvasInner({
     >
       <Panel position="top-right">
         <button onClick={resetLayout}
-          className="h-8 px-3 rounded-full border border-line-strong bg-surface hover:bg-surface-3 text-[11.5px] font-medium text-ink-soft hover:text-ink cursor-pointer shadow-drawer">
+          className="h-8 px-3 rounded-full border border-border-strong bg-card hover:bg-accent text-[11.5px] font-medium text-foreground/80 hover:text-foreground cursor-pointer shadow-mo-elevated">
           Reset layout
         </button>
       </Panel>
@@ -248,33 +248,33 @@ function EntityNode({ data }: NodeProps) {
   const d = data as NodeData;
   const isRoot = d.kind === "root";
   const border =
-    d.kind === "network" ? "border-l-primary" : d.kind === "contact" ? "border-l-[color:var(--color-primary-deep)]" : "border-l-line-strong";
+    d.kind === "network" ? "border-l-primary" : d.kind === "contact" ? "border-l-[color:var(--mo-primary-800)]" : "border-l-border-strong";
 
   return (
     <div
-      className={`relative rounded-lg border border-line bg-surface shadow-drawer px-3 py-2 min-w-[230px] max-w-[320px] cursor-grab active:cursor-grabbing hover:border-line-strong ${
-        isRoot ? "border-dashed bg-surface-2/60" : `border-l-[3px] ${border}`
+      className={`relative rounded-lg border border-border bg-card shadow-mo-elevated px-3 py-2 min-w-[230px] max-w-[320px] cursor-grab active:cursor-grabbing hover:border-border-strong ${
+        isRoot ? "border-dashed bg-muted/60" : `border-l-[3px] ${border}`
       }`}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
 
       {d.alert && (
-        <span title="Open alert" className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[color:var(--color-warn)] ring-2 ring-canvas" />
+        <span title="Open alert" className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[color:var(--color-warn)] ring-2 ring-background" />
       )}
 
       {/* Row 1: kind (+ target) · status */}
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[9px] mono uppercase tracking-[0.12em] text-muted-foreground">{d.kind}</span>
-          {d.target && <span className="text-[8px] mono uppercase tracking-wider text-primary shrink-0">target</span>}
+          <span className="text-[9px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground">{d.kind}</span>
+          {d.target && <span className="text-[8px] tabular-nums uppercase tracking-wider text-primary shrink-0">target</span>}
         </span>
         {d.stage && <span className="shrink-0"><StagePill stage={d.stage} /></span>}
       </div>
 
       {/* Row 2: full name (no truncation) · location */}
       <div className="flex items-start justify-between gap-2.5 mt-1">
-        <div className="flex-1 min-w-0 text-[13px] font-medium text-ink leading-snug break-words">{d.label}</div>
+        <div className="flex-1 min-w-0 text-[13px] font-medium text-foreground leading-snug break-words">{d.label}</div>
         {d.sub && (
           <div className="shrink-0 max-w-[44%] text-[10.5px] text-muted-foreground text-right leading-snug break-words">{d.sub}</div>
         )}

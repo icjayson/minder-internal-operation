@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
       </PageHeader>
       <div className="px-8 py-5">
         {!a ? (
-          <div className="py-20 text-center text-muted-foreground text-sm mono uppercase tracking-wider">Loading…</div>
+          <div className="py-20 text-center text-muted-foreground text-sm tabular-nums uppercase tracking-wider">Loading…</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card title="Factory stage funnel"><Bars data={a.factoryStages} color="var(--color-primary)" /></Card>
@@ -80,28 +80,28 @@ export default function AnalyticsPage() {
             <Card title="By vertical"><Bars data={a.byVertical} color="var(--color-violet)" /></Card>
             <Card title="Relationship ladder"><Bars data={a.ladder} color="var(--color-primary)" /></Card>
             <Card title="Evidence ladder"><Bars data={a.evidence} color="var(--color-info)" /></Card>
-            <div className="lg:col-span-2 rounded-lg border border-line bg-surface overflow-hidden">
-              <div className="px-5 py-3 border-b border-line">
-                <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">Per-vertical drill-down</h3>
+            <div className="lg:col-span-2 rounded-lg border border-border bg-card overflow-hidden">
+              <div className="px-5 py-3 border-b border-border">
+                <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">Per-vertical drill-down</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="bg-surface-2/40 text-muted-foreground">
+                    <tr className="bg-muted/40 text-muted-foreground">
                       {["Vertical", "Factories", "Contacts", "A-grade", "Avg score", "L7 partners"].map((header) => (
-                        <th key={header} className="px-4 py-2 text-left mono uppercase tracking-wider text-[9px]">{header}</th>
+                        <th key={header} className="px-4 py-2 text-left tabular-nums uppercase tracking-wider text-[9px]">{header}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {a.verticalDetail.map((row) => (
-                      <tr key={row.id} className="border-t border-line-soft">
-                        <td className="px-4 py-2.5 text-ink">{row.label}</td>
-                        <td className="px-4 py-2.5 mono text-ink-soft">{row.factories}</td>
-                        <td className="px-4 py-2.5 mono text-ink-soft">{row.contacts}</td>
-                        <td className="px-4 py-2.5 mono text-ink-soft">{row.aGrade}</td>
-                        <td className="px-4 py-2.5 mono text-ink-soft">{row.avgScore ?? "—"}</td>
-                        <td className="px-4 py-2.5 mono text-primary">{row.activePartners}</td>
+                      <tr key={row.id} className="border-t border-border/60">
+                        <td className="px-4 py-2.5 text-foreground">{row.label}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.factories}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.contacts}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.aGrade}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground/80">{row.avgScore ?? "—"}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-primary">{row.activePartners}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -117,8 +117,8 @@ export default function AnalyticsPage() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-5">
-      <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground mb-4">{title}</h3>
+    <div className="rounded-lg border border-border bg-card p-5">
+      <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground mb-4">{title}</h3>
       <div className="space-y-2">{children}</div>
     </div>
   );
@@ -130,11 +130,11 @@ function Bars({ data, color }: { data: { label: string; value: number }[]; color
     <>
       {data.map((d) => (
         <div key={d.label} className="flex items-center gap-3">
-          <span className="w-28 shrink-0 text-right text-[11px] text-ink-soft truncate">{d.label}</span>
-          <div className="flex-1 h-5 rounded-sm bg-surface-2 overflow-hidden">
+          <span className="w-28 shrink-0 text-right text-[11px] text-foreground/80 truncate">{d.label}</span>
+          <div className="flex-1 h-5 rounded-sm bg-muted overflow-hidden">
             <div className="h-full rounded-sm" style={{ width: `${(d.value / max) * 100}%`, background: d.value > 0 ? color : "transparent" }} />
           </div>
-          <span className="w-8 shrink-0 text-right mono text-[12px] tabular-nums text-ink">{d.value}</span>
+          <span className="w-8 shrink-0 text-right tabular-nums text-[12px] tabular-nums text-foreground">{d.value}</span>
         </div>
       ))}
     </>

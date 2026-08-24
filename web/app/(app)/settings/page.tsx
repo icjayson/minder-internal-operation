@@ -38,7 +38,7 @@ export default function SettingsPage() {
             </Link>
           }
         >
-          <p className="text-[12px] text-ink-soft">
+          <p className="text-[12px] text-foreground/80">
             Product truth, design-partner profile, scoring rubrics, writing guardrails and uploaded shared files
             now live in one editable context layer.
           </p>
@@ -55,8 +55,8 @@ export default function SettingsPage() {
         <Card title="Alerts" action={manualScanEnabled ? (
           <button onClick={runScan} className="h-7 px-3 rounded-full bg-primary hover:bg-[#3a51ff] text-white text-[11px] font-medium cursor-pointer">Run scan now</button>
         ) : undefined}>
-          <p className="text-[12px] text-ink-soft">Flags anything in Replied → Demo with no update in 3+ days (auto-clears when you act), attaches an AI recap, and pushes one Discord embed per entity (set <code className="mono">DISCORD_WEBHOOK_URL</code>; deep links use <code className="mono">APP_URL</code>). Optional email digest via <code className="mono">RESEND_API_KEY</code> + <code className="mono">ALERT_EMAIL_TO</code>. Vercel Cron hits this daily.</p>
-          {scan && <p className="mt-2 text-[12px] text-primary mono">{scan}</p>}
+          <p className="text-[12px] text-foreground/80">Flags anything in Replied → Demo with no update in 3+ days (auto-clears when you act), attaches an AI recap, and pushes one Discord embed per entity (set <code className="tabular-nums">DISCORD_WEBHOOK_URL</code>; deep links use <code className="tabular-nums">APP_URL</code>). Optional email digest via <code className="tabular-nums">RESEND_API_KEY</code> + <code className="tabular-nums">ALERT_EMAIL_TO</code>. Vercel Cron hits this daily.</p>
+          {scan && <p className="mt-2 text-[12px] text-primary tabular-nums">{scan}</p>}
         </Card>
       </div>
     </>
@@ -65,9 +65,9 @@ export default function SettingsPage() {
 
 function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-line bg-surface p-5">
+    <section className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] mono uppercase tracking-[0.14em] text-muted-foreground">{title}</h3>
+        <h3 className="text-[10px] tabular-nums uppercase tracking-[0.14em] text-muted-foreground">{title}</h3>
         {action}
       </div>
       {children}
@@ -76,9 +76,9 @@ function Card({ title, action, children }: { title: string; action?: React.React
 }
 function Row({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-line-soft last:border-0">
-      <span className="text-[10px] mono uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
-      <span className="text-[13px] text-ink mono">{value}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-border/60 last:border-0">
+      <span className="text-[10px] tabular-nums uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+      <span className="text-[13px] text-foreground tabular-nums">{value}</span>
     </div>
   );
 }
