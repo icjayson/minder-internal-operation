@@ -28,6 +28,7 @@ Factory → contact → outreach-sequence tracker for **Minder AI** design-partn
 ## First-run test plan
 
 1. **Trackers** — `/factories` and `/contacts` both show the stage chevrons, metric cards, search and table layout.
+1. **To-dos** — `/todos` needs migrations `039_todos.sql` (which also creates the `todo-files` storage bucket) and `040_todo_link.sql`. Four views (All, Today, Upcoming, Overdue) plus projects, each as a list or a TO-DO / DONE board. “Add task…” (or `N`) opens the setup panel; nothing is written until Save. A task is a title, description, due date, priority, project and optional link; a link renders as a button on the card. Kanban drag moves a card between TO-DO and DONE. Completed work is never hidden: both views bucket it as “Done this week · Sep 14 – 20”, then per earlier week, then “Done in August”, then “Done in 2025”.
 2. **Contact-first create** — on `/contacts`, create a contact against an existing factory or create its factory inline. Confirm the Factory contact count updates through realtime.
 3. **Factory drawer** — edit profile/pipeline, score against the IDP rubric, generate a deterministic next action, manage multiple contacts, and inspect the activity/evidence timeline.
 4. **Sequences** — edit D1/D4/D9/D15/D21 templates, generate a personalized preview for a contact, then edit/copy/mark sent in `/messages`.
@@ -108,6 +109,8 @@ production domain is assigned to that deployment.
 - No authentication — single-user mode still uses allow-all RLS. Do not load sensitive contact data or invite teammates until Supabase Auth and restrictive policies are added.
 - The Chrome extension still writes the legacy `leads` model and needs a separate Factory/Contact migration.
 - External enrichment and two-way email/LinkedIn automation remain out of scope for v1.
+- The to-do tracker is deliberately standalone: it does not link to factories, contacts or deployments, and it does not replace `factory_work_items` / `fundraising_work_items` / `fde_deployment_tasks`. Calendar layout, comments, saved filters and reminders are not built.
+- `039_todos.sql` still provisions labels, sections, comments, saved views and the subtask/recurrence/start-date/someday columns. The UI was deliberately cut back below that, so those are unused — left in place because re-enabling one is a UI change rather than a migration.
 
 ## License
 

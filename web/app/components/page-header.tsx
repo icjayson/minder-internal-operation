@@ -2,21 +2,31 @@
 // top of every route. `children` renders inside the header (chevrons, stat
 // cards); `right` renders the top-right meta line.
 
+import { cn } from "@/design-system/lib/utils";
+
 export function PageHeader({
   eyebrow,
   title,
   subtitle,
   right,
+  bordered = true,
   children,
 }: {
   eyebrow: string;
   title: string;
   subtitle?: React.ReactNode;
   right?: React.ReactNode;
+  /** The rule under the header. Off where the page needs no seam. */
+  bordered?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-border px-4 pb-4 pt-5 sm:px-6 sm:pt-7 lg:px-8">
+    <header
+      className={cn(
+        "px-4 pb-4 pt-5 sm:px-6 sm:pt-7 lg:px-8",
+        bordered && "border-b border-border",
+      )}
+    >
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1 text-[11px] tabular-nums uppercase tracking-[0.14em] text-primary">

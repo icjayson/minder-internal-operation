@@ -17,10 +17,13 @@ export function SearchInput({
   value,
   onChange,
   placeholder = "Search…",
+  ref,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  /** For the pages that focus search from a keyboard shortcut. */
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <InputGroup>
@@ -28,6 +31,7 @@ export function SearchInput({
         <SearchIcon />
       </InputGroupAddon>
       <InputGroupInput
+        ref={ref}
         type="search"
         placeholder={placeholder}
         value={value}

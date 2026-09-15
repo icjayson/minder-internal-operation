@@ -28,6 +28,7 @@ import {
 } from "@/design-system/components/sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { useStore } from "@/lib/factories-store";
+import { useTodoDueCount } from "@/lib/todos-store";
 import { STAGE_RANK } from "@/lib/stage";
 
 const NAV: { href: string; label: string; icon: React.ReactNode }[] = [
@@ -277,6 +278,9 @@ export function Sidebar() {
   const pathname = usePathname() ?? "/";
   const { notifications, factories, networks, fundraisingLeads } = useStore();
   const unread = (notifications ?? []).filter((n) => !n.read_at).length;
+  // Todos are not in the global store — the route owns them — so the badge is
+  // its own cheap count query rather than a second platform-wide subscription.
+  const todosDue = useTodoDueCount();
 
   // Right-aligned nav counts.
   const repliedOnwards = STAGE_RANK["Replied"];
@@ -333,6 +337,22 @@ export function Sidebar() {
               {lead.map((item) => (
                 <NavLink key={item.href} {...item} pathname={pathname} />
               ))}
+
+              {/* The personal task tracker. It sits first because it is the
+                  page you open to decide what to do, before any tracker. */}
+              <NavLink
+                href="/todos"
+                label="To-dos"
+                pathname={pathname}
+                count={todosDue}
+                icon={
+                  <>
+                    <rect x="3.5" y="4" width="17" height="16.5" rx="2.5" strokeWidth="1.5" />
+                    <path d="m7.5 9.5 1.8 1.8 3.2-3.4M7.5 15.5l1.8 1.8 3.2-3.4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15 10h2.5M15 16h2.5" strokeWidth="1.4" strokeLinecap="round" />
+                  </>
+                }
+              />
 
               <NavLink
                 href="/customers"
