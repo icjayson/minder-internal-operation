@@ -1,8 +1,8 @@
 "use client";
 
-// The Kanban view: two columns, TO-DO and DONE. Dragging a card across sets
-// its status — that is the only thing a column move means here, so there is no
-// separate "column" concept to store.
+// The Kanban view: three columns, TO-DO, PENDING and DONE. Dragging a card
+// across sets its status — that is the only thing a column move means here, so
+// there is no separate "column" concept to store.
 
 import { useState } from "react";
 
@@ -15,12 +15,15 @@ import { TodoCard } from "./todo-card";
 
 export function TodoBoard({
   open,
+  pending,
   doneGroups,
   today,
   showProject = true,
   onOpen,
 }: {
   open: Todo[];
+  /** Live work that is waiting on someone or something. */
+  pending: Todo[];
   /** Completed work, bucketed by age — rendered as headings in the column. */
   doneGroups: TodoGroup[];
   today: string;
@@ -37,7 +40,7 @@ export function TodoBoard({
     key: TodoStatus;
     title: string;
     count: number;
-    /** One unlabelled group for TO-DO; the age buckets for DONE. */
+    /** One unlabelled group for TO-DO and PENDING; the age buckets for DONE. */
     groups: TodoGroup[];
     rail: string;
     empty: string;
@@ -51,6 +54,14 @@ export function TodoBoard({
       empty: "Nothing to do here",
     },
     {
+      key: "pending",
+      title: "Pending",
+      count: pending.length,
+      groups: [{ key: "pending", label: "", todos: [...pending].sort(compareTodos) }],
+      rail: "bg-warning",
+      empty: "Nothing waiting on anyone",
+    },
+    {
       key: "done",
       title: "Done",
       count: doneCount,
@@ -61,7 +72,7 @@ export function TodoBoard({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-3">
       {columns.map((column) => (
         <section
           key={column.key}

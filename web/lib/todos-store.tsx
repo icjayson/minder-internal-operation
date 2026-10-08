@@ -24,7 +24,13 @@ import { toast } from "sonner";
 import { supabase } from "./supabase";
 import { deleteTodoWithFiles } from "./todo-files";
 import { nextOrder } from "./todo-order";
-import { toIsoDate, type Todo, type TodoProject } from "./todo-types";
+import {
+  isFinished,
+  statusPatch,
+  toIsoDate,
+  type Todo,
+  type TodoProject,
+} from "./todo-types";
 
 /** The columns the app reads. The table carries a few it no longer uses. */
 const TODO_COLUMNS =
@@ -57,6 +63,7 @@ export type NewTodoInput = {
   priority: Todo["priority"];
   link: string | null;
   project_id: string | null;
+  status: Todo["status"];
 };
 
 const TodosContext = createContext<Ctx | null>(null);
@@ -164,6 +171,7 @@ export function TodosProvider({ children }: { children: React.ReactNode }) {
           // other views are date-driven — so it lands on today by default.
           due_on: input.due_on ?? toIsoDate(new Date()),
           link: input.link,
+          ...statusPatch(input.status),
           sort_order: nextOrder(siblings.map((t) => t.sort_order)),
         })
         .select(TODO_COLUMNS)
@@ -195,17 +203,14 @@ export function TodosProvider({ children }: { children: React.ReactNode }) {
   const setStatus = useCallback<Ctx["setStatus"]>(
     async (todo, status) => {
       if (todo.status === status) return;
-      await updateTodo(todo.id, {
-        status,
-        completed_at: status === "open" ? null : new Date().toISOString(),
-      });
+      await updateTodo(todo.id, statusPatch(status));
     },
     [updateTodo],
   );
 
   const toggleComplete = useCallback<Ctx["toggleComplete"]>(
     async (todo) => {
-      if (todo.status !== "open") {
+      if (isFinished(todo.status)) {
         await setStatus(todo, "open");
         return;
       }
@@ -216,7 +221,8 @@ export function TodosProvider({ children }: { children: React.ReactNode }) {
         action: {
           label: "Undo",
           onClick: () => {
-            void updateTodo(todo.id, { status: "open", completed_at: null });
+            // Back to where it was — a pending task returns to pending.
+            void updateTodo(todo.id, statusPatch(todo.status));
           },
         },
       });
@@ -334,7 +340,7 @@ export function useTodoDueCount(): number {
       const { count: rows } = await supabase()
         .from("todos")
         .select("id", { count: "exact", head: true })
-        .eq("status", "open")
+        .in("status", ["open", "pending"])
         .lte("due_on", toIsoDate(new Date()));
       if (!cancelled) setCount(rows ?? 0);
     }

@@ -22,7 +22,7 @@ import { Input } from "@/design-system/components/input";
 import { Separator } from "@/design-system/components/separator";
 import { cn } from "@/design-system/lib/utils";
 import { matchesSmartView } from "@/lib/todo-query";
-import { SMART_VIEWS, colorMeta, type SmartView } from "@/lib/todo-types";
+import { SMART_VIEWS, colorMeta, isActive, type SmartView } from "@/lib/todo-types";
 import { useTodos } from "@/lib/todos-store";
 
 export function TodoRail({
@@ -116,7 +116,7 @@ export function TodoRail({
           <ul className="space-y-0.5">
             {(projects ?? []).map((project) => {
               const count = all.filter(
-                (t) => t.project_id === project.id && t.status === "open",
+                (t) => t.project_id === project.id && isActive(t.status),
               ).length;
               const active = projectId === project.id;
               return (

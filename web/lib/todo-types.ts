@@ -4,9 +4,35 @@
 //
 // Deliberately small: a task is a title, a description, a due date, a priority
 // and an optional link. Four views (All, Today, Upcoming, Overdue) plus
-// projects, each shown as a list or as a TO-DO / DONE board.
+// projects, each shown as a list or as a TO-DO / PENDING / DONE board.
 
-export type TodoStatus = "open" | "done" | "cancelled";
+/**
+ * `pending` is live work that is waiting on someone or something. It is not
+ * finished — it shows in the date views like `open` — but it gets its own
+ * board column and list section. `cancelled` is in the DB but not the UI.
+ */
+export type TodoStatus = "open" | "pending" | "done" | "cancelled";
+
+/** The statuses the UI offers, in board order. */
+export const TODO_STATUSES: { value: TodoStatus; label: string }[] = [
+  { value: "open", label: "To-do" },
+  { value: "pending", label: "Pending" },
+  { value: "done", label: "Done" },
+];
+
+export function isFinished(status: TodoStatus): boolean {
+  return status === "done" || status === "cancelled";
+}
+
+/** Open or pending — anything that still needs to happen. */
+export function isActive(status: TodoStatus): boolean {
+  return !isFinished(status);
+}
+
+/** The row patch for a status change. completed_at follows status. */
+export function statusPatch(status: TodoStatus): Pick<Todo, "status" | "completed_at"> {
+  return { status, completed_at: isFinished(status) ? new Date().toISOString() : null };
+}
 
 /** P1 (urgent) … P4 (none). Matches the DB check constraint. */
 export type TodoPriority = 1 | 2 | 3 | 4;
@@ -44,7 +70,7 @@ export function colorMeta(key: string | null | undefined) {
 }
 
 // ── Views ───────────────────────────────────────────────────────────────────
-// Four lenses over the same open tasks. Everything else is a project.
+// Four lenses over the same unfinished (open + pending) tasks. Everything else is a project.
 export const SMART_VIEWS = [
   { key: "all", label: "All", hint: "Every open task" },
   { key: "today", label: "Today", hint: "Due today, plus anything overdue" },
@@ -58,7 +84,7 @@ export function isSmartView(value: string | null | undefined): value is SmartVie
   return SMART_VIEWS.some((v) => v.key === value);
 }
 
-/** List or board. The board is two columns: TO-DO and DONE. */
+/** List or board. The board is three columns: TO-DO, PENDING and DONE. */
 export type TodoLayout = "list" | "board";
 
 export function isLayout(value: string | null | undefined): value is TodoLayout {

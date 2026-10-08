@@ -10,7 +10,14 @@ import {
   startOfWeek,
   matchesSmartView,
 } from "../lib/todo-query.ts";
-import { safeLink, linkLabel, type Todo } from "../lib/todo-types.ts";
+import {
+  isActive,
+  isFinished,
+  linkLabel,
+  safeLink,
+  statusPatch,
+  type Todo,
+} from "../lib/todo-types.ts";
 
 const TODAY = "2026-09-17";
 
@@ -73,6 +80,37 @@ test("a completed task is in no open view", () => {
   for (const view of ["all", "today", "upcoming", "overdue"] as const) {
     assert.equal(matchesSmartView(done, view, TODAY), false, view);
   }
+});
+
+test("a pending task is still unfinished, so every view still sees it", () => {
+  // Waiting on someone does not stop a deadline from arriving.
+  assert.equal(matchesSmartView(todo({ status: "pending", due_on: null }), "all", TODAY), true);
+  assert.equal(matchesSmartView(todo({ status: "pending", due_on: TODAY }), "today", TODAY), true);
+  assert.equal(
+    matchesSmartView(todo({ status: "pending", due_on: "2026-09-10" }), "overdue", TODAY),
+    true,
+  );
+  assert.equal(
+    matchesSmartView(todo({ status: "pending", due_on: "2026-09-20" }), "upcoming", TODAY),
+    true,
+  );
+  assert.equal(matchesSmartView(todo({ status: "cancelled" }), "all", TODAY), false);
+});
+
+test("a pending task past its date is still flagged overdue", () => {
+  assert.equal(
+    describeDue(todo({ status: "pending", due_on: "2026-09-14" }), TODAY)?.tone,
+    "overdue",
+  );
+});
+
+test("statusPatch stamps completed_at only for finished statuses", () => {
+  assert.equal(statusPatch("open").completed_at, null);
+  assert.equal(statusPatch("pending").completed_at, null);
+  assert.ok(statusPatch("done").completed_at);
+  assert.ok(statusPatch("cancelled").completed_at);
+  assert.equal(isActive("pending"), true);
+  assert.equal(isFinished("pending"), false);
 });
 
 test("describeDue wording and tone", () => {

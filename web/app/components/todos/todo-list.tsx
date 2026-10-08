@@ -13,13 +13,14 @@ import {
 } from "@/design-system/components/empty";
 import { cn } from "@/design-system/lib/utils";
 import { orderForIndex } from "@/lib/todo-order";
-import type { TodoGroup } from "@/lib/todo-query";
-import { addDays, type Todo, type TodoPriority } from "@/lib/todo-types";
+import { compareTodos, type TodoGroup } from "@/lib/todo-query";
+import { addDays, isFinished, type Todo, type TodoPriority } from "@/lib/todo-types";
 import { useTodos } from "@/lib/todos-store";
 import { TodoCard } from "./todo-card";
 
 export function TodoList({
   groups,
+  pending = [],
   doneGroups = [],
   today,
   showProject = true,
@@ -31,6 +32,8 @@ export function TodoList({
   onFocusChange,
 }: {
   groups: TodoGroup[];
+  /** Live work waiting on someone, shown as its own section below the open groups. */
+  pending?: Todo[];
   /** Completed work, bucketed by age and pinned below the open groups. */
   doneGroups?: TodoGroup[];
   today: string;
@@ -43,12 +46,20 @@ export function TodoList({
   focusedId: string | null;
   onFocusChange: (id: string | null) => void;
 }) {
-  const { toggleComplete, updateTodo, moveTodo } = useTodos();
+  const { toggleComplete, setStatus, updateTodo, moveTodo } = useTodos();
   const [dragging, setDragging] = useState<string | null>(null);
 
+  const pendingGroups = useMemo<TodoGroup[]>(
+    () =>
+      pending.length
+        ? [{ key: "pending", label: "Pending", todos: [...pending].sort(compareTodos) }]
+        : [],
+    [pending],
+  );
+
   const flat = useMemo(
-    () => [...groups, ...doneGroups].flatMap((group) => group.todos),
-    [groups, doneGroups],
+    () => [...groups, ...pendingGroups, ...doneGroups].flatMap((group) => group.todos),
+    [groups, pendingGroups, doneGroups],
   );
 
   // Keep the handler reading current values without re-binding every render.
@@ -115,6 +126,13 @@ export function TodoList({
           event.preventDefault();
           void toggleComplete(todo);
           break;
+        case "p":
+          // The list has no columns to drag between, so this is how a task
+          // moves in and out of Pending here.
+          if (isFinished(todo.status)) break;
+          event.preventDefault();
+          void setStatus(todo, todo.status === "pending" ? "open" : "pending");
+          break;
         case "1":
         case "2":
         case "3":
@@ -139,7 +157,7 @@ export function TodoList({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [move, onFocusChange, onOpen, toggleComplete, updateTodo, today]);
+  }, [move, onFocusChange, onOpen, toggleComplete, setStatus, updateTodo, today]);
 
   /**
    * Drop `dragging` where `targetId` sits.
@@ -176,8 +194,11 @@ export function TodoList({
         </Empty>
       )}
 
-      {groups.map((group) => (
-        <section key={group.key} className="space-y-2">
+      {[...groups, ...pendingGroups].map((group) => (
+        <section
+          key={group.key}
+          className={cn("space-y-2", group.key === "pending" && "border-t border-border pt-5")}
+        >
           {group.label && (
             <h2 className="flex items-center gap-2 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
               {group.label}

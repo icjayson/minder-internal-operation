@@ -11,7 +11,14 @@ import { Checkbox } from "@/design-system/components/checkbox";
 import { Item, ItemContent, ItemMedia } from "@/design-system/components/item";
 import { cn } from "@/design-system/lib/utils";
 import { DUE_TONES, describeDue } from "@/lib/todo-query";
-import { colorMeta, linkLabel, priorityMeta, safeLink, type Todo } from "@/lib/todo-types";
+import {
+  colorMeta,
+  isFinished,
+  linkLabel,
+  priorityMeta,
+  safeLink,
+  type Todo,
+} from "@/lib/todo-types";
 import { useTodos } from "@/lib/todos-store";
 
 export function TodoCard({
@@ -35,7 +42,7 @@ export function TodoCard({
 }) {
   const { toggleComplete, projects } = useTodos();
 
-  const done = todo.status !== "open";
+  const done = isFinished(todo.status);
   const due = describeDue(todo, today);
   const priority = priorityMeta(todo.priority);
   const project = (projects ?? []).find((p) => p.id === todo.project_id);

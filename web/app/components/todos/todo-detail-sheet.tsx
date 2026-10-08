@@ -1,6 +1,6 @@
 "use client";
 
-// The setup panel: title, description, due date, priority, project, link.
+// The setup panel: title, description, due date, priority, status, project, link.
 //
 // It is a real form rather than a set of autosaving controls — every field is
 // local state and nothing reaches the database until Save. That is what makes
@@ -42,7 +42,16 @@ import { Textarea } from "@/design-system/components/textarea";
 import { cn } from "@/design-system/lib/utils";
 import { DateField } from "@/app/components/date-field";
 import { SelectField } from "@/app/components/select-field";
-import { PRIORITIES, safeLink, type Todo, type TodoPriority } from "@/lib/todo-types";
+import {
+  PRIORITIES,
+  TODO_STATUSES,
+  isFinished,
+  safeLink,
+  statusPatch,
+  type Todo,
+  type TodoPriority,
+  type TodoStatus,
+} from "@/lib/todo-types";
 import { useTodos } from "@/lib/todos-store";
 import { TodoAttachments } from "./todo-attachments";
 
@@ -54,6 +63,7 @@ export type TodoDraft = {
   priority: TodoPriority;
   project_id: string | null;
   link: string;
+  status: TodoStatus;
 };
 
 export const EMPTY_DRAFT: TodoDraft = {
@@ -63,6 +73,7 @@ export const EMPTY_DRAFT: TodoDraft = {
   priority: 4,
   project_id: null,
   link: "",
+  status: "open",
 };
 
 function draftOf(todo: Todo): TodoDraft {
@@ -73,6 +84,7 @@ function draftOf(todo: Todo): TodoDraft {
     priority: todo.priority,
     project_id: todo.project_id,
     link: todo.link ?? "",
+    status: todo.status,
   };
 }
 
@@ -117,7 +129,7 @@ export function TodoDetailSheet({
 
   if (!todo && !initialDraft) return null;
 
-  const done = todo != null && todo.status !== "open";
+  const done = todo != null && isFinished(todo.status);
   const href = safeLink(form.link);
   // Only flag a bad link once something has actually been typed.
   const linkInvalid = form.link.trim().length > 0 && href == null;
@@ -147,6 +159,7 @@ export function TodoDetailSheet({
           priority: form.priority,
           link,
           project_id: form.project_id,
+          status: form.status,
         });
         if (!created) return;
         toast.success(`Added “${title}”`);
@@ -162,6 +175,8 @@ export function TodoDetailSheet({
         priority: form.priority,
         link,
         project_id: form.project_id,
+        // Only a real change re-stamps completed_at.
+        ...(form.status !== todo!.status ? statusPatch(form.status) : {}),
       });
       toast.success("Saved");
       onClose();
@@ -186,7 +201,12 @@ export function TodoDetailSheet({
                 <Checkbox
                   checked={done}
                   aria-label={done ? "Reopen task" : "Complete task"}
-                  onCheckedChange={() => void toggleComplete(todo)}
+                  onCheckedChange={() => {
+                    // The checkbox commits straight away, so the form follows
+                    // it rather than reading as an unsaved status change.
+                    set("status", done ? "open" : "done");
+                    void toggleComplete(todo);
+                  }}
                   className="mt-1 size-[18px] rounded-full"
                 />
               )}
@@ -213,8 +233,8 @@ export function TodoDetailSheet({
               />
             </div>
             <SheetDescription className="sr-only">
-              Set this task's description, due date, priority, project and link,
-              then save.
+              Set this task's description, due date, priority, status, project
+              and link, then save.
             </SheetDescription>
           </SheetHeader>
 
@@ -249,15 +269,25 @@ export function TodoDetailSheet({
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">Project</Label>
-              <SelectField
-                value={form.project_id}
-                onChange={(value) => set("project_id", value || null)}
-                options={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))}
-                emptyLabel="No project"
-                placeholder="No project"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground">Status</Label>
+                <SelectField
+                  value={form.status === "cancelled" ? "done" : form.status}
+                  onChange={(value) => set("status", value as TodoStatus)}
+                  options={TODO_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground">Project</Label>
+                <SelectField
+                  value={form.project_id}
+                  onChange={(value) => set("project_id", value || null)}
+                  options={(projects ?? []).map((p) => ({ value: p.id, label: p.name }))}
+                  emptyLabel="No project"
+                  placeholder="No project"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">

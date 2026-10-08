@@ -28,6 +28,8 @@ import {
 } from "@/lib/todo-query";
 import {
   SMART_VIEWS,
+  isActive,
+  isFinished,
   isLayout,
   isSmartView,
   type SmartView,
@@ -90,7 +92,7 @@ function TodosInner() {
     setNewDraft({ ...EMPTY_DRAFT, project_id: projectId });
   }, [projectId]);
 
-  /** Everything in scope for the current lens, before the open/done split. */
+  /** Everything in scope for the current lens, before the status split. */
   const inScope = useMemo(() => {
     if (!todos) return [];
     const searched = todos.filter((t) => matchesSearch(t, search));
@@ -98,18 +100,28 @@ function TodosInner() {
     return searched;
   }, [todos, search, projectId]);
 
-  const openTasks = useMemo(
+  // Open and pending together: both are unfinished, so both answer the lens.
+  // They split only for display — their own board column and list section.
+  const activeTasks = useMemo(
     () =>
       projectId
-        ? inScope.filter((t) => t.status === "open").sort(compareTodos)
+        ? inScope.filter((t) => isActive(t.status)).sort(compareTodos)
         : inScope.filter((t) => matchesSmartView(t, view!, today)),
     [inScope, projectId, view, today],
+  );
+  const openTasks = useMemo(
+    () => activeTasks.filter((t) => t.status === "open"),
+    [activeTasks],
+  );
+  const pendingTasks = useMemo(
+    () => activeTasks.filter((t) => t.status === "pending"),
+    [activeTasks],
   );
 
   // Every completed task in scope — nothing is hidden by age. `doneBuckets`
   // groups them into this week / earlier weeks / months / years.
   const doneTasks = useMemo(
-    () => inScope.filter((t) => t.status !== "open"),
+    () => inScope.filter((t) => isFinished(t.status)),
     [inScope],
   );
 
@@ -151,7 +163,7 @@ function TodosInner() {
         bordered={false}
         right={
           <>
-            <span>{todos ? openTasks.length : "—"}</span>
+            <span>{todos ? activeTasks.length : "—"}</span>
             <span className="opacity-50">open</span>
           </>
         }
@@ -216,6 +228,7 @@ function TodosInner() {
             ) : layout === "board" ? (
               <TodoBoard
                 open={openTasks}
+                pending={pendingTasks}
                 doneGroups={doneSections}
                 today={today}
                 showProject={projectId == null}
@@ -224,6 +237,7 @@ function TodosInner() {
             ) : (
               <TodoList
                 groups={groups}
+                pending={pendingTasks}
                 doneGroups={doneSections}
                 today={today}
                 showProject={projectId == null}

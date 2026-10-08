@@ -4,6 +4,8 @@ import {
   addDays,
   daysBetween,
   fromIsoDate,
+  isActive,
+  isFinished,
   toIsoDate,
   type SmartView,
   type Todo,
@@ -24,7 +26,7 @@ export function describeDue(
   if (!date) return null;
 
   const dateLabel = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  if (todo.status !== "open") return { label: dateLabel, tone: "done" };
+  if (isFinished(todo.status)) return { label: dateLabel, tone: "done" };
 
   const days = daysBetween(today, todo.due_on);
   if (days == null) return { label: dateLabel, tone: "later" };
@@ -46,14 +48,15 @@ export const DUE_TONES: Record<DueTone, string> = {
 };
 
 /**
- * Does this open task belong in the given view?
+ * Does this unfinished task belong in the given view? Pending work counts:
+ * waiting on someone does not stop a deadline from arriving.
  *
  * `all` is the catch-all, and it is what keeps an undated task reachable: the
  * other three are date-driven, so without it a task with no due date and no
  * project would appear nowhere at all.
  */
 export function matchesSmartView(todo: Todo, view: SmartView, today: string): boolean {
-  if (todo.status !== "open") return false;
+  if (!isActive(todo.status)) return false;
 
   switch (view) {
     case "all":

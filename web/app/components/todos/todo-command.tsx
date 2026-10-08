@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/design-system/components/dialog";
 import { Kbd, KbdGroup } from "@/design-system/components/kbd";
-import { SMART_VIEWS, colorMeta, type SmartView, type Todo } from "@/lib/todo-types";
+import { SMART_VIEWS, colorMeta, isActive, type SmartView, type Todo } from "@/lib/todo-types";
 import { useTodos } from "@/lib/todos-store";
 
 const SHORTCUTS: { keys: string[]; label: string }[] = [
@@ -37,6 +37,7 @@ const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ["J", "K"], label: "Move focus down / up" },
   { keys: ["↵"], label: "Open the focused task" },
   { keys: ["Space"], label: "Complete the focused task" },
+  { keys: ["P"], label: "Move to / out of Pending" },
   { keys: ["1", "–", "4"], label: "Set priority" },
   { keys: ["T"], label: "Due today" },
   { keys: ["⇧", "T"], label: "Due tomorrow" },
@@ -133,9 +134,9 @@ export function TodoCommand({
     };
   }, [onSelectView, onFocusSearch, onNewTask]);
 
-  // Only open tasks are worth jumping to, and the list is capped so the
+  // Only unfinished tasks are worth jumping to, and the list is capped so the
   // palette stays fast on a large backlog.
-  const openTodos = (todos ?? []).filter((t) => t.status === "open").slice(0, 80);
+  const openTodos = (todos ?? []).filter((t) => isActive(t.status)).slice(0, 80);
 
   return (
     <>
